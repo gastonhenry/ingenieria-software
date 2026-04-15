@@ -1,6 +1,6 @@
 <Solution>
-  <Project Path="../BE/BE.csproj" Id="153ad040-eb5d-4333-9498-9ebf098223a7" />
-  <Project Path="../BLL/BLL.csproj" Id="6680b91b-d0c0-4901-a19e-122ff25039f7" />
-  <Project Path="DAL/DAL.csproj" Id="c6460172-5f4f-4b11-a4b7-1c43ee17c4cf" />
-  <Project Path="UI.vbproj" Id="89226683-b67d-4e6c-87bd-eb0a0d4e7872" />
+  <Project Path="BLL/BLL.csproj" Id="3e319520-54de-490c-b4bc-d2be22481384" />
+  <Project Path="DAL/DAL.csproj" Id="2d532ee8-db36-4b88-8585-1033f776bbf3" />
+  <Project Path="UI/UI.csproj" Id="0573d1da-e771-419e-9175-3713dafcf045" />
+  <Project Path="BE/BE.csproj" Id="b701a8e5-bbef-4566-94ba-12ec183e285d" />
 </Solution>
