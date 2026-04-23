@@ -30,7 +30,7 @@ namespace UI
                 bool ok = _usuarioService.Login(username, password);
                 if (ok)
                 {
-                    var principal = new FormPrincipal();
+                    var principal = new FormPrincipal(username);
                     principal.Show();
                     this.Hide();
                 }

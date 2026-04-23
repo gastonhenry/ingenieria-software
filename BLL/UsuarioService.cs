@@ -7,12 +7,12 @@ namespace BLL
     public class UsuarioService : IUsuarioService
     {
         private readonly MapperUsuario _mapperUsuario;
-        //private readonly MapperBitacoraSesion _mapperBitacoraSesion;
+        private readonly MapperBitacora _mapperBitacora;
 
         public UsuarioService()
         {
             _mapperUsuario = new MapperUsuario();
-            //_mapperBitacoraSesion = new MapperBitacoraSesion();
+            _mapperBitacora = new MapperBitacora();
         }
 
         public Usuario Obtener(string username)
@@ -29,8 +29,8 @@ namespace BLL
             Usuario usuario = _mapperUsuario.Login(username, password);
             if (usuario != null)
             {
-                //Sesion.Instancia.BitacoraSesion = new BitacoraSesion(usuario);
-                //Sesion.Instancia.BitacoraSesion.Id = _mapperBitacoraSesion.Insertar(Sesion.Instancia.BitacoraSesion);
+                SesionUsuario.GetInstancia().Bitacora = new Bitacora(usuario);
+                SesionUsuario.GetInstancia().Bitacora.Id = _mapperBitacora.Insertar(SesionUsuario.GetInstancia().Bitacora);
                 return true;
             }
 
@@ -39,12 +39,12 @@ namespace BLL
 
         public void Logout()
         {
-            //if (Sesion.Instancia.EstaAutenticado())
-            //{
-            //    Sesion.Instancia.BitacoraSesion.FechaHoraFin = DateTime.Now;
-            //    _mapperBitacoraSesion.Editar(Sesion.Instancia.BitacoraSesion);
-            //    Sesion.Instancia.Logout();
-            //}
+            if (SesionUsuario.GetInstancia().EstaAutenticado())
+            {
+                SesionUsuario.GetInstancia().Bitacora.FechaHoraFin = DateTime.Now;
+                _mapperBitacora.Editar(SesionUsuario.GetInstancia().Bitacora);
+                SesionUsuario.GetInstancia().Logout();
+            }
         }
 
         public bool Registro(Usuario user)

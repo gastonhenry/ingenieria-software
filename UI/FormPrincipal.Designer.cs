@@ -18,13 +18,15 @@ namespace UI
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.menuUsuarios = new System.Windows.Forms.ToolStripMenuItem();
             this.menuInsertarUsuario = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuLogout = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             //
             // menuStrip1
             //
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.menuUsuarios });
+                this.menuUsuarios,
+                this.menuLogout });
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(800, 24);
@@ -42,6 +44,12 @@ namespace UI
             this.menuInsertarUsuario.Name = "menuInsertarUsuario";
             this.menuInsertarUsuario.Text = "Insertar Usuario";
             this.menuInsertarUsuario.Click += new System.EventHandler(this.menuInsertarUsuario_Click);
+            //
+            // menuLogout
+            //
+            this.menuLogout.Name = "menuLogout";
+            this.menuLogout.Text = "Logout";
+            this.menuLogout.Click += new System.EventHandler(this.menuLogout_Click);
             //
             // FormPrincipal
             //
@@ -67,5 +75,6 @@ namespace UI
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem menuUsuarios;
         private System.Windows.Forms.ToolStripMenuItem menuInsertarUsuario;
+        private System.Windows.Forms.ToolStripMenuItem menuLogout;
     }
 }

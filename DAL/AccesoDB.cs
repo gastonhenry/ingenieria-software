@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BE;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -7,8 +8,21 @@ namespace DAL
 {
     public class AccesoDB
     {
+        private static AccesoDB _instancia = null;
+
         private SqlConnection conexion;
         private SqlTransaction transaccion;
+
+        public static AccesoDB GetInstancia()
+        {
+            if (_instancia == null)
+            {
+                _instancia = new AccesoDB();
+            }
+            return _instancia;
+        }
+
+        private AccesoDB() { }
 
         public void Abrir()
         {

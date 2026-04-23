@@ -33,7 +33,7 @@ namespace DAL
 
         public override int Insertar(Usuario obj)
         {
-            AccesoDB db = new AccesoDB();
+            AccesoDB db = AccesoDB.GetInstancia();
             int resultado = 0;
 
             try
@@ -65,7 +65,7 @@ namespace DAL
         public Usuario Obtener(string username)
         {
             Usuario usuario = null;
-            AccesoDB db = new AccesoDB();
+            AccesoDB db = AccesoDB.GetInstancia();
 
             try
             {
