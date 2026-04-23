@@ -3,14 +3,12 @@
     public class SesionUsuario
     {
         private static SesionUsuario _instancia = null;
-
-        private Bitacora bitacora;
-        public Bitacora Bitacora
+        private Usuario usuario;
+        public Usuario Usuario
         {
-            get { return bitacora; }
-            set { bitacora = value; }
+            get { return usuario; }
+            set { usuario = value; }
         }
-
         private SesionUsuario() { }
         public static SesionUsuario GetInstancia()
         {
@@ -23,7 +21,13 @@
 
         public bool EstaAutenticado()
         {
-            return _instancia != null && _instancia.Bitacora.Id > 0;
+            return _instancia != null && _instancia.Usuario != null;
+        }
+
+        public void Login(Usuario usuario)
+        {
+            _instancia = this;
+            _instancia.usuario = usuario;
         }
 
         public void Logout()

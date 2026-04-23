@@ -15,6 +15,7 @@ namespace DAL
             List<SqlParameter> parametros = new List<SqlParameter>
             {
                 db.CrearParametro("@UsuarioId", obj.Usuario.Id),
+                db.CrearParametro("@Tipo", (int)obj.Tipo),
             };
 
             int id = db.LeerEscalar("InsertarBitacora", parametros);

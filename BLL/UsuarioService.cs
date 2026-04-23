@@ -29,8 +29,9 @@ namespace BLL
             Usuario usuario = _mapperUsuario.Login(username, password);
             if (usuario != null)
             {
-                SesionUsuario.GetInstancia().Bitacora = new Bitacora(usuario);
-                SesionUsuario.GetInstancia().Bitacora.Id = _mapperBitacora.Insertar(SesionUsuario.GetInstancia().Bitacora);
+                SesionUsuario.GetInstancia().Login(usuario);
+                var bitacora = new Bitacora(usuario, BitacoraEnum.Login);
+                _mapperBitacora.Insertar(bitacora);
                 return true;
             }
 
@@ -41,8 +42,8 @@ namespace BLL
         {
             if (SesionUsuario.GetInstancia().EstaAutenticado())
             {
-                SesionUsuario.GetInstancia().Bitacora.FechaHoraFin = DateTime.Now;
-                _mapperBitacora.Editar(SesionUsuario.GetInstancia().Bitacora);
+                var bitacora = new Bitacora(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Logout);
+                _mapperBitacora.Insertar(bitacora);
                 SesionUsuario.GetInstancia().Logout();
             }
         }

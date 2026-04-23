@@ -23,9 +23,9 @@ GO
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Bitacora' AND xtype='U')
 CREATE TABLE [dbo].[Bitacora](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Tipo] [int],
 	[UsuarioId] [int] NOT NULL,
-	[FechaHoraInicio] [datetime] NOT NULL DEFAULT GETDATE(),
-	[FechaHoraFin] [datetime] NULL,
+	[FechaHora] [datetime] NOT NULL DEFAULT GETDATE(),
 	CONSTRAINT [PK_Bitacora] PRIMARY KEY CLUSTERED ([Id] ASC),
 	CONSTRAINT [FK_Bitacora_Usuario] FOREIGN KEY ([UsuarioId])
 		REFERENCES [dbo].[Usuario] ([Id])
@@ -46,29 +46,16 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE [dbo].[InsertarBitacora]
-    @UsuarioId INT
+    @UsuarioId INT,
+    @Tipo INT
 AS
 BEGIN
     SET NOCOUNT ON;
 
-	DELETE FROM Bitacora WHERE UsuarioId = @UsuarioId
-      AND FechaHoraFin IS NULL;
-
-    INSERT INTO Bitacora (UsuarioId, FechaHoraInicio)
-    VALUES (@UsuarioId, GETDATE());
+    INSERT INTO Bitacora (UsuarioId, Tipo, FechaHora)
+    VALUES (@UsuarioId, @Tipo,GETDATE());
 
     SELECT SCOPE_IDENTITY() AS Id;
-END
-GO
-
-CREATE OR ALTER PROCEDURE [dbo].[EditarBitacora]
-    @BitacoraId INT,
-	@FechaHoraFin DATETIME = NULL
-AS
-BEGIN
-    SET NOCOUNT OFF;
-
-    UPDATE Bitacora SET FechaHoraFin = @FechaHoraFin WHERE Id = @BitacoraId
 END
 GO
 
@@ -86,33 +73,6 @@ BEGIN
     VALUES (@Username, @Hash, @Salt, @Nombre, @Apellido);
 
     SELECT SCOPE_IDENTITY() AS Id;
-END
-GO
-
-CREATE OR ALTER PROCEDURE [dbo].[InsertarBitacora]
-    @UsuarioId INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-	DELETE FROM Bitacora WHERE UsuarioId = @UsuarioId
-      AND FechaHoraFin IS NULL;
-
-    INSERT INTO Bitacora (UsuarioId, FechaHoraInicio)
-    VALUES (@UsuarioId, GETDATE());
-
-    SELECT SCOPE_IDENTITY() AS Id;
-END
-GO
-
-CREATE OR ALTER PROCEDURE [dbo].[EditarBitacora]
-    @BitacoraId INT,
-	@FechaHoraFin DATETIME = NULL
-AS
-BEGIN
-    SET NOCOUNT OFF;
-
-    UPDATE Bitacora SET FechaHoraFin = @FechaHoraFin WHERE Id = @BitacoraId
 END
 GO
 
