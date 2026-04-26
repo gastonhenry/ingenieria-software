@@ -7,19 +7,38 @@ namespace DAL
 {
     public class MapperUsuario : Mapper<Usuario>
     {
+        const int maxIntentosFallidos = 3;
+
         public Usuario Login(string username, string password)
         {
             Usuario usuario = Obtener(username);
             if (usuario == null)
             {
-                return null;
+                throw new InvalidOperationException("El usuario no existe.");
+            }
+
+            if (usuario.Bloqueado)
+            {
+                IncrementarIntentosFallidos(usuario.Id);
+                throw new InvalidOperationException("El usuario se encuentra bloqueado." +
+                    " Contacte al administrador para desbloquearlo.");
             }
 
             string hashIngresado = PasswordHasher.HashPassword(password, usuario.Salt);
             if (!hashIngresado.Equals(usuario.Hash, StringComparison.OrdinalIgnoreCase))
             {
-                return null;
+                int contador = IncrementarIntentosFallidos(usuario.Id);
+                if (contador >= maxIntentosFallidos)
+                {
+                    BloquearUsuario(usuario.Id);
+                    throw new InvalidOperationException("El usuario ha sido bloqueado debido a múltiples intentos fallidos de inicio de sesión." +
+                        " Contacte al administrador para desbloquearlo.");
+                }
+
+                throw new InvalidOperationException("Usuario o contraseña incorrectos.");
             }
+
+            ActualizarUltimoLogin(usuario.Id);
 
             return new Usuario
             {
@@ -27,8 +46,71 @@ namespace DAL
                 Username = usuario.Username,
                 Password = string.Empty,
                 Nombre = usuario.Nombre,
-                Apellido = usuario.Apellido
+                Apellido = usuario.Apellido,
+                UltimoLogin = DateTime.Now
             };
+        }
+
+        private void ActualizarUltimoLogin(int usuarioId)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            try
+            {
+                db.Abrir();
+                db.Escribir("ActualizarUltimoLogin",
+                    new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
+            }
+            finally
+            {
+                db.Cerrar();
+            }
+        }
+
+        private int IncrementarIntentosFallidos(int usuarioId)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            int intentos = 0;
+            try
+            {
+                db.Abrir();
+                intentos = db.LeerEscalar("IncrementarIntentosFallidos",
+                    new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
+            }
+            finally
+            {
+                db.Cerrar();
+            }
+            return intentos;
+        }
+
+        public void BloquearUsuario(int usuarioId)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            try
+            {
+                db.Abrir();
+                db.Escribir("BloquearUsuario",
+                    new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
+            }
+            finally
+            {
+                db.Cerrar();
+            }
+        }
+
+        public void DesbloquearUsuario(int usuarioId)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            try
+            {
+                db.Abrir();
+                db.Escribir("DesbloquearUsuario",
+                    new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
+            }
+            finally
+            {
+                db.Cerrar();
+            }
         }
 
         public override int Insertar(Usuario obj)
@@ -80,6 +162,7 @@ namespace DAL
                 {
                     if (reader.Read())
                     {
+                        int ulIdx = reader.GetOrdinal("UltimoLogin");
                         usuario = new Usuario
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
@@ -88,7 +171,9 @@ namespace DAL
                             Hash = reader.GetString(reader.GetOrdinal("Hash")),
                             Salt = reader.GetString(reader.GetOrdinal("Salt")),
                             Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
-                            Apellido = reader.GetString(reader.GetOrdinal("Apellido"))
+                            Apellido = reader.GetString(reader.GetOrdinal("Apellido")),
+                            Bloqueado = reader.GetBoolean(reader.GetOrdinal("Bloqueado")),
+                            UltimoLogin = reader.IsDBNull(ulIdx) ? (DateTime?)null : reader.GetDateTime(ulIdx)
                         };
                     }
                 }
@@ -118,7 +203,34 @@ namespace DAL
 
         public override List<Usuario> Listar()
         {
-            throw new NotImplementedException();
+            var lista = new List<Usuario>();
+            AccesoDB db = AccesoDB.GetInstancia();
+            try
+            {
+                db.Abrir();
+                using (SqlDataReader reader = db.Leer("ListarUsuarios", new List<SqlParameter>()))
+                {
+                    while (reader.Read())
+                    {
+                        int ulIdx = reader.GetOrdinal("UltimoLogin");
+                        lista.Add(new Usuario
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Username = reader.GetString(reader.GetOrdinal("Username")),
+                            Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
+                            Apellido = reader.GetString(reader.GetOrdinal("Apellido")),
+                            Bloqueado = reader.GetBoolean(reader.GetOrdinal("Bloqueado")),
+                            IntentosFallidos = reader.GetInt32(reader.GetOrdinal("IntentosFallidos")),
+                            UltimoLogin = reader.IsDBNull(ulIdx) ? (DateTime?)null : reader.GetDateTime(ulIdx)
+                        });
+                    }
+                }
+            }
+            finally
+            {
+                db.Cerrar();
+            }
+            return lista;
         }
     }
 }

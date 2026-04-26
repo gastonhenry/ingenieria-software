@@ -1,4 +1,5 @@
 ﻿using BE;
+using System.Collections.Generic;
 
 namespace BLL
 {
@@ -8,5 +9,9 @@ namespace BLL
         bool Login(string username, string password);
         void Logout();
         bool Registro(Usuario usuario);
+        List<Usuario> Listar();
+        void Bloquear(int usuarioId, string username);
+        void Desbloquear(int usuarioId, string username);
+        bool EsAdmin();
     }
 }

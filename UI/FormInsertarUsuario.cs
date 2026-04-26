@@ -13,6 +13,13 @@ namespace UI
         {
             InitializeComponent();
             _usuarioService = new UsuarioService();
+
+            if (!_usuarioService.EsAdmin())
+            {
+                MessageBox.Show("Solo el administrador puede acceder a esta sección.",
+                    "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                this.Load += (s, e) => this.Close();
+            }
         }
 
         private void btnRegistrar_Click(object sender, EventArgs e)

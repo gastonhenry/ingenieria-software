@@ -4,10 +4,11 @@ namespace BE
 {
     public class Bitacora
     {
-        public Bitacora(Usuario usuario, BitacoraEnum tipo)
+        public Bitacora(Usuario usuario, BitacoraEnum tipo, string Detalle = null)
         {
             this.usuario = usuario;
             this.tipo = tipo;
+            this.Detalle = Detalle;
         }
 
         private int id;
@@ -38,11 +39,11 @@ namespace BE
             set { fechaHora = value; }
         }
 
-        private DateTime? fechaHoraFin;
-        public DateTime? FechaHoraFin
+        private string  detalle;
+        public string Detalle
         {
-            get { return fechaHoraFin; }
-            set { fechaHoraFin = value; }
+            get { return detalle; }
+            set { detalle = value; }
         }
     }
 }

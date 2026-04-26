@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using DAL;
 using BE;
 
@@ -7,12 +8,12 @@ namespace BLL
     public class UsuarioService : IUsuarioService
     {
         private readonly MapperUsuario _mapperUsuario;
-        private readonly MapperBitacora _mapperBitacora;
+        private readonly BitacoraService _bitacoraService;
 
         public UsuarioService()
         {
             _mapperUsuario = new MapperUsuario();
-            _mapperBitacora = new MapperBitacora();
+            _bitacoraService = new BitacoraService();
         }
 
         public Usuario Obtener(string username)
@@ -30,8 +31,7 @@ namespace BLL
             if (usuario != null)
             {
                 SesionUsuario.GetInstancia().Login(usuario);
-                var bitacora = new Bitacora(usuario, BitacoraEnum.Login);
-                _mapperBitacora.Insertar(bitacora);
+                _bitacoraService.Insertar(usuario, BitacoraEnum.Login);
                 return true;
             }
 
@@ -42,10 +42,53 @@ namespace BLL
         {
             if (SesionUsuario.GetInstancia().EstaAutenticado())
             {
-                var bitacora = new Bitacora(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Logout);
-                _mapperBitacora.Insertar(bitacora);
+                var usuario = SesionUsuario.GetInstancia().Usuario;
+
+                string detalle = null;
+                if (usuario.UltimoLogin.HasValue)
+                {
+                    var duracion = DateTime.Now - usuario.UltimoLogin.Value;
+                    detalle = $"Tiempo conectado: {(int)duracion.TotalMinutes} min. {duracion.Seconds} seg.";
+                }
+
+                _bitacoraService.Insertar(usuario, BitacoraEnum.Logout, detalle);
                 SesionUsuario.GetInstancia().Logout();
             }
+        }
+
+        public List<Usuario> Listar() => _mapperUsuario.Listar();
+
+        public void Desbloquear(int usuarioId, string username)
+        {
+            if (EsAdmin())
+            {
+                _mapperUsuario.DesbloquearUsuario(usuarioId);
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.DesbloqueoUsuario, $"Admin desbloquea usuario: '{username}'");
+            }
+            else
+            {
+                throw new Exception("No tiene permisos para desbloquear usuarios");
+            }
+        }
+
+        public void Bloquear(int usuarioId, string username)
+        {
+            if (EsAdmin())
+            {
+                _mapperUsuario.BloquearUsuario(usuarioId);
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.BloqueoUsuario, $"Admin bloquea usuario: '{username}'");
+            }
+            else
+            {
+                throw new Exception("No tiene permisos para bloquear usuarios");
+            }
+        }
+
+        public bool EsAdmin()
+        {
+            var sesion = SesionUsuario.GetInstancia();
+            return sesion.EstaAutenticado() &&
+                   sesion.Usuario.Username.ToLower() == "admin";
         }
 
         public bool Registro(Usuario user)
@@ -58,6 +101,8 @@ namespace BLL
                     || !string.IsNullOrWhiteSpace(user.Nombre) || !string.IsNullOrWhiteSpace(user.Apellido))
                 {
                     result = _mapperUsuario.Insertar(user) > 0;
+
+                    _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.RegistroUsuario, $"Usuario creado: {user.Username}");
                 }
             }
             else

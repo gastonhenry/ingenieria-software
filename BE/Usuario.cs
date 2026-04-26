@@ -51,5 +51,26 @@
             get { return apellido; }
             set { apellido = value; }
         }
+
+        private bool bloqueado;
+        public bool Bloqueado
+        {
+            get { return bloqueado; }
+            set { bloqueado = value; }
+        }
+
+        private int intentosFallidos;
+        public int IntentosFallidos
+        {
+            get { return intentosFallidos; }
+            set { intentosFallidos = value; }
+        }
+
+        private System.DateTime? ultimoLogin;
+        public System.DateTime? UltimoLogin
+        {
+            get { return ultimoLogin; }
+            set { ultimoLogin = value; }
+        }
     }
 }
