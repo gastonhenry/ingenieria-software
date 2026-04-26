@@ -155,7 +155,7 @@ BEGIN
 END
 GO
 
-DBCC CHECKIDENT ('Usuario', RESEED, 0)
+DBCC CHECKIDENT ('Usuario', RESEED, 1)
 INSERT INTO Usuario (Username, Hash, Salt, Nombre, Apellido)
 VALUES (
     'admin',
