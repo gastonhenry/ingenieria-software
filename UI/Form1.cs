@@ -32,10 +32,6 @@ namespace UI
             string username = txtUsername.Text.Trim();
             string password = txtPassword.Text;
 
-            //SACAR
-            if (username == "admin")
-                password = "123456789";
-
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
                 MessageBox.Show("Ingresá usuario y contraseña.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
