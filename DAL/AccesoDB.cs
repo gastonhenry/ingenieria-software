@@ -7,175 +7,135 @@ namespace DAL
 {
     public class AccesoDB
     {
-        private static AccesoDB _instancia = null;
+        private const string CONNECTION_STRING =
+            "Data Source=localhost\\SQLEXPRESS; Initial Catalog=ingenieria; Integrated Security=SSPI;";
 
-        private SqlConnection conexion;
-        private SqlTransaction transaccion;
-
-        public static AccesoDB GetInstancia()
-        {
-            if (_instancia == null)
-            {
-                _instancia = new AccesoDB();
-            }
-            return _instancia;
-        }
-
+        private static readonly AccesoDB _instancia = new AccesoDB();
+        public static AccesoDB GetInstancia() => _instancia;
         private AccesoDB() { }
-
-        public void Abrir()
-        {
-            conexion = new SqlConnection();
-            conexion.ConnectionString = "Data Source=localhost\\SQLEXPRESS; Initial Catalog=ingenieria; Integrated Security=SSPI;";
-            conexion.Open();
-        }
-
-        public void Cerrar()
-        {
-            conexion.Close();
-            conexion = null;
-            GC.Collect();
-        }
-
-        public void IniciarTx()
-        {
-            transaccion = conexion.BeginTransaction();
-        }
-        public void ConfirmarTx()
-        {
-            transaccion.Commit();
-            transaccion = null;
-        }
-
-        public void DeshacerTx()
-        {
-            transaccion.Rollback();
-            transaccion = null;
-        }
-
-        private SqlCommand CrearComando(string sql, List<SqlParameter> parametros = null)
-        {
-            SqlCommand cmd = new SqlCommand();
-            cmd.CommandText = sql;
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Connection = conexion;
-
-            if (parametros != null && parametros.Count > 0)
-            {
-                cmd.Parameters.AddRange(parametros.ToArray());
-            }
-
-            if (transaccion != null)
-            {
-                cmd.Transaction = transaccion;
-            }
-
-            return cmd;
-        }
 
         public int Escribir(string sql, List<SqlParameter> parametros = null)
         {
-            SqlCommand cmd = CrearComando(sql, parametros);
-            int filas;
-            try
+            using (var conexion = new SqlConnection(CONNECTION_STRING))
+            using (var cmd = CrearComando(sql, parametros, conexion))
             {
-                filas = cmd.ExecuteNonQuery();
+                conexion.Open();
+                return cmd.ExecuteNonQuery();
             }
-            catch (Exception ex)
-            {
-                var error = ex.ToString();
-                filas = -1;
-            }
+        }
 
-            return filas;
+        public int EscribirConTransaccion(string sql, List<SqlParameter> parametros = null)
+        {
+            using (var conexion = new SqlConnection(CONNECTION_STRING))
+            {
+                conexion.Open();
+                using (var transaccion = conexion.BeginTransaction())
+                using (var cmd = CrearComando(sql, parametros, conexion, transaccion))
+                {
+                    try
+                    {
+                        int filas = cmd.ExecuteNonQuery();
+                        transaccion.Commit();
+                        return filas;
+                    }
+                    catch
+                    {
+                        transaccion.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        public DataTable Leer(string sql, List<SqlParameter> parametros = null)
+        {
+            using (var conexion = new SqlConnection(CONNECTION_STRING))
+            using (var cmd = CrearComando(sql, parametros, conexion))
+            {
+                conexion.Open();
+                using (var adapter = new SqlDataAdapter(cmd))
+                {
+                    var tabla = new DataTable();
+                    adapter.Fill(tabla);
+                    return tabla;
+                }
+            }
+        }
+
+        public int LeerEscalar(string sql, List<SqlParameter> parametros = null)
+        {
+            using (var conexion = new SqlConnection(CONNECTION_STRING))
+            using (var cmd = CrearComando(sql, parametros, conexion))
+            {
+                conexion.Open();
+                object resultado = cmd.ExecuteScalar();
+                if (resultado == null || resultado == DBNull.Value)
+                    return 0;
+                return Convert.ToInt32(resultado);
+            }
         }
 
         public void Backup(string sql, List<SqlParameter> parametros = null)
         {
-            SqlCommand cmd = CrearComando(sql, parametros);
-            try
+            using (var conexion = new SqlConnection(CONNECTION_STRING))
+            using (var cmd = CrearComando(sql, parametros, conexion))
             {
+                conexion.Open();
                 cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                var error = ex.ToString();
-                throw ex;
             }
         }
 
         public void Restore(string rutaArchivo)
         {
-            string conexionMaster = "Data Source=localhost\\SQLEXPRESS; Initial Catalog=master; Integrated Security=SSPI;";
+            const string sql = @"
+                ALTER DATABASE [ingenieria] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                RESTORE DATABASE [ingenieria] FROM DISK = @ruta WITH REPLACE;
+                ALTER DATABASE [ingenieria] SET MULTI_USER;";
 
-            using (SqlConnection conn = new SqlConnection(conexionMaster))
+            string conexionMaster = CONNECTION_STRING.Replace("ingenieria", "master");
+
+            using (var conn = new SqlConnection(conexionMaster))
             {
                 conn.Open();
-
-                string sql = $@"ALTER DATABASE [BatallaNaval] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                RESTORE DATABASE [BatallaNaval] FROM DISK = '{rutaArchivo}' WITH REPLACE;
-                ALTER DATABASE [BatallaNaval] SET MULTI_USER;";
-
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SqlCommand(sql, conn))
                 {
                     cmd.CommandTimeout = 300;
+                    cmd.Parameters.Add(new SqlParameter("@ruta", SqlDbType.NVarChar) { Value = rutaArchivo });
                     cmd.ExecuteNonQuery();
                 }
             }
         }
 
-        public SqlDataReader Leer(string sql, List<SqlParameter> parametros = null)
+        private SqlCommand CrearComando(string sql, List<SqlParameter> parametros, SqlConnection conexion, SqlTransaction transaccion = null)
         {
-            SqlCommand cmd = CrearComando(sql, parametros);
-            SqlDataReader lector = cmd.ExecuteReader();
-            return lector;
-        }
-
-        public int LeerEscalar(string sql, List<SqlParameter> parametros = null)
-        {
-            SqlCommand cmd = CrearComando(sql, parametros);
-            return int.Parse(cmd.ExecuteScalar().ToString());
-        }
-
-        public SqlParameter CrearParametro(string nombre, string valor)
-        {
-            return new SqlParameter()
+            var cmd = new SqlCommand(sql, conexion)
             {
-                ParameterName = nombre,
-                Value = valor,
-                DbType = DbType.String,
+                CommandType = CommandType.StoredProcedure,
+                Transaction = transaccion
             };
+
+            if (parametros != null && parametros.Count > 0)
+                cmd.Parameters.AddRange(parametros.ToArray());
+
+            return cmd;
         }
 
-        public SqlParameter CrearParametro(string nombre, int valor)
-        {
-            return new SqlParameter()
-            {
-                ParameterName = nombre,
-                Value = valor,
-                DbType = DbType.Int32,
-            };
-        }
+        public SqlParameter CrearParametro(string nombre, string valor) =>
+            new SqlParameter(nombre, DbType.String) { Value = valor ?? (object)DBNull.Value };
 
+        public SqlParameter CrearParametro(string nombre, int valor) =>
+            new SqlParameter(nombre, DbType.Int32) { Value = valor };
 
-        public SqlParameter CrearParametro(string nombre, float valor)
-        {
-            return new SqlParameter()
-            {
-                ParameterName = nombre,
-                Value = valor,
-                DbType = DbType.Single,
-            };
-        }
+        public SqlParameter CrearParametro(string nombre, float valor) =>
+            new SqlParameter(nombre, DbType.Single) { Value = valor };
 
-        public SqlParameter CrearParametro(string nombre, DateTime valor)
-        {
-            return new SqlParameter()
-            {
-                ParameterName = nombre,
-                Value = valor,
-                DbType = DbType.DateTime,
-            };
-        }
+        public SqlParameter CrearParametro(string nombre, decimal valor) =>
+            new SqlParameter(nombre, DbType.Decimal) { Value = valor };
+
+        public SqlParameter CrearParametro(string nombre, DateTime valor) =>
+            new SqlParameter(nombre, DbType.DateTime) { Value = valor };
+
+        public SqlParameter CrearParametro(string nombre, bool valor) =>
+            new SqlParameter(nombre, DbType.Boolean) { Value = valor };
     }
 }

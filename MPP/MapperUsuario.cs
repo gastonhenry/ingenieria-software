@@ -3,7 +3,7 @@ using DAL;
 using HELPERS;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data;
 
 namespace MPP
 {
@@ -15,9 +15,7 @@ namespace MPP
         {
             Usuario usuario = Obtener(username);
             if (usuario == null)
-            {
                 throw new InvalidOperationException("El usuario no existe.");
-            }
 
             if (usuario.Bloqueado)
             {
@@ -35,7 +33,7 @@ namespace MPP
                     if (contador >= maxIntentosFallidos)
                     {
                         BloquearUsuario(usuario.Id);
-                        throw new InvalidOperationException("El usuario ha sido bloqueado debido a múltiples intentos fallidos de inicio de sesión." +
+                        throw new InvalidOperationException("El usuario ha sido bloqueado debido a múltiples intentos fallidos." +
                             " Contacte al administrador para desbloquearlo.");
                     }
                 }
@@ -59,136 +57,78 @@ namespace MPP
         private void ActualizarUltimoLogin(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
-            try
-            {
-                db.Abrir();
-                db.Escribir("ActualizarUltimoLogin",
-                    new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
-            }
-            finally
-            {
-                db.Cerrar();
-            }
+            db.Escribir("ActualizarUltimoLogin",
+                new List<System.Data.SqlClient.SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
         private int IncrementarIntentosFallidos(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
-            int intentos = 0;
-            try
-            {
-                db.Abrir();
-                intentos = db.LeerEscalar("IncrementarIntentosFallidos",
-                    new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
-            }
-            finally
-            {
-                db.Cerrar();
-            }
-            return intentos;
+            return db.LeerEscalar("IncrementarIntentosFallidos",
+                new List<System.Data.SqlClient.SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
         public void BloquearUsuario(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
-            try
-            {
-                db.Abrir();
-                db.Escribir("BloquearUsuario",
-                    new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
-            }
-            finally
-            {
-                db.Cerrar();
-            }
+            db.Escribir("BloquearUsuario",
+                new List<System.Data.SqlClient.SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
         public void DesbloquearUsuario(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
-            try
-            {
-                db.Abrir();
-                db.Escribir("DesbloquearUsuario",
-                    new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
-            }
-            finally
-            {
-                db.Cerrar();
-            }
+            db.Escribir("DesbloquearUsuario",
+                new List<System.Data.SqlClient.SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
         public override int Insertar(Usuario obj)
         {
             AccesoDB db = AccesoDB.GetInstancia();
-            int resultado = 0;
 
-            try
+            string salt = PasswordHasher.GenerateSalt();
+            string hashedPassword = PasswordHasher.HashPassword(obj.Password, salt);
+
+            var parametros = new List<System.Data.SqlClient.SqlParameter>
             {
-                db.Abrir();
+                db.CrearParametro("@Username", obj.Username),
+                db.CrearParametro("@Hash",     hashedPassword),
+                db.CrearParametro("@Salt",     salt),
+                db.CrearParametro("@Nombre",   obj.Nombre),
+                db.CrearParametro("@Apellido", obj.Apellido)
+            };
 
-                string salt = PasswordHasher.GenerateSalt();
-                string hashedPassword = PasswordHasher.HashPassword(obj.Password, salt);
-
-                List<SqlParameter> parametros = new List<SqlParameter>
-                {
-                    db.CrearParametro("@Username", obj.Username),
-                    db.CrearParametro("@Hash", hashedPassword),
-                    db.CrearParametro("@Salt", salt),
-                    db.CrearParametro("@Nombre", obj.Nombre),
-                    db.CrearParametro("@Apellido", obj.Apellido)
-                };
-
-                resultado = db.LeerEscalar("InsertarUsuario", parametros);
-            }
-            finally
-            {
-                db.Cerrar();
-            }
-
-            return resultado;
+            return db.LeerEscalar("InsertarUsuario", parametros);
         }
 
         public Usuario Obtener(string username)
         {
-            Usuario usuario = null;
             AccesoDB db = AccesoDB.GetInstancia();
 
-            try
+            var parametros = new List<System.Data.SqlClient.SqlParameter>
             {
-                db.Abrir();
+                db.CrearParametro("@Username", username)
+            };
 
-                List<SqlParameter> parametros = new List<SqlParameter>
-                {
-                    db.CrearParametro("@Username", username)
-                };
+            DataTable tabla = db.Leer("Login", parametros);
 
-                using (SqlDataReader reader = db.Leer("Login", parametros))
-                {
-                    if (reader.Read())
-                    {
-                        int ulIdx = reader.GetOrdinal("UltimoLogin");
-                        usuario = new Usuario
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Username = reader.GetString(reader.GetOrdinal("Username")),
-                            Password = string.Empty,
-                            Hash = reader.GetString(reader.GetOrdinal("Hash")),
-                            Salt = reader.GetString(reader.GetOrdinal("Salt")),
-                            Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
-                            Apellido = reader.GetString(reader.GetOrdinal("Apellido")),
-                            Bloqueado = reader.GetBoolean(reader.GetOrdinal("Bloqueado")),
-                            UltimoLogin = reader.IsDBNull(ulIdx) ? (DateTime?)null : reader.GetDateTime(ulIdx)
-                        };
-                    }
-                }
-            }
-            finally
+            if (tabla.Rows.Count == 0)
+                return null;
+
+            DataRow row = tabla.Rows[0];
+
+            return new Usuario
             {
-                db.Cerrar();
-            }
-
-            return usuario;
+                Id = (int)row["Id"],
+                Username = (string)row["Username"],
+                Password = string.Empty,
+                Hash = (string)row["Hash"],
+                Salt = (string)row["Salt"],
+                Nombre = (string)row["Nombre"],
+                Apellido = (string)row["Apellido"],
+                Bloqueado = (bool)row["Bloqueado"],
+                UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"]
+            };
         }
 
         public override Usuario Obtener(int id)
@@ -208,33 +148,25 @@ namespace MPP
 
         public override List<Usuario> Listar()
         {
-            var lista = new List<Usuario>();
             AccesoDB db = AccesoDB.GetInstancia();
-            try
+            var lista = new List<Usuario>();
+
+            DataTable tabla = db.Leer("ListarUsuarios", new List<System.Data.SqlClient.SqlParameter>());
+
+            foreach (DataRow row in tabla.Rows)
             {
-                db.Abrir();
-                using (SqlDataReader reader = db.Leer("ListarUsuarios", new List<SqlParameter>()))
+                lista.Add(new Usuario
                 {
-                    while (reader.Read())
-                    {
-                        int ulIdx = reader.GetOrdinal("UltimoLogin");
-                        lista.Add(new Usuario
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Username = reader.GetString(reader.GetOrdinal("Username")),
-                            Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
-                            Apellido = reader.GetString(reader.GetOrdinal("Apellido")),
-                            Bloqueado = reader.GetBoolean(reader.GetOrdinal("Bloqueado")),
-                            IntentosFallidos = reader.GetInt32(reader.GetOrdinal("IntentosFallidos")),
-                            UltimoLogin = reader.IsDBNull(ulIdx) ? (DateTime?)null : reader.GetDateTime(ulIdx)
-                        });
-                    }
-                }
+                    Id = (int)row["Id"],
+                    Username = (string)row["Username"],
+                    Nombre = (string)row["Nombre"],
+                    Apellido = (string)row["Apellido"],
+                    Bloqueado = (bool)row["Bloqueado"],
+                    IntentosFallidos = (int)row["IntentosFallidos"],
+                    UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"]
+                });
             }
-            finally
-            {
-                db.Cerrar();
-            }
+
             return lista;
         }
     }
