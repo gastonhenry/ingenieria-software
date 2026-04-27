@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using DAL;
+using MPP;
 using BE;
 
 namespace BLL

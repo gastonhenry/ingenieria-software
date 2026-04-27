@@ -3,4 +3,6 @@
   <Project Path="DAL/DAL.csproj" Id="2d532ee8-db36-4b88-8585-1033f776bbf3" />
   <Project Path="UI/UI.csproj" Id="0573d1da-e771-419e-9175-3713dafcf045" />
   <Project Path="BE/BE.csproj" Id="b701a8e5-bbef-4566-94ba-12ec183e285d" />
+  <Project Path="MPP/MPP.csproj" Id="8f9e0d1c-2b3a-4c5d-6e7f-8090a1b2c3d4" />
+  <Project Path="HELPERS/HELPERS.csproj" Id="1a2b3c4d-5e6f-7890-abcd-ef1234567890" DisplayName="HELPERS" />
 </Solution>

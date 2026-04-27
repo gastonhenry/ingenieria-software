@@ -48,9 +48,9 @@
     <Compile Include="UsuarioService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DAL\DAL.csproj">
-      <Project>{2d532ee8-db36-4b88-8585-1033f776bbf3}</Project>
-      <Name>DAL</Name>
+    <ProjectReference Include="..\MPP\MPP.csproj">
+      <Project>{8F9E0D1C-2B3A-4C5D-6E7F-8090A1B2C3D4}</Project>
+      <Name>MPP</Name>
     </ProjectReference>
     <ProjectReference Include="..\BE\BE.csproj">
       <Project>{b701a8e5-bbef-4566-94ba-12ec183e285d}</Project>
