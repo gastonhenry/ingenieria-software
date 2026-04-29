@@ -43,7 +43,7 @@ CREATE TABLE [dbo].[Bitacora](
 )
 GO
 
-CREATE PROCEDURE [dbo].[Login]
+CREATE OR ALTER PROCEDURE [dbo].[Login]
     @Username NVARCHAR(50)
 AS
 BEGIN
@@ -54,7 +54,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[InsertarUsuario]
+CREATE OR ALTER PROCEDURE [dbo].[InsertarUsuario]
     @Username NVARCHAR(50),
     @Hash     NVARCHAR(255),
     @Salt     NVARCHAR(50),
@@ -69,7 +69,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[IncrementarIntentosFallidos]
+CREATE OR ALTER PROCEDURE [dbo].[IncrementarIntentosFallidos]
     @UsuarioId INT
 AS
 BEGIN
@@ -79,7 +79,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[BloquearUsuario]
+CREATE OR ALTER PROCEDURE [dbo].[BloquearUsuario]
     @UsuarioId INT
 AS
 BEGIN
@@ -88,7 +88,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[DesbloquearUsuario]
+CREATE OR ALTER PROCEDURE [dbo].[DesbloquearUsuario]
     @UsuarioId INT
 AS
 BEGIN
@@ -97,16 +97,16 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[ActualizarUltimoLogin]
+CREATE OR ALTER PROCEDURE [dbo].[ActualizarUltimoLogin]
     @UsuarioId INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    UPDATE Usuario SET UltimoLogin = GETDATE() WHERE Id = @UsuarioId;
+    UPDATE Usuario SET UltimoLogin = GETDATE(), IntentosFallidos = 0 WHERE Id = @UsuarioId;
 END
 GO
 
-CREATE PROCEDURE [dbo].[ListarUsuarios]
+CREATE OR ALTER PROCEDURE [dbo].[ListarUsuarios]
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -116,7 +116,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[InsertarBitacora]
+CREATE OR ALTER PROCEDURE [dbo].[InsertarBitacora]
     @UsuarioId INT,
     @Tipo      INT,
     @Detalle   NVARCHAR(MAX) = NULL
@@ -129,7 +129,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[ListarBitacora]
+CREATE OR ALTER PROCEDURE [dbo].[ListarBitacora]
     @Tipo      INT = NULL,
     @UsuarioId INT = NULL
 AS
@@ -145,7 +145,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[BackupBaseDeDatos]
+CREATE OR ALTER PROCEDURE [dbo].[BackupBaseDeDatos]
     @RutaArchivo NVARCHAR(MAX)
 AS
 BEGIN

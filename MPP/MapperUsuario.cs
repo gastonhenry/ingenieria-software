@@ -4,6 +4,7 @@ using HELPERS;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace MPP
 {
@@ -58,28 +59,28 @@ namespace MPP
         {
             AccesoDB db = AccesoDB.GetInstancia();
             db.Escribir("ActualizarUltimoLogin",
-                new List<System.Data.SqlClient.SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
+                new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
         private int IncrementarIntentosFallidos(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
             return db.LeerEscalar("IncrementarIntentosFallidos",
-                new List<System.Data.SqlClient.SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
+                new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
         public void BloquearUsuario(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
             db.Escribir("BloquearUsuario",
-                new List<System.Data.SqlClient.SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
+                new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
         public void DesbloquearUsuario(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
             db.Escribir("DesbloquearUsuario",
-                new List<System.Data.SqlClient.SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
+                new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
         public override int Insertar(Usuario obj)
@@ -89,7 +90,7 @@ namespace MPP
             string salt = PasswordHasher.GenerateSalt();
             string hashedPassword = PasswordHasher.HashPassword(obj.Password, salt);
 
-            var parametros = new List<System.Data.SqlClient.SqlParameter>
+            var parametros = new List<SqlParameter>
             {
                 db.CrearParametro("@Username", obj.Username),
                 db.CrearParametro("@Hash",     hashedPassword),
@@ -105,7 +106,7 @@ namespace MPP
         {
             AccesoDB db = AccesoDB.GetInstancia();
 
-            var parametros = new List<System.Data.SqlClient.SqlParameter>
+            var parametros = new List<SqlParameter>
             {
                 db.CrearParametro("@Username", username)
             };
@@ -151,7 +152,7 @@ namespace MPP
             AccesoDB db = AccesoDB.GetInstancia();
             var lista = new List<Usuario>();
 
-            DataTable tabla = db.Leer("ListarUsuarios", new List<System.Data.SqlClient.SqlParameter>());
+            DataTable tabla = db.Leer("ListarUsuarios", new List<SqlParameter>());
 
             foreach (DataRow row in tabla.Rows)
             {
