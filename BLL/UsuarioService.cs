@@ -42,17 +42,26 @@ namespace BLL
         {
             if (SesionUsuario.GetInstancia().EstaAutenticado())
             {
-                var usuario = SesionUsuario.GetInstancia().Usuario;
-
-                string detalle = null;
-                if (usuario.UltimoLogin.HasValue)
+                try
                 {
-                    var duracion = DateTime.Now - usuario.UltimoLogin.Value;
-                    detalle = $"Tiempo conectado: {(int)duracion.TotalMinutes} min. {duracion.Seconds} seg.";
-                }
+                    var usuario = SesionUsuario.GetInstancia().Usuario;
 
-                _bitacoraService.Insertar(usuario, BitacoraEnum.Logout, detalle);
-                SesionUsuario.GetInstancia().Logout();
+                    string detalle = null;
+                    if (usuario.UltimoLogin.HasValue)
+                    {
+                        var duracion = DateTime.Now - usuario.UltimoLogin.Value;
+                        detalle = $"Tiempo conectado: {(int)duracion.TotalMinutes} min. {duracion.Seconds} seg.";
+                    }
+
+                    _bitacoraService.Insertar(usuario, BitacoraEnum.Logout, detalle);
+                    SesionUsuario.GetInstancia().Logout();
+                }
+                catch (Exception)
+                {
+                    Exception ex = new Exception("Ocurrió un error en Logout.");
+                    _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Error, $"Error en Logout: {ex.Message}");
+                    throw ex;
+                }
             }
         }
 
@@ -67,7 +76,9 @@ namespace BLL
             }
             else
             {
-                throw new Exception("No tiene permisos para desbloquear usuarios");
+                Exception ex = new Exception("No tiene permisos para desbloquear usuarios");
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Error, $"Error en Desbloquear: {ex.Message}");
+                throw ex;
             }
         }
 
@@ -80,7 +91,9 @@ namespace BLL
             }
             else
             {
-                throw new Exception("No tiene permisos para bloquear usuarios");
+                Exception ex = new Exception("No tiene permisos para bloquear usuarios");
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Error, $"Error en Bloquear: {ex.Message}");
+                throw ex;
             }
         }
 

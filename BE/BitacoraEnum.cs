@@ -19,6 +19,9 @@ namespace BE
 
         [Description("Bloqueo de usuario")]
         BloqueoUsuario = 4,
+
+        [Description("Error")]
+        Error = 5,
     }
 
     public static class BitacoraEnumExtensions
