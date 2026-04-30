@@ -169,12 +169,6 @@ namespace UI
             if (id == null) return;
 
             string username = dgvUsuarios.SelectedRows[0].Cells["Username"].Value?.ToString();
-            if (username?.ToLower() == "admin")
-            {
-                MessageBox.Show("No podés bloquear al administrador.", "Acción no permitida",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
 
             if (MessageBox.Show($"¿Bloquear al usuario '{username}'?", "Confirmar",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;

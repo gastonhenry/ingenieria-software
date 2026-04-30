@@ -86,6 +86,12 @@ namespace BLL
         {
             if (EsAdmin())
             {
+                if (username.ToLower() == "admin")
+                {
+                    Exception ex = new Exception("No podés bloquear a usuario administrador");
+                    _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Error, $"Error en Bloquear: {ex.Message}");
+                    throw ex;
+                }
                 _mapperUsuario.BloquearUsuario(usuarioId);
                 _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.BloqueoUsuario, $"Admin bloquea usuario: '{username}'");
             }
