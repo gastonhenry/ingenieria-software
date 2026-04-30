@@ -1,4 +1,6 @@
-﻿namespace BE
+﻿using BE;
+
+namespace BLL
 {
     public class SesionUsuario
     {

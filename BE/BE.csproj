@@ -44,7 +44,6 @@
     <Compile Include="Bitacora.cs" />
     <Compile Include="BitacoraEnum.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SesionUsuario.cs" />
     <Compile Include="Usuario.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
