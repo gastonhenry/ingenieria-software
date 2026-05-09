@@ -13,7 +13,7 @@ namespace BLL
             _mapperBitacora = new MapperBitacora();
         }
 
-        public void Insertar(Usuario usuario, BitacoraEnum tipo, string detalle = null)
+        public void Insertar(Usuario usuario, TipoBitacora tipo, string detalle = null)
         {
             var bitacora = new Bitacora(usuario, tipo, detalle);
             _mapperBitacora.Insertar(bitacora);

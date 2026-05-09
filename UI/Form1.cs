@@ -1,3 +1,4 @@
+using BE;
 using BLL;
 using System;
 using System.Drawing;
@@ -40,25 +41,36 @@ namespace UI
 
             try
             {
-                bool ok = _usuarioService.Login(username, password);
-                if (ok)
+                LoginResultado resultado = _usuarioService.Login(username, password);
+                switch (resultado)
                 {
-                    var principal = new FormPrincipal(username);
-                    principal.Show();
-                    this.Hide();
+                    case LoginResultado.Exitoso:
+                        var principal = new FormPrincipal(username);
+                        principal.Show();
+                        this.Hide();
+                        break;
+
+                    case LoginResultado.UsuarioInexistente:
+                    case LoginResultado.CredencialesInvalidas:
+                        MessageBox.Show("Usuario o contraseña incorrectos.",
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+
+                    case LoginResultado.UsuarioBloqueado:
+                        MessageBox.Show("El usuario se encuentra bloqueado. Contacte al administrador.",
+                            "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        break;
+
+                    case LoginResultado.Bloqueado:
+                        MessageBox.Show("Su cuenta fue bloqueada por superar la cantidad máxima de intentos. Contacte al administrador.",
+                            "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        break;
                 }
-                else
-                {
-                    MessageBox.Show("Usuario o contraseña incorrectos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                MessageBox.Show(ex.Message, "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al conectar con la base de datos:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error al iniciar sesión. Por favor, reintente más tarde.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

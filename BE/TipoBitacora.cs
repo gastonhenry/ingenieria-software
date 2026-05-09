@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace BE
 {
-    public enum BitacoraEnum
+    public enum TipoBitacora
     {
         [Description("Inicio de sesión")]
         Login = 0,
@@ -22,15 +22,11 @@ namespace BE
 
         [Description("Error")]
         Error = 5,
-    }
 
-    public static class BitacoraEnumExtensions
-    {
-        public static string GetDescripcion(this BitacoraEnum valor)
-        {
-            FieldInfo field = valor.GetType().GetField(valor.ToString());
-            var attr = field?.GetCustomAttribute<DescriptionAttribute>();
-            return attr != null ? attr.Description : valor.ToString();
-        }
+        [Description("Inicio de sesión fallido")]
+        LoginFallido = 6,
+
+        [Description("Intento acceso bloqueado")]
+        IntentoAccesoBloqueado = 7,
     }
 }

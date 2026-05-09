@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using MPP;
 using BE;
+using HELPERS;
 
 namespace BLL
 {
     public class UsuarioService : IUsuarioService
     {
+        private const int MaxIntentosFallidos = 3;
+
         private readonly MapperUsuario _mapperUsuario;
         private readonly BitacoraService _bitacoraService;
 
@@ -22,25 +25,79 @@ namespace BLL
             return usuario;
         }
 
-        public bool Login(string username, string password)
+        public LoginResultado Login(string username, string password)
         {
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-                return false;
-
-            Usuario usuario = _mapperUsuario.Login(username, password);
-            if (usuario != null)
+            try
             {
-                SesionUsuario.GetInstancia().Login(usuario);
-                _bitacoraService.Insertar(usuario, BitacoraEnum.Login);
-                return true;
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                    return LoginResultado.CredencialesInvalidas;
+
+                Usuario usuario = _mapperUsuario.Obtener(username.ToLower());
+                if (usuario == null)
+                    return LoginResultado.UsuarioInexistente;
+
+                if (usuario.Bloqueado)
+                {
+                    _bitacoraService.Insertar(usuario, TipoBitacora.IntentoAccesoBloqueado);
+                    return LoginResultado.UsuarioBloqueado;
+                }
+
+                if (!PasswordCorrecta(usuario, password))
+                    return RegistrarFalloLogin(usuario);
+
+                return CompletarLoginExitoso(usuario);
+            }
+            catch (Exception)
+            {
+                Exception ex = new Exception("Ocurrió un error en Login.");
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error, $"Error en Login: {ex.Message}");
+                throw ex;
+            }
+        }
+
+        private bool PasswordCorrecta(Usuario usuario, string password)
+        {
+            string hash = PasswordHasher.HashPassword(password, usuario.Salt);
+            return hash.Equals(usuario.Hash, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private LoginResultado RegistrarFalloLogin(Usuario usuario)
+        {
+            bool esAdmin = usuario.Username.ToLower() == "admin";
+            if (esAdmin)
+            {
+                _bitacoraService.Insertar(usuario, TipoBitacora.LoginFallido);
+                return LoginResultado.CredencialesInvalidas;
             }
 
-            return false;
+            int intentos = _mapperUsuario.IncrementarIntentosFallidos(usuario.Id);
+            if (intentos >= MaxIntentosFallidos)
+            {
+                _mapperUsuario.BloquearUsuario(usuario.Id);
+                _bitacoraService.Insertar(usuario, TipoBitacora.BloqueoUsuario,
+                    "Bloqueo automático por superar intentos fallidos.");
+                return LoginResultado.Bloqueado;
+            }
+
+            _bitacoraService.Insertar(usuario, TipoBitacora.LoginFallido,
+                $"Intento {intentos}/{MaxIntentosFallidos}");
+            return LoginResultado.CredencialesInvalidas;
+        }
+
+        private LoginResultado CompletarLoginExitoso(Usuario usuario)
+        {
+            _mapperUsuario.ActualizarUltimoLogin(usuario.Id);
+            usuario.UltimoLogin = DateTime.Now;
+            usuario.Hash = null;
+            usuario.Salt = null;
+            SesionUsuario.GetInstancia().Usuario = usuario;
+            _bitacoraService.Insertar(usuario, TipoBitacora.Login);
+            return LoginResultado.Exitoso;
         }
 
         public void Logout()
         {
-            if (SesionUsuario.GetInstancia().EstaAutenticado())
+            if (EstaAutenticado())
             {
                 try
                 {
@@ -53,13 +110,13 @@ namespace BLL
                         detalle = $"Tiempo conectado: {(int)duracion.TotalMinutes} min. {duracion.Seconds} seg.";
                     }
 
-                    _bitacoraService.Insertar(usuario, BitacoraEnum.Logout, detalle);
-                    SesionUsuario.GetInstancia().Logout();
+                    _bitacoraService.Insertar(usuario, TipoBitacora.Logout, detalle);
+                    SesionUsuario.GetInstancia().Usuario = null;
                 }
                 catch (Exception)
                 {
                     Exception ex = new Exception("Ocurrió un error en Logout.");
-                    _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Error, $"Error en Logout: {ex.Message}");
+                    _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error, $"Error en Logout: {ex.Message}");
                     throw ex;
                 }
             }
@@ -72,12 +129,12 @@ namespace BLL
             if (EsAdmin())
             {
                 _mapperUsuario.DesbloquearUsuario(usuarioId);
-                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.DesbloqueoUsuario, $"Admin desbloquea usuario: '{username}'");
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.DesbloqueoUsuario, $"Admin desbloquea usuario: '{username}'");
             }
             else
             {
                 Exception ex = new Exception("No tiene permisos para desbloquear usuarios");
-                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Error, $"Error en Desbloquear: {ex.Message}");
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error, $"Error en Desbloquear: {ex.Message}");
                 throw ex;
             }
         }
@@ -89,45 +146,47 @@ namespace BLL
                 if (username.ToLower() == "admin")
                 {
                     Exception ex = new Exception("No podés bloquear a usuario administrador");
-                    _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Error, $"Error en Bloquear: {ex.Message}");
+                    _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error, $"Error en Bloquear: {ex.Message}");
                     throw ex;
                 }
                 _mapperUsuario.BloquearUsuario(usuarioId);
-                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.BloqueoUsuario, $"Admin bloquea usuario: '{username}'");
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.BloqueoUsuario, $"Admin bloquea usuario: '{username}'");
             }
             else
             {
                 Exception ex = new Exception("No tiene permisos para bloquear usuarios");
-                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.Error, $"Error en Bloquear: {ex.Message}");
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error, $"Error en Bloquear: {ex.Message}");
                 throw ex;
             }
         }
 
+        public bool EstaAutenticado()
+        {
+            return SesionUsuario.GetInstancia().Usuario != null;
+        }
+
         public bool EsAdmin()
         {
-            var sesion = SesionUsuario.GetInstancia();
-            return sesion.EstaAutenticado() &&
-                   sesion.Usuario.Username.ToLower() == "admin";
+            return EstaAutenticado() &&
+                   SesionUsuario.GetInstancia().Usuario.Username.ToLower() == "admin";
         }
 
         public bool Registro(Usuario user)
         {
-            bool result = false;
-            var usuarioExistente = _mapperUsuario.Obtener(user.Username);
-            if (usuarioExistente == null)
+            if (user == null || string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(user.Nombre)
+                || string.IsNullOrWhiteSpace(user.Apellido) || string.IsNullOrWhiteSpace(user.Password))
             {
-                if (user != null && !string.IsNullOrWhiteSpace(user.Username)
-                    || !string.IsNullOrWhiteSpace(user.Nombre) || !string.IsNullOrWhiteSpace(user.Apellido))
-                {
-                    result = _mapperUsuario.Insertar(user) > 0;
+                throw new ArgumentException("Faltan datos para registrar al usuario.");
+            }
 
-                    _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, BitacoraEnum.RegistroUsuario, $"Usuario creado: {user.Username}");
-                }
-            }
-            else
+            var usuarioExistente = _mapperUsuario.Obtener(user.Username);
+            if (usuarioExistente != null)
             {
-                throw new Exception("Ya existe el username");
+                throw new InvalidOperationException("Ya existe el username");
             }
+
+            bool result = _mapperUsuario.Insertar(user) > 0;
+            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.RegistroUsuario, $"Usuario creado: {user.Username}");
 
             return result;
         }

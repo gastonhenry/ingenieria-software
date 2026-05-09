@@ -20,6 +20,10 @@ namespace UI
             this.cmbTipo = new System.Windows.Forms.ComboBox();
             this.lblUsuarioFiltro = new System.Windows.Forms.Label();
             this.txtUsuarioFiltro = new System.Windows.Forms.TextBox();
+            this.lblDesde = new System.Windows.Forms.Label();
+            this.dtpDesde = new System.Windows.Forms.DateTimePicker();
+            this.lblHasta = new System.Windows.Forms.Label();
+            this.dtpHasta = new System.Windows.Forms.DateTimePicker();
             this.btnLimpiar = new System.Windows.Forms.Button();
             this.pnlResumen = new System.Windows.Forms.Panel();
             this.lblTotal = new System.Windows.Forms.Label();
@@ -36,12 +40,16 @@ namespace UI
             this.grpFiltros.Controls.Add(this.cmbTipo);
             this.grpFiltros.Controls.Add(this.lblUsuarioFiltro);
             this.grpFiltros.Controls.Add(this.txtUsuarioFiltro);
+            this.grpFiltros.Controls.Add(this.lblDesde);
+            this.grpFiltros.Controls.Add(this.dtpDesde);
+            this.grpFiltros.Controls.Add(this.lblHasta);
+            this.grpFiltros.Controls.Add(this.dtpHasta);
             this.grpFiltros.Controls.Add(this.btnLimpiar);
             this.grpFiltros.Dock = System.Windows.Forms.DockStyle.Top;
             this.grpFiltros.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.grpFiltros.Location = new System.Drawing.Point(0, 0);
             this.grpFiltros.Name = "grpFiltros";
-            this.grpFiltros.Size = new System.Drawing.Size(750, 62);
+            this.grpFiltros.Size = new System.Drawing.Size(750, 100);
             this.grpFiltros.TabIndex = 2;
             this.grpFiltros.TabStop = false;
             this.grpFiltros.Text = "Filtros";
@@ -78,9 +86,47 @@ namespace UI
             this.txtUsuarioFiltro.Name = "txtUsuarioFiltro";
             this.txtUsuarioFiltro.Size = new System.Drawing.Size(160, 23);
             this.txtUsuarioFiltro.TabIndex = 1;
-            // 
+            //
+            // lblDesde
+            //
+            this.lblDesde.AutoSize = true;
+            this.lblDesde.Location = new System.Drawing.Point(12, 64);
+            this.lblDesde.Name = "lblDesde";
+            this.lblDesde.Size = new System.Drawing.Size(43, 15);
+            this.lblDesde.TabIndex = 4;
+            this.lblDesde.Text = "Desde:";
+            //
+            // dtpDesde
+            //
+            this.dtpDesde.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            this.dtpDesde.Location = new System.Drawing.Point(60, 60);
+            this.dtpDesde.Name = "dtpDesde";
+            this.dtpDesde.ShowCheckBox = true;
+            this.dtpDesde.Checked = false;
+            this.dtpDesde.Size = new System.Drawing.Size(145, 23);
+            this.dtpDesde.TabIndex = 5;
+            //
+            // lblHasta
+            //
+            this.lblHasta.AutoSize = true;
+            this.lblHasta.Location = new System.Drawing.Point(220, 64);
+            this.lblHasta.Name = "lblHasta";
+            this.lblHasta.Size = new System.Drawing.Size(40, 15);
+            this.lblHasta.TabIndex = 6;
+            this.lblHasta.Text = "Hasta:";
+            //
+            // dtpHasta
+            //
+            this.dtpHasta.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            this.dtpHasta.Location = new System.Drawing.Point(265, 60);
+            this.dtpHasta.Name = "dtpHasta";
+            this.dtpHasta.ShowCheckBox = true;
+            this.dtpHasta.Checked = false;
+            this.dtpHasta.Size = new System.Drawing.Size(145, 23);
+            this.dtpHasta.TabIndex = 7;
+            //
             // btnLimpiar
-            // 
+            //
             this.btnLimpiar.Location = new System.Drawing.Point(458, 18);
             this.btnLimpiar.Name = "btnLimpiar";
             this.btnLimpiar.Size = new System.Drawing.Size(90, 26);
@@ -162,6 +208,10 @@ namespace UI
         private System.Windows.Forms.ComboBox cmbTipo;
         private System.Windows.Forms.Label lblUsuarioFiltro;
         private System.Windows.Forms.TextBox txtUsuarioFiltro;
+        private System.Windows.Forms.Label lblDesde;
+        private System.Windows.Forms.DateTimePicker dtpDesde;
+        private System.Windows.Forms.Label lblHasta;
+        private System.Windows.Forms.DateTimePicker dtpHasta;
         private System.Windows.Forms.Button btnLimpiar;
         private System.Windows.Forms.Panel pnlResumen;
         private System.Windows.Forms.Label lblTotal;

@@ -1,9 +1,10 @@
-﻿namespace BE
+﻿using System;
+
+namespace BE
 {
     public class Usuario
     {
         private int id;
-
         public int Id
         {
             get { return id; }
@@ -66,8 +67,8 @@
             set { intentosFallidos = value; }
         }
 
-        private System.DateTime? ultimoLogin;
-        public System.DateTime? UltimoLogin
+        private DateTime? ultimoLogin;
+        public DateTime? UltimoLogin
         {
             get { return ultimoLogin; }
             set { ultimoLogin = value; }

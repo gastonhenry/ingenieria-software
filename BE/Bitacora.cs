@@ -4,7 +4,7 @@ namespace BE
 {
     public class Bitacora
     {
-        public Bitacora(Usuario usuario, BitacoraEnum tipo, string Detalle = null)
+        public Bitacora(Usuario usuario, TipoBitacora tipo, string Detalle = null)
         {
             this.usuario = usuario;
             this.tipo = tipo;
@@ -25,8 +25,8 @@ namespace BE
             set { usuario = value; }
         }
 
-        private BitacoraEnum tipo;
-        public BitacoraEnum Tipo
+        private TipoBitacora tipo;
+        public TipoBitacora Tipo
         {
             get { return tipo; }
             set { tipo = value; }

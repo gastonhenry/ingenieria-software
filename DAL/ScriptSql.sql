@@ -35,7 +35,7 @@ GO
 CREATE TABLE [dbo].[Bitacora](
     [Id]        [int]           IDENTITY(1,1) NOT NULL,
     [Tipo]      [int]           NULL,
-    [UsuarioId] [int]           NOT NULL,
+    [UsuarioId] [int]           NULL,
     [FechaHora] [datetime]      NOT NULL DEFAULT GETDATE(),
     [Detalle]   [nvarchar](MAX) NULL,
     CONSTRAINT [PK_Bitacora]        PRIMARY KEY CLUSTERED ([Id] ASC),
@@ -117,7 +117,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE [dbo].[InsertarBitacora]
-    @UsuarioId INT,
+    @UsuarioId INT = NULL,
     @Tipo      INT,
     @Detalle   NVARCHAR(MAX) = NULL
 AS
@@ -138,9 +138,9 @@ BEGIN
     SELECT U.Id AS UsuarioId, U.Username, U.Nombre, U.Apellido,
            B.Tipo, B.Id, B.FechaHora, B.Detalle
     FROM Bitacora B
-    INNER JOIN Usuario U ON U.Id = B.UsuarioId
-    WHERE (@Tipo      IS NULL OR B.Tipo      = @Tipo)
-      AND (@UsuarioId IS NULL OR B.UsuarioId = @UsuarioId)
+    LEFT JOIN Usuario U ON U.Id = B.UsuarioId
+    WHERE (@Tipo IS NULL OR B.Tipo = @Tipo)
+        AND (@UsuarioId IS NULL OR B.UsuarioId = @UsuarioId)
     ORDER BY B.FechaHora DESC;
 END
 GO

@@ -5,7 +5,7 @@ namespace BLL
 {
     public interface IBitacoraService
     {
-        void Insertar(Usuario usuario, BitacoraEnum tipo, string detalle = null);
+        void Insertar(Usuario usuario, TipoBitacora tipo, string detalle = null);
         List<Bitacora> Listar(int? tipoId = null, int? usuarioId = null);
     }
 }

@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using HELPERS;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -48,17 +49,44 @@ namespace UI
             cmbTipo.FormattingEnabled = true;
             cmbTipo.Format += (s, e) =>
             {
-                if (e.Value is BitacoraEnum t)
+                if (e.Value is TipoBitacora t)
                     e.Value = t.GetDescripcion();
             };
 
             cmbTipo.Items.Clear();
             cmbTipo.Items.Add("Todos");
-            foreach (BitacoraEnum valor in Enum.GetValues(typeof(BitacoraEnum)))
+            foreach (TipoBitacora valor in Enum.GetValues(typeof(TipoBitacora)))
                 cmbTipo.Items.Add(valor);
             cmbTipo.SelectedIndex = 0;
+
+            EstablecerRangoFechasPorDefecto();
+            SincronizarRangoFechas();
+
             cmbTipo.SelectedIndexChanged    += (s, e) => AplicarFiltros();
             txtUsuarioFiltro.TextChanged    += (s, e) => AplicarFiltros();
+            dtpDesde.ValueChanged           += (s, e) => { SincronizarRangoFechas(); AplicarFiltros(); };
+            dtpHasta.ValueChanged           += (s, e) => { SincronizarRangoFechas(); AplicarFiltros(); };
+        }
+
+        private void EstablecerRangoFechasPorDefecto()
+        {
+            dtpDesde.Checked = false;
+            dtpHasta.Checked = false;
+            dtpDesde.Value = DateTime.Today.AddYears(-1);
+            dtpHasta.Value = DateTime.Today;
+            dtpDesde.Checked = true;
+            dtpHasta.Checked = true;
+        }
+
+        private void SincronizarRangoFechas()
+        {
+            dtpHasta.MinDate = dtpDesde.Checked
+                ? dtpDesde.Value.Date
+                : DateTimePicker.MinimumDateTime;
+
+            dtpDesde.MaxDate = dtpHasta.Checked
+                ? dtpHasta.Value.Date
+                : DateTimePicker.MaximumDateTime;
         }
 
         public void CargarDatos()
@@ -79,12 +107,18 @@ namespace UI
         {
             IEnumerable<Bitacora> resultado = _bitacoras;
 
-            if (cmbTipo.SelectedItem is BitacoraEnum tipoFiltro)
+            if (cmbTipo.SelectedItem is TipoBitacora tipoFiltro)
                 resultado = resultado.Where(b => b.Tipo == tipoFiltro);
 
             string usuarioFiltro = txtUsuarioFiltro.Text.Trim().ToLower();
             if (!string.IsNullOrEmpty(usuarioFiltro))
                 resultado = resultado.Where(b => b.Usuario.Username.ToLower().Contains(usuarioFiltro));
+
+            if (dtpDesde.Checked)
+                resultado = resultado.Where(b => b.FechaHora.Date >= dtpDesde.Value.Date);
+
+            if (dtpHasta.Checked)
+                resultado = resultado.Where(b => b.FechaHora.Date <= dtpHasta.Value.Date);
 
             var lista = resultado.ToList();
             RefrescarGrilla(lista);
@@ -126,10 +160,11 @@ namespace UI
             lblTotal.Text = $"Total: {lista.Count}";
         }
 
-private void btnLimpiar_Click(object sender, EventArgs e)
+        private void btnLimpiar_Click(object sender, EventArgs e)
         {
             cmbTipo.SelectedIndex = 0;
             txtUsuarioFiltro.Text = string.Empty;
+            EstablecerRangoFechasPorDefecto();
             AplicarFiltros();
         }
 

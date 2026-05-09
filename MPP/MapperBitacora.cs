@@ -15,9 +15,11 @@ namespace MPP
 
             List<SqlParameter> parametros = new List<SqlParameter>
             {
-                db.CrearParametro("@UsuarioId", obj.Usuario.Id),
                 db.CrearParametro("@Tipo", (int)obj.Tipo),
             };
+
+            if (obj.Usuario != null)
+                parametros.Add(db.CrearParametro("@UsuarioId", obj.Usuario.Id));
 
             if (!string.IsNullOrEmpty(obj.Detalle))
                 parametros.Add(db.CrearParametro("@Detalle", obj.Detalle));
@@ -52,15 +54,17 @@ namespace MPP
 
             foreach (DataRow row in tabla.Rows)
             {
-                var usuario = new Usuario
-                {
-                    Id = (int)row["UsuarioId"],
-                    Username = (string)row["Username"],
-                    Nombre = (string)row["Nombre"],
-                    Apellido = (string)row["Apellido"]
-                };
+                Usuario usuario = row.IsNull("UsuarioId")
+                    ? new Usuario { Id = 0, Username = "Anónimo", Nombre = "Anónimo", Apellido = string.Empty }
+                    : new Usuario
+                    {
+                        Id = (int)row["UsuarioId"],
+                        Username = (string)row["Username"],
+                        Nombre = (string)row["Nombre"],
+                        Apellido = (string)row["Apellido"]
+                    };
 
-                var bitacora = new Bitacora(usuario, (BitacoraEnum)(int)row["Tipo"])
+                var bitacora = new Bitacora(usuario, (TipoBitacora)(int)row["Tipo"])
                 {
                     Id = (int)row["Id"],
                     FechaHora = (DateTime)row["FechaHora"],

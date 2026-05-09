@@ -10,59 +10,14 @@ namespace MPP
 {
     public class MapperUsuario : Mapper<Usuario>
     {
-        const int maxIntentosFallidos = 3;
-
-        public Usuario Login(string username, string password)
-        {
-            Usuario usuario = Obtener(username);
-            if (usuario == null)
-                throw new InvalidOperationException("El usuario no existe.");
-
-            if (usuario.Bloqueado)
-            {
-                IncrementarIntentosFallidos(usuario.Id);
-                throw new InvalidOperationException("El usuario se encuentra bloqueado." +
-                    " Contacte al administrador para desbloquearlo.");
-            }
-
-            string hashIngresado = PasswordHasher.HashPassword(password, usuario.Salt);
-            if (!hashIngresado.Equals(usuario.Hash, StringComparison.OrdinalIgnoreCase))
-            {
-                if (usuario.Username.ToLower() != "admin")
-                {
-                    int contador = IncrementarIntentosFallidos(usuario.Id);
-                    if (contador >= maxIntentosFallidos)
-                    {
-                        BloquearUsuario(usuario.Id);
-                        throw new InvalidOperationException("El usuario ha sido bloqueado debido a múltiples intentos fallidos." +
-                            " Contacte al administrador para desbloquearlo.");
-                    }
-                }
-
-                throw new InvalidOperationException("Usuario o contraseña incorrectos.");
-            }
-
-            ActualizarUltimoLogin(usuario.Id);
-
-            return new Usuario
-            {
-                Id = usuario.Id,
-                Username = usuario.Username,
-                Password = string.Empty,
-                Nombre = usuario.Nombre,
-                Apellido = usuario.Apellido,
-                UltimoLogin = DateTime.Now
-            };
-        }
-
-        private void ActualizarUltimoLogin(int usuarioId)
+        public void ActualizarUltimoLogin(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
             db.Escribir("ActualizarUltimoLogin",
                 new List<SqlParameter> { db.CrearParametro("@UsuarioId", usuarioId) });
         }
 
-        private int IncrementarIntentosFallidos(int usuarioId)
+        public int IncrementarIntentosFallidos(int usuarioId)
         {
             AccesoDB db = AccesoDB.GetInstancia();
             return db.LeerEscalar("IncrementarIntentosFallidos",
