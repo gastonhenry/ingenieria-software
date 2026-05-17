@@ -43,7 +43,10 @@
   <ItemGroup>
     <Compile Include="Bitacora.cs" />
     <Compile Include="TipoBitacora.cs" />
+    <Compile Include="DigitoVerificador.cs" />
+    <Compile Include="IDigitoVerificable.cs" />
     <Compile Include="LoginResultado.cs" />
+    <Compile Include="ResultadoIntegridad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Usuario.cs" />
   </ItemGroup>
