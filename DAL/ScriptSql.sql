@@ -1,20 +1,25 @@
 USE [ingenieria]
 GO
 
-IF OBJECT_ID('dbo.Bitacora', 'U') IS NOT NULL DROP TABLE dbo.Bitacora
-IF OBJECT_ID('dbo.Usuario',  'U') IS NOT NULL DROP TABLE dbo.Usuario
+IF OBJECT_ID('dbo.Bitacora',          'U') IS NOT NULL DROP TABLE dbo.Bitacora
+IF OBJECT_ID('dbo.Usuario',           'U') IS NOT NULL DROP TABLE dbo.Usuario
+IF OBJECT_ID('dbo.DigitoVerificador', 'U') IS NOT NULL DROP TABLE dbo.DigitoVerificador
 GO
 
-IF OBJECT_ID('dbo.Login',                      'P') IS NOT NULL DROP PROCEDURE dbo.Login
-IF OBJECT_ID('dbo.InsertarUsuario',            'P') IS NOT NULL DROP PROCEDURE dbo.InsertarUsuario
-IF OBJECT_ID('dbo.IncrementarIntentosFallidos','P') IS NOT NULL DROP PROCEDURE dbo.IncrementarIntentosFallidos
-IF OBJECT_ID('dbo.BloquearUsuario',            'P') IS NOT NULL DROP PROCEDURE dbo.BloquearUsuario
-IF OBJECT_ID('dbo.DesbloquearUsuario',         'P') IS NOT NULL DROP PROCEDURE dbo.DesbloquearUsuario
-IF OBJECT_ID('dbo.ActualizarUltimoLogin',      'P') IS NOT NULL DROP PROCEDURE dbo.ActualizarUltimoLogin
-IF OBJECT_ID('dbo.ListarUsuarios',             'P') IS NOT NULL DROP PROCEDURE dbo.ListarUsuarios
-IF OBJECT_ID('dbo.InsertarBitacora',           'P') IS NOT NULL DROP PROCEDURE dbo.InsertarBitacora
-IF OBJECT_ID('dbo.ListarBitacora',             'P') IS NOT NULL DROP PROCEDURE dbo.ListarBitacora
-IF OBJECT_ID('dbo.BackupBaseDeDatos',          'P') IS NOT NULL DROP PROCEDURE dbo.BackupBaseDeDatos
+IF OBJECT_ID('dbo.Login',                               'P') IS NOT NULL DROP PROCEDURE dbo.Login
+IF OBJECT_ID('dbo.InsertarUsuario',                     'P') IS NOT NULL DROP PROCEDURE dbo.InsertarUsuario
+IF OBJECT_ID('dbo.IncrementarIntentosFallidos',         'P') IS NOT NULL DROP PROCEDURE dbo.IncrementarIntentosFallidos
+IF OBJECT_ID('dbo.BloquearUsuario',                     'P') IS NOT NULL DROP PROCEDURE dbo.BloquearUsuario
+IF OBJECT_ID('dbo.DesbloquearUsuario',                  'P') IS NOT NULL DROP PROCEDURE dbo.DesbloquearUsuario
+IF OBJECT_ID('dbo.ActualizarUltimoLogin',               'P') IS NOT NULL DROP PROCEDURE dbo.ActualizarUltimoLogin
+IF OBJECT_ID('dbo.ListarUsuarios',                      'P') IS NOT NULL DROP PROCEDURE dbo.ListarUsuarios
+IF OBJECT_ID('dbo.ListarUsuariosParaVerificacion',      'P') IS NOT NULL DROP PROCEDURE dbo.ListarUsuariosParaVerificacion
+IF OBJECT_ID('dbo.InsertarBitacora',                    'P') IS NOT NULL DROP PROCEDURE dbo.InsertarBitacora
+IF OBJECT_ID('dbo.ListarBitacora',                      'P') IS NOT NULL DROP PROCEDURE dbo.ListarBitacora
+IF OBJECT_ID('dbo.BackupBaseDeDatos',                   'P') IS NOT NULL DROP PROCEDURE dbo.BackupBaseDeDatos
+IF OBJECT_ID('dbo.ActualizarDVHUsuario',                'P') IS NOT NULL DROP PROCEDURE dbo.ActualizarDVHUsuario
+IF OBJECT_ID('dbo.ObtenerDVV',                          'P') IS NOT NULL DROP PROCEDURE dbo.ObtenerDVV
+IF OBJECT_ID('dbo.UpsertDVV',                           'P') IS NOT NULL DROP PROCEDURE dbo.UpsertDVV
 GO
 
 CREATE TABLE [dbo].[Usuario](
@@ -27,6 +32,7 @@ CREATE TABLE [dbo].[Usuario](
     [IntentosFallidos] [int]           NOT NULL DEFAULT 0,
     [Bloqueado]        [bit]           NOT NULL DEFAULT 0,
     [UltimoLogin]      [datetime]      NULL,
+    [DVH]              [nvarchar](64)  NULL,
     CONSTRAINT [PK_Usuario] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [UQ_Usuario_Username] UNIQUE ([Username])
 )
@@ -40,6 +46,13 @@ CREATE TABLE [dbo].[Bitacora](
     [Detalle]   [nvarchar](MAX) NULL,
     CONSTRAINT [PK_Bitacora]        PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Bitacora_Usuario] FOREIGN KEY ([UsuarioId]) REFERENCES [dbo].[Usuario] ([Id])
+)
+GO
+
+CREATE TABLE [dbo].[DigitoVerificador](
+    [NombreTabla] [nvarchar](50) NOT NULL,
+    [DVV]         [nvarchar](64) NOT NULL,
+    CONSTRAINT [PK_DigitoVerificador] PRIMARY KEY CLUSTERED ([NombreTabla] ASC)
 )
 GO
 
@@ -110,7 +123,17 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarUsuarios]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Username, Nombre, Apellido, Bloqueado, IntentosFallidos, UltimoLogin
+    SELECT Id, Username, Nombre, Apellido, IntentosFallidos, Bloqueado, UltimoLogin
+    FROM Usuario
+    ORDER BY Bloqueado DESC, Username ASC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[ListarUsuariosParaVerificacion]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT Id, Username, [Hash], [Salt], Nombre, Apellido, IntentosFallidos, Bloqueado, UltimoLogin, DVH
     FROM Usuario
     ORDER BY Bloqueado DESC, Username ASC;
 END
@@ -155,13 +178,46 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE [dbo].[ActualizarDVHUsuario]
+    @UsuarioId INT,
+    @DVH       NVARCHAR(64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE Usuario SET DVH = @DVH WHERE Id = @UsuarioId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[ObtenerDVV]
+    @NombreTabla NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT NombreTabla, DVV FROM DigitoVerificador WHERE NombreTabla = @NombreTabla;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[UpsertDVV]
+    @NombreTabla NVARCHAR(50),
+    @DVV         NVARCHAR(64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (SELECT 1 FROM DigitoVerificador WHERE NombreTabla = @NombreTabla)
+        UPDATE DigitoVerificador SET DVV = @DVV WHERE NombreTabla = @NombreTabla;
+    ELSE
+        INSERT INTO DigitoVerificador (NombreTabla, DVV) VALUES (@NombreTabla, @DVV);
+END
+GO
+
 DBCC CHECKIDENT ('Usuario', RESEED, 1)
-INSERT INTO Usuario (Username, Hash, Salt, Nombre, Apellido)
+INSERT INTO Usuario (Username, Hash, Salt, Nombre, Apellido, DVH)
 VALUES (
     'admin',
     '6e2cdcd54b07b8de670b1583026a554abd84bb7a7fa99b92f85244205cdbeff9',
     'VQUk8CQ1S2V3oSbMWAp4qg==',
     'Admin',
-    'Admin'
+    'Admin',
+    NULL
 )
 GO
