@@ -1,6 +1,6 @@
 using BE;
 
-namespace BLL
+namespace HELPERS
 {
     public class SesionUsuario
     {

@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Mapper.cs" />
     <Compile Include="MapperBitacora.cs" />
+    <Compile Include="MapperDigitoVerificador.cs" />
     <Compile Include="MapperUsuario.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

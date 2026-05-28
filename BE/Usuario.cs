@@ -2,7 +2,7 @@
 
 namespace BE
 {
-    public class Usuario
+    public class Usuario : IDigitoVerificable
     {
         private int id;
         public int Id
@@ -53,6 +53,13 @@ namespace BE
             set { apellido = value; }
         }
 
+        private string email;
+        public string Email
+        {
+            get { return email; }
+            set { email = value; }
+        }
+
         private bool bloqueado;
         public bool Bloqueado
         {
@@ -72,6 +79,13 @@ namespace BE
         {
             get { return ultimoLogin; }
             set { ultimoLogin = value; }
+        }
+
+        private string dvh;
+        public string DVH
+        {
+            get { return dvh; }
+            set { dvh = value; }
         }
     }
 }

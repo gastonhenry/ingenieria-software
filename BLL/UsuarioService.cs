@@ -9,14 +9,17 @@ namespace BLL
     public class UsuarioService : IUsuarioService
     {
         private const int MaxIntentosFallidos = 3;
+        private const string NombreTabla = "Usuario";
 
         private readonly MapperUsuario _mapperUsuario;
         private readonly BitacoraService _bitacoraService;
+        private readonly DigitoVerificadorService _digitoVerificadorService;
 
         public UsuarioService()
         {
             _mapperUsuario = new MapperUsuario();
             _bitacoraService = new BitacoraService();
+            _digitoVerificadorService = new DigitoVerificadorService();
         }
 
         public Usuario Obtener(string username)
@@ -74,11 +77,13 @@ namespace BLL
             if (intentos >= MaxIntentosFallidos)
             {
                 _mapperUsuario.BloquearUsuario(usuario.Id);
+                RecalcularDV();
                 _bitacoraService.Insertar(usuario, TipoBitacora.BloqueoUsuario,
                     "Bloqueo automático por superar intentos fallidos.");
                 return LoginResultado.Bloqueado;
             }
 
+            RecalcularDV();
             _bitacoraService.Insertar(usuario, TipoBitacora.LoginFallido,
                 $"Intento {intentos}/{MaxIntentosFallidos}");
             return LoginResultado.CredencialesInvalidas;
@@ -87,6 +92,7 @@ namespace BLL
         private LoginResultado CompletarLoginExitoso(Usuario usuario)
         {
             _mapperUsuario.ActualizarUltimoLogin(usuario.Id);
+            RecalcularDV();
             usuario.UltimoLogin = DateTime.Now;
             usuario.Hash = null;
             usuario.Salt = null;
@@ -129,6 +135,7 @@ namespace BLL
             if (EsAdmin())
             {
                 _mapperUsuario.DesbloquearUsuario(usuarioId);
+                RecalcularDV();
                 _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.DesbloqueoUsuario, $"Admin desbloquea usuario: '{username}'");
             }
             else
@@ -150,6 +157,7 @@ namespace BLL
                     throw ex;
                 }
                 _mapperUsuario.BloquearUsuario(usuarioId);
+                RecalcularDV();
                 _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.BloqueoUsuario, $"Admin bloquea usuario: '{username}'");
             }
             else
@@ -174,7 +182,7 @@ namespace BLL
         public bool Registro(Usuario user)
         {
             if (user == null || string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(user.Nombre)
-                || string.IsNullOrWhiteSpace(user.Apellido) || string.IsNullOrWhiteSpace(user.Password))
+                || string.IsNullOrWhiteSpace(user.Apellido) || string.IsNullOrWhiteSpace(user.Password) || string.IsNullOrWhiteSpace(user.Email))
             {
                 throw new ArgumentException("Faltan datos para registrar al usuario.");
             }
@@ -186,9 +194,58 @@ namespace BLL
             }
 
             bool result = _mapperUsuario.Insertar(user) > 0;
+            RecalcularDV();
             _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.RegistroUsuario, $"Usuario creado: {user.Username}");
 
             return result;
+        }
+
+        public ResultadoIntegridad VerificarIntegridad() 
+        {
+            try
+            {
+                var filas = _mapperUsuario.ListarParaVerificacion();
+                ResultadoIntegridad resultado = _digitoVerificadorService.Verificar(NombreTabla, filas, ObtenerCamposParaDVH);
+                if (resultado.RequiereInicializacion)
+                {
+                    _digitoVerificadorService.Recalcular(NombreTabla, filas, ObtenerCamposParaDVH, _mapperUsuario.ActualizarDVH);
+                    resultado.Ok = true;
+                }
+
+                if (resultado.Ok)
+                    return resultado;
+
+                string detalleError = $"Se detectaron inconsistencias en la tabla '{NombreTabla}' de la base de datos.";
+                if (resultado.FilasInvalidas.Count > 0)
+                    detalleError += $" Filas con DVH inválido: {resultado.FilasInvalidas.Count} (Ids: {string.Join(", ", resultado.FilasInvalidas)}).";
+                if (resultado.DVVInvalido)
+                    detalleError += " DVV inválido.";
+                detalleError += " No se permitirán inicios de sesión hasta restaurar la integridad.";
+
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error, detalleError);
+
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error,
+                    $"Error al verificar la integridad de la tabla '{NombreTabla}': Error: {ex.Message}");
+                throw ex;
+            }
+        }
+
+        private void RecalcularDV()
+        {
+            var filas = _mapperUsuario.ListarParaVerificacion();
+            _digitoVerificadorService.Recalcular(NombreTabla, filas, ObtenerCamposParaDVH, _mapperUsuario.ActualizarDVH);
+        }
+
+        private static string ObtenerCamposParaDVH(Usuario u)
+        {
+            string ultimoLogin = u.UltimoLogin?.ToString("yyyy-MM-ddTHH:mm:ss.fff") ?? string.Empty;
+            return string.Join("|",
+                u.Username, u.Hash, u.Salt, u.Nombre, u.Apellido, u.Email,
+                u.Bloqueado.ToString(), u.IntentosFallidos.ToString(), ultimoLogin);
         }
     }
 }

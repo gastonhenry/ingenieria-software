@@ -51,7 +51,8 @@ namespace MPP
                 db.CrearParametro("@Hash",     hashedPassword),
                 db.CrearParametro("@Salt",     salt),
                 db.CrearParametro("@Nombre",   obj.Nombre),
-                db.CrearParametro("@Apellido", obj.Apellido)
+                db.CrearParametro("@Apellido", obj.Apellido),
+                db.CrearParametro("@Email",    obj.Email)
             };
 
             return db.LeerEscalar("InsertarUsuario", parametros);
@@ -82,6 +83,7 @@ namespace MPP
                 Salt = (string)row["Salt"],
                 Nombre = (string)row["Nombre"],
                 Apellido = (string)row["Apellido"],
+                Email = (string)row["Email"],
                 Bloqueado = (bool)row["Bloqueado"],
                 UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"]
             };
@@ -117,13 +119,52 @@ namespace MPP
                     Username = (string)row["Username"],
                     Nombre = (string)row["Nombre"],
                     Apellido = (string)row["Apellido"],
+                    Email = (string)row["Email"],
                     Bloqueado = (bool)row["Bloqueado"],
                     IntentosFallidos = (int)row["IntentosFallidos"],
-                    UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"]
+                    UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"],
                 });
             }
 
             return lista;
+        }
+
+        public List<Usuario> ListarParaVerificacion()
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            var lista = new List<Usuario>();
+
+            DataTable tabla = db.Leer("ListarUsuariosParaVerificacion", new List<SqlParameter>());
+
+            foreach (DataRow row in tabla.Rows)
+            {
+                lista.Add(new Usuario
+                {
+                    Id = (int)row["Id"],
+                    Username = (string)row["Username"],
+                    Hash = (string)row["Hash"],
+                    Salt = (string)row["Salt"],
+                    Nombre = (string)row["Nombre"],
+                    Apellido = (string)row["Apellido"],
+                    Email = (string)row["Email"],
+                    Bloqueado = (bool)row["Bloqueado"],
+                    IntentosFallidos = (int)row["IntentosFallidos"],
+                    UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"],
+                    DVH = row.IsNull("DVH") ? null : (string)row["DVH"]
+                });
+            }
+
+            return lista;
+        }
+
+        public void ActualizarDVH(int usuarioId, string dvh)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            db.Escribir("ActualizarDVHUsuario", new List<SqlParameter>
+            {
+                db.CrearParametro("@UsuarioId", usuarioId),
+                db.CrearParametro("@DVH", dvh)
+            });
         }
     }
 }

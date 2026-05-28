@@ -115,7 +115,7 @@ namespace UI
             foreach (Usuario u in lista)
             {
                 int idx = dgvUsuarios.Rows.Add(
-                    u.Id, u.Username, u.Nombre, u.Apellido,
+                    u.Id, u.Username, u.Nombre, u.Apellido, u.Email,
                     u.Bloqueado ? "Bloqueado" : "Activo",
                     u.IntentosFallidos,
                     u.UltimoLogin.HasValue ? u.UltimoLogin.Value.ToString("dd/MM/yyyy HH:mm") : "-");

@@ -28,9 +28,10 @@ namespace UI
             string password = txtPassword.Text;
             string nombre = txtNombre.Text.Trim();
             string apellido = txtApellido.Text.Trim();
+            string email = txtEmail.Text.Trim();
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) ||
-                string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellido))
+                string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellido) || string.IsNullOrWhiteSpace(email))
             {
                 MessageBox.Show("Completá todos los campos.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -43,7 +44,8 @@ namespace UI
                     Username = username,
                     Password = password,
                     Nombre = nombre,
-                    Apellido = apellido
+                    Apellido = apellido,
+                    Email = email
                 };
 
                 bool ok = _usuarioService.Registro(usuario);
@@ -65,6 +67,7 @@ namespace UI
             txtPassword.Clear();
             txtNombre.Clear();
             txtApellido.Clear();
+            txtEmail.Clear();
             txtUsername.Focus();
         }
     }

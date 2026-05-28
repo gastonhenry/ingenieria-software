@@ -20,11 +20,15 @@ namespace HELPERS
 
         public static string HashPassword(string password, string salt)
         {
-            string saltedPassword = password + salt;
-            byte[] saltedPasswordBytes = Encoding.UTF8.GetBytes(saltedPassword);
-            using (SHA256 sha256Hash = SHA256.Create())
+            return Hash(password + salt);
+        }
+
+        public static string Hash(string input)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(input ?? string.Empty);
+            using (SHA256 sha256 = SHA256.Create())
             {
-                byte[] hashBytes = sha256Hash.ComputeHash(saltedPasswordBytes);
+                byte[] hashBytes = sha256.ComputeHash(bytes);
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < hashBytes.Length; i++)
                 {

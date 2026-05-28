@@ -9,6 +9,7 @@ namespace UI
     public partial class Form1 : Form
     {
         private readonly IUsuarioService _usuarioService;
+        private bool _integridadOk;
 
         public Form1()
         {
@@ -17,6 +18,26 @@ namespace UI
             var screen = Screen.PrimaryScreen.WorkingArea;
             this.Size = new Size(screen.Width / 2, screen.Height / 2);
             CentrarCard();
+            VerificarIntegridad();
+        }
+
+        private void VerificarIntegridad()
+        {
+            try
+            {
+                ResultadoIntegridad resultado = _usuarioService.VerificarIntegridad();
+                _integridadOk = resultado.Ok;
+                if (_integridadOk) return;
+
+                MessageBox.Show("No se permitirán inicios de sesión hasta restaurar la integridad. Contacte al administrador."
+                    , "Error de integridad de la base de datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception)
+            {
+                _integridadOk = false;
+                MessageBox.Show("No se pudo verificar la integridad de la base de datos. Contacte al administrador.",
+                    "Error de integridad de la base de datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void CentrarCard()
@@ -30,6 +51,13 @@ namespace UI
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
+            if (!_integridadOk)
+            {
+                MessageBox.Show("Login deshabilitado por inconsistencias en la base de datos.",
+                    "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             string username = txtUsername.Text.Trim();
             string password = txtPassword.Text;
 

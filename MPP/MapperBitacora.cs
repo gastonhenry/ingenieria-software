@@ -55,13 +55,14 @@ namespace MPP
             foreach (DataRow row in tabla.Rows)
             {
                 Usuario usuario = row.IsNull("UsuarioId")
-                    ? new Usuario { Id = 0, Username = "Anónimo", Nombre = "Anónimo", Apellido = string.Empty }
+                    ? new Usuario { Id = 0, Username = "Anónimo", Nombre = "Anónimo", Apellido = string.Empty, Email = "N/A" }
                     : new Usuario
                     {
                         Id = (int)row["UsuarioId"],
                         Username = (string)row["Username"],
                         Nombre = (string)row["Nombre"],
-                        Apellido = (string)row["Apellido"]
+                        Apellido = (string)row["Apellido"],
+                        Email = (string)row["Email"]
                     };
 
                 var bitacora = new Bitacora(usuario, (TipoBitacora)(int)row["Tipo"])

@@ -14,5 +14,6 @@ namespace BLL
         void Desbloquear(int usuarioId, string username);
         bool EstaAutenticado();
         bool EsAdmin();
+        ResultadoIntegridad VerificarIntegridad();
     }
 }
