@@ -19,9 +19,13 @@ namespace UI
             InitializeComponent();
             _bitacoraService = new BitacoraService();
 
-            if (!new UsuarioService().EsAdmin())
+            var usuarioService = new UsuarioService();
+            var permisoService = new PermisoService();
+
+            bool permitido = usuarioService.EsAdmin() || permisoService.UsuarioTienePermiso(SesionUsuario.GetInstancia().Usuario, "VER_BITACORA");
+            if (!permitido)
             {
-                MessageBox.Show("Solo el administrador puede acceder a esta sección.",
+                MessageBox.Show("No tenés permiso para acceder a esta sección.",
                     "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 this.Load += (s, e) => this.Close();
                 return;

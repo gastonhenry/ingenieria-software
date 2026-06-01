@@ -12,12 +12,16 @@ namespace BLL
         private const string NombreTabla = "Usuario";
 
         private readonly MapperUsuario _mapperUsuario;
+        private readonly MapperPermiso _mapperPermiso;
+        private readonly MapperRol _mapperRol;
         private readonly BitacoraService _bitacoraService;
         private readonly DigitoVerificadorService _digitoVerificadorService;
 
         public UsuarioService()
         {
             _mapperUsuario = new MapperUsuario();
+            _mapperPermiso = new MapperPermiso();
+            _mapperRol = new MapperRol();
             _bitacoraService = new BitacoraService();
             _digitoVerificadorService = new DigitoVerificadorService();
         }
@@ -246,6 +250,154 @@ namespace BLL
             return string.Join("|",
                 u.Username, u.Hash, u.Salt, u.Nombre, u.Apellido, u.Email,
                 u.Bloqueado.ToString(), u.IntentosFallidos.ToString(), ultimoLogin);
+        }
+
+        public int AsignarRol(int usuarioId, int rolId)
+        {
+            RequerirAdmin("AsignarRolAUsuario");
+            string nombreRol = NombreDeRol(rolId);
+            string username  = UsernameDeUsuario(usuarioId);
+
+            _mapperRol.AsignarAUsuario(usuarioId, rolId);
+            int quitados = LimpiarRedundanciasUsuario(usuarioId);
+
+            string detalle = $"Rol {nombreRol} asignado al usuario '{username}'";
+            if (quitados > 0)
+                detalle += $". Limpieza: {quitados} asignación(es) directa(s) redundante(s) quitadas.";
+            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AsignacionRol, detalle);
+            return quitados;
+        }
+
+        public int AsignarPermiso(int usuarioId, int permisoId)
+        {
+            RequerirAdmin("AsignarPermisoAUsuario");
+            string codPermiso = CodigoDePermiso(permisoId);
+            string username   = UsernameDeUsuario(usuarioId);
+
+            _mapperPermiso.AsignarAUsuario(usuarioId, permisoId);
+            int quitados = LimpiarRedundanciasUsuario(usuarioId);
+
+            string detalle = $"Permiso {codPermiso} asignado al usuario '{username}'";
+            if (quitados > 0)
+                detalle += $". Limpieza: {quitados} asignación(es) directa(s) redundante(s) quitadas.";
+            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AsignacionPermiso, detalle);
+            return quitados;
+        }
+
+        public void QuitarRol(int usuarioId, int rolId)
+        {
+            RequerirAdmin("QuitarRolDeUsuario");
+            string nombreRol = NombreDeRol(rolId);
+            string username  = UsernameDeUsuario(usuarioId);
+            _mapperRol.QuitarDeUsuario(usuarioId, rolId);
+            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AsignacionRol,
+                $"Rol {nombreRol} quitado al usuario '{username}'");
+        }
+
+        public void QuitarPermiso(int usuarioId, int permisoId)
+        {
+            RequerirAdmin("QuitarPermisoDeUsuario");
+            string codPermiso = CodigoDePermiso(permisoId);
+            string username   = UsernameDeUsuario(usuarioId);
+            _mapperPermiso.QuitarDeUsuario(usuarioId, permisoId);
+            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AsignacionPermiso,
+                $"Permiso {codPermiso} quitado al usuario '{username}'");
+        }
+
+        private string NombreDeRol(int rolId)
+        {
+            foreach (Rol r in _mapperRol.Listar())
+                if (r.Id == rolId) return r.Nombre;
+            return "id=" + rolId;
+        }
+
+        private string CodigoDePermiso(int permisoId)
+        {
+            foreach (var par in _mapperPermiso.ListarConPadre())
+                if (par.Key.Id == permisoId) return par.Key.Codigo;
+            return "id=" + permisoId;
+        }
+
+        private string UsernameDeUsuario(int usuarioId)
+        {
+            foreach (Usuario u in _mapperUsuario.Listar())
+                if (u.Id == usuarioId) return u.Username;
+            return "id=" + usuarioId;
+        }
+
+        public List<Rol> ListarRolesDeUsuario(int usuarioId) => _mapperRol.ListarDeUsuario(usuarioId);
+
+        public List<Permiso> ListarPermisosDirectosDeUsuario(int usuarioId) =>
+            _mapperPermiso.ListarDirectosDeUsuario(usuarioId);
+
+        private int LimpiarRedundanciasUsuario(int usuarioId)
+        {
+            var directos = _mapperPermiso.ListarDirectosDeUsuario(usuarioId);
+            if (directos.Count == 0) return 0;
+
+            var roles = _mapperRol.ListarDeUsuario(usuarioId);
+            var hijosPorPadre = ConstruirIndiceHijos();
+
+            var cubiertos = new HashSet<int>();
+
+            foreach (Permiso p in directos)
+                if (p is FamiliaPermiso)
+                    RecolectarDescendientes(p.Id, hijosPorPadre, cubiertos);
+
+            foreach (Rol rol in roles)
+            {
+                foreach (Permiso p in _mapperPermiso.ListarPorRol(rol.Id))
+                {
+                    cubiertos.Add(p.Id);
+                    if (p is FamiliaPermiso)
+                        RecolectarDescendientes(p.Id, hijosPorPadre, cubiertos);
+                }
+            }
+
+            int quitados = 0;
+            foreach (Permiso p in directos)
+            {
+                if (cubiertos.Contains(p.Id))
+                {
+                    _mapperPermiso.QuitarDeUsuario(usuarioId, p.Id);
+                    quitados++;
+                }
+            }
+            return quitados;
+        }
+
+        private Dictionary<int, List<int>> ConstruirIndiceHijos()
+        {
+            var conPadre = _mapperPermiso.ListarConPadre();
+            var hijosPorPadre = new Dictionary<int, List<int>>();
+            foreach (var par in conPadre)
+            {
+                if (!par.Value.HasValue) continue;
+                int padre = par.Value.Value;
+                if (!hijosPorPadre.ContainsKey(padre))
+                    hijosPorPadre[padre] = new List<int>();
+                hijosPorPadre[padre].Add(par.Key.Id);
+            }
+            return hijosPorPadre;
+        }
+
+        private void RecolectarDescendientes(int id, Dictionary<int, List<int>> hijosPorPadre, HashSet<int> acumulador)
+        {
+            if (!hijosPorPadre.TryGetValue(id, out List<int> hijos)) return;
+            foreach (int h in hijos)
+                if (acumulador.Add(h))
+                    RecolectarDescendientes(h, hijosPorPadre, acumulador);
+        }
+
+        private void RequerirAdmin(string accion)
+        {
+            if (!EsAdmin())
+            {
+                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error,
+                    $"Acceso denegado a '{accion}': se requiere usuario admin.");
+                throw new UnauthorizedAccessException(
+                    "Sólo el usuario administrador puede asignar permisos o roles a usuarios.");
+            }
         }
     }
 }

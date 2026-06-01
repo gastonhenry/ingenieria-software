@@ -15,5 +15,12 @@ namespace BLL
         bool EstaAutenticado();
         bool EsAdmin();
         ResultadoIntegridad VerificarIntegridad();
+
+        int AsignarRol(int usuarioId, int rolId);
+        int AsignarPermiso(int usuarioId, int permisoId);
+        void QuitarRol(int usuarioId, int rolId);
+        void QuitarPermiso(int usuarioId, int permisoId);
+        List<Rol> ListarRolesDeUsuario(int usuarioId);
+        List<Permiso> ListarPermisosDirectosDeUsuario(int usuarioId);
     }
 }

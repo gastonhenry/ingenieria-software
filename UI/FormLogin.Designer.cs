@@ -1,6 +1,6 @@
 namespace UI
 {
-    partial class Form1
+    partial class FormLogin
     {
         private System.ComponentModel.IContainer components = null;
 
@@ -144,6 +144,7 @@ namespace UI
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.Resize += new System.EventHandler(this.Form1_Resize);
             this.pnlCard.ResumeLayout(false);
             this.pnlCard.PerformLayout();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BE
 {
@@ -86,6 +87,26 @@ namespace BE
         {
             get { return dvh; }
             set { dvh = value; }
+        }
+
+        private List<Rol> roles = new List<Rol>();
+        public List<Rol> Roles
+        {
+            get { return roles; }
+            set { roles = value; }
+        }
+
+        private List<Permiso> permisos = new List<Permiso>();
+        public List<Permiso> Permisos
+        {
+            get { return permisos; }
+            set { permisos = value; }
+        }
+
+        public override string ToString()
+        {
+            string estado = bloqueado ? " [BLOQUEADO]" : "";
+            return username + " — " + nombre + " " + apellido + estado;
         }
     }
 }

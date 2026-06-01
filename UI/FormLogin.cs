@@ -6,12 +6,12 @@ using System.Windows.Forms;
 
 namespace UI
 {
-    public partial class Form1 : Form
+    public partial class FormLogin : Form
     {
         private readonly IUsuarioService _usuarioService;
         private bool _integridadOk;
 
-        public Form1()
+        public FormLogin()
         {
             InitializeComponent();
             _usuarioService = new UsuarioService();
@@ -99,6 +99,15 @@ namespace UI
             {
                 MessageBox.Show("Error al iniciar sesión. Por favor, reintente más tarde.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                txtUsername.Text = "admin";
+                txtPassword.Text = "123456789";
             }
         }
     }

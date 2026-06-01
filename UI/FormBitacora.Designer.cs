@@ -1,3 +1,5 @@
+using System.Windows.Forms;
+
 namespace UI
 {
     partial class FormBitacora
@@ -15,6 +17,8 @@ namespace UI
 
         private void InitializeComponent()
         {
+            this.pnlTitulo = new System.Windows.Forms.Panel();
+            this.lblTitulo = new System.Windows.Forms.Label();
             this.grpFiltros = new System.Windows.Forms.GroupBox();
             this.lblTipo = new System.Windows.Forms.Label();
             this.cmbTipo = new System.Windows.Forms.ComboBox();
@@ -29,10 +33,31 @@ namespace UI
             this.lblTotal = new System.Windows.Forms.Label();
             this.btnActualizar = new System.Windows.Forms.Button();
             this.dgvBitacora = new System.Windows.Forms.DataGridView();
+            this.pnlTitulo.SuspendLayout();
             this.grpFiltros.SuspendLayout();
             this.pnlResumen.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvBitacora)).BeginInit();
             this.SuspendLayout();
+            // 
+            // pnlTitulo
+            // 
+            this.pnlTitulo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(90)))), ((int)(((byte)(200)))));
+            this.pnlTitulo.Controls.Add(this.lblTitulo);
+            this.pnlTitulo.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTitulo.Location = new System.Drawing.Point(0, 0);
+            this.pnlTitulo.Name = "pnlTitulo";
+            this.pnlTitulo.Size = new System.Drawing.Size(750, 74);
+            this.pnlTitulo.TabIndex = 3;
+            // 
+            // lblTitulo
+            // 
+            this.lblTitulo.AutoSize = true;
+            this.lblTitulo.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblTitulo.ForeColor = System.Drawing.Color.White;
+            this.lblTitulo.Location = new System.Drawing.Point(15, 34);
+            this.lblTitulo.Name = "lblTitulo";
+            this.lblTitulo.TabIndex = 0;
+            this.lblTitulo.Text = "Bitácora";
             // 
             // grpFiltros
             // 
@@ -47,11 +72,12 @@ namespace UI
             this.grpFiltros.Controls.Add(this.btnLimpiar);
             this.grpFiltros.Dock = System.Windows.Forms.DockStyle.Top;
             this.grpFiltros.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.grpFiltros.Location = new System.Drawing.Point(0, 0);
+            this.grpFiltros.Location = new System.Drawing.Point(0, 74);
             this.grpFiltros.Name = "grpFiltros";
             this.grpFiltros.Size = new System.Drawing.Size(750, 100);
             this.grpFiltros.TabIndex = 2;
             this.grpFiltros.TabStop = false;
+            this.grpFiltros.Padding = new Padding(20);
             this.grpFiltros.Text = "Filtros";
             // 
             // lblTipo
@@ -86,47 +112,47 @@ namespace UI
             this.txtUsuarioFiltro.Name = "txtUsuarioFiltro";
             this.txtUsuarioFiltro.Size = new System.Drawing.Size(160, 23);
             this.txtUsuarioFiltro.TabIndex = 1;
-            //
+            // 
             // lblDesde
-            //
+            // 
             this.lblDesde.AutoSize = true;
             this.lblDesde.Location = new System.Drawing.Point(12, 64);
             this.lblDesde.Name = "lblDesde";
-            this.lblDesde.Size = new System.Drawing.Size(43, 15);
+            this.lblDesde.Size = new System.Drawing.Size(42, 15);
             this.lblDesde.TabIndex = 4;
             this.lblDesde.Text = "Desde:";
-            //
+            // 
             // dtpDesde
-            //
+            // 
+            this.dtpDesde.Checked = false;
             this.dtpDesde.Format = System.Windows.Forms.DateTimePickerFormat.Short;
             this.dtpDesde.Location = new System.Drawing.Point(60, 60);
             this.dtpDesde.Name = "dtpDesde";
             this.dtpDesde.ShowCheckBox = true;
-            this.dtpDesde.Checked = false;
             this.dtpDesde.Size = new System.Drawing.Size(145, 23);
             this.dtpDesde.TabIndex = 5;
-            //
+            // 
             // lblHasta
-            //
+            // 
             this.lblHasta.AutoSize = true;
             this.lblHasta.Location = new System.Drawing.Point(220, 64);
             this.lblHasta.Name = "lblHasta";
             this.lblHasta.Size = new System.Drawing.Size(40, 15);
             this.lblHasta.TabIndex = 6;
             this.lblHasta.Text = "Hasta:";
-            //
+            // 
             // dtpHasta
-            //
+            // 
+            this.dtpHasta.Checked = false;
             this.dtpHasta.Format = System.Windows.Forms.DateTimePickerFormat.Short;
             this.dtpHasta.Location = new System.Drawing.Point(265, 60);
             this.dtpHasta.Name = "dtpHasta";
             this.dtpHasta.ShowCheckBox = true;
-            this.dtpHasta.Checked = false;
             this.dtpHasta.Size = new System.Drawing.Size(145, 23);
             this.dtpHasta.TabIndex = 7;
-            //
+            // 
             // btnLimpiar
-            //
+            // 
             this.btnLimpiar.Location = new System.Drawing.Point(458, 18);
             this.btnLimpiar.Name = "btnLimpiar";
             this.btnLimpiar.Size = new System.Drawing.Size(90, 26);
@@ -173,13 +199,19 @@ namespace UI
             this.dgvBitacora.AllowUserToDeleteRows = false;
             this.dgvBitacora.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvBitacora.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvBitacora.Location = new System.Drawing.Point(0, 62);
+            this.dgvBitacora.Location = new System.Drawing.Point(0, 174);
             this.dgvBitacora.Name = "dgvBitacora";
             this.dgvBitacora.ReadOnly = true;
             this.dgvBitacora.RowHeadersVisible = false;
             this.dgvBitacora.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvBitacora.Size = new System.Drawing.Size(750, 368);
+            this.dgvBitacora.Size = new System.Drawing.Size(750, 256);
             this.dgvBitacora.TabIndex = 0;
+            //
+            // pnlSeparador
+            //
+            Panel pnlSeparador = new Panel();
+            pnlSeparador.Dock = DockStyle.Top;
+            pnlSeparador.Height = 10;
             // 
             // FormBitacora
             // 
@@ -189,9 +221,13 @@ namespace UI
             this.Controls.Add(this.dgvBitacora);
             this.Controls.Add(this.pnlResumen);
             this.Controls.Add(this.grpFiltros);
+            this.Controls.Add(pnlSeparador);
+            this.Controls.Add(this.pnlTitulo);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FormBitacora";
+            this.pnlTitulo.ResumeLayout(false);
+            this.pnlTitulo.PerformLayout();
             this.grpFiltros.ResumeLayout(false);
             this.grpFiltros.PerformLayout();
             this.pnlResumen.ResumeLayout(false);
@@ -203,6 +239,8 @@ namespace UI
 
         #endregion
 
+        private System.Windows.Forms.Panel pnlTitulo;
+        private System.Windows.Forms.Label lblTitulo;
         private System.Windows.Forms.GroupBox grpFiltros;
         private System.Windows.Forms.Label lblTipo;
         private System.Windows.Forms.ComboBox cmbTipo;

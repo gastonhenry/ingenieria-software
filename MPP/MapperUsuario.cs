@@ -89,21 +89,6 @@ namespace MPP
             };
         }
 
-        public override Usuario Obtener(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int Editar(Usuario obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int Eliminar(Usuario obj)
-        {
-            throw new NotImplementedException();
-        }
-
         public override List<Usuario> Listar()
         {
             AccesoDB db = AccesoDB.GetInstancia();

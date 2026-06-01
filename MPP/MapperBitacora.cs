@@ -27,16 +27,6 @@ namespace MPP
             return db.LeerEscalar("InsertarBitacora", parametros);
         }
 
-        public override int Eliminar(Bitacora obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override List<Bitacora> Listar()
-        {
-            throw new NotImplementedException();
-        }
-
         public List<Bitacora> Listar(int? tipoId = null, int? usuarioId = null)
         {
             AccesoDB db = AccesoDB.GetInstancia();
@@ -76,16 +66,6 @@ namespace MPP
             }
 
             return lista;
-        }
-
-        public override Bitacora Obtener(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int Editar(Bitacora obj)
-        {
-            throw new NotImplementedException();
         }
     }
 }

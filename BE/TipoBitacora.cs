@@ -28,5 +28,17 @@ namespace BE
 
         [Description("Intento acceso bloqueado")]
         IntentoAccesoBloqueado = 7,
+
+        [Description("Alta de permiso")]
+        AltaPermiso = 8,
+
+        [Description("Asignación de permiso")]
+        AsignacionPermiso = 9,
+
+        [Description("Alta de rol")]
+        AltaRol = 10,
+
+        [Description("Asignación de rol")]
+        AsignacionRol = 11,
     }
 }

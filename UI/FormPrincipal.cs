@@ -1,4 +1,5 @@
 using BLL;
+using HELPERS;
 using System;
 using System.Drawing;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace UI
     public partial class FormPrincipal : Form
     {
         private readonly IUsuarioService _usuarioService;
+        private readonly IPermisoService _permisoService;
         private string _username;
         private bool _loggingOut = false;
 
@@ -16,13 +18,23 @@ namespace UI
         {
             _username = username;
             _usuarioService = new UsuarioService();
+            _permisoService = new PermisoService();
             InitializeComponent();
             menuStrip1.Renderer = new ToolStripProfessionalRenderer(new NavBarColorTable());
-            var screen = Screen.PrimaryScreen.WorkingArea;
-            this.Size = new Size(screen.Width / 2, screen.Height / 2);
+            this.WindowState = FormWindowState.Maximized;
+            this.MaximizeBox = false;
             bool esAdmin = _usuarioService.EsAdmin();
             menuUsuarios.Visible = esAdmin;
-            menuBitacora.Visible = esAdmin;
+            menuPermisos.Visible = esAdmin;
+            menuRoles.Visible = esAdmin;
+            menuBitacora.Visible = esAdmin || TienePermiso("VER_BITACORA");
+            lblSesion.Text = "Sesión: " + _username;
+            this.Shown += (s, e) => Navegar(new FormHome());
+        }
+
+        private bool TienePermiso(string codigo)
+        {
+            return _permisoService.UsuarioTienePermiso(SesionUsuario.GetInstancia().Usuario, codigo);
         }
 
         private class NavBarColorTable : ProfessionalColorTable
@@ -48,8 +60,7 @@ namespace UI
 
         private void menuInicio_Click(object sender, EventArgs e)
         {
-            foreach (Form child in this.MdiChildren.ToList())
-                child.Close();
+            Navegar(new FormHome());
         }
 
         private void Navegar(Form destino)
@@ -69,14 +80,28 @@ namespace UI
         private void menuVerUsuarios_Click(object sender, EventArgs e) =>
             Navegar(new FormUsuarios());
 
+        private void menuAsignacionPermisos_Click(object sender, EventArgs e) =>
+            Navegar(new FormAsignacionPermisos());
+
         private void menuVerBitacora_Click(object sender, EventArgs e) =>
             Navegar(new FormBitacora());
 
+        private void menuGestionPermisos_Click(object sender, EventArgs e) =>
+            Navegar(new FormPermisos());
+
+        private void menuGestionRoles_Click(object sender, EventArgs e) =>
+            Navegar(new FormRoles());
+
         private void menuLogout_Click(object sender, EventArgs e)
         {
+            var confirm = MessageBox.Show(
+                "¿Querés cerrar sesión?",
+                "Confirmar cierre de sesión", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirm != DialogResult.Yes) return;
+
             _usuarioService.Logout();
             _loggingOut = true;
-            var login = new Form1();
+            var login = new FormLogin();
             login.Show();
             this.Close();
         }
@@ -88,6 +113,29 @@ namespace UI
                 _usuarioService.Logout();
                 Application.Exit();
             }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_SYSCOMMAND = 0x0112;
+            const int SC_RESTORE   = 0xF120;
+            const int SC_SIZE      = 0xF000;
+            const int SC_MOVE      = 0xF010;
+
+            if (m.Msg == WM_SYSCOMMAND)
+            {
+                int cmd = m.WParam.ToInt32() & 0xFFF0;
+                if (cmd == SC_RESTORE && this.WindowState != FormWindowState.Minimized)
+                    return;
+                if (cmd == SC_SIZE || cmd == SC_MOVE)
+                    return;
+            }
+            base.WndProc(ref m);
+        }
+
+        private void FormPrincipal_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

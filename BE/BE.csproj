@@ -46,6 +46,10 @@
     <Compile Include="DigitoVerificador.cs" />
     <Compile Include="IDigitoVerificable.cs" />
     <Compile Include="LoginResultado.cs" />
+    <Compile Include="Permiso.cs" />
+    <Compile Include="PermisoIndividual.cs" />
+    <Compile Include="FamiliaPermiso.cs" />
+    <Compile Include="Rol.cs" />
     <Compile Include="ResultadoIntegridad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Usuario.cs" />

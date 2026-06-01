@@ -1,3 +1,5 @@
+using System.Windows.Forms;
+
 namespace UI
 {
     partial class FormUsuarios
@@ -15,6 +17,8 @@ namespace UI
 
         private void InitializeComponent()
         {
+            this.pnlTitulo        = new System.Windows.Forms.Panel();
+            this.lblTitulo        = new System.Windows.Forms.Label();
             this.grpFiltros       = new System.Windows.Forms.GroupBox();
             this.lblEstado        = new System.Windows.Forms.Label();
             this.cmbEstado        = new System.Windows.Forms.ComboBox();
@@ -33,12 +37,27 @@ namespace UI
             this.lblTotal         = new System.Windows.Forms.Label();
             this.dgvUsuarios      = new System.Windows.Forms.DataGridView();
 
+            this.pnlTitulo.SuspendLayout();
             this.grpFiltros.SuspendLayout();
             this.pnlAcciones.SuspendLayout();
             this.pnlBotones.SuspendLayout();
             this.pnlResumen.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUsuarios)).BeginInit();
             this.SuspendLayout();
+
+            // ── pnlTitulo ───────────────────────────────────────────────────
+            this.pnlTitulo.BackColor = System.Drawing.Color.FromArgb(30, 90, 200);
+            this.pnlTitulo.Controls.Add(this.lblTitulo);
+            this.pnlTitulo.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTitulo.Location = new System.Drawing.Point(0, 0);
+            this.pnlTitulo.Name = "pnlTitulo";
+            this.pnlTitulo.Size = new System.Drawing.Size(800, 60);
+
+            this.lblTitulo.AutoSize = true;
+            this.lblTitulo.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblTitulo.ForeColor = System.Drawing.Color.White;
+            this.lblTitulo.Location = new System.Drawing.Point(15, 22);
+            this.lblTitulo.Text = "Gestión de Usuarios";
 
             // ── grpFiltros ──────────────────────────────────────────────────
             this.grpFiltros.Controls.Add(this.lblEstado);
@@ -49,6 +68,7 @@ namespace UI
             this.grpFiltros.Dock   = System.Windows.Forms.DockStyle.Top;
             this.grpFiltros.Font   = new System.Drawing.Font("Segoe UI", 9f);
             this.grpFiltros.Height = 62;
+            this.grpFiltros.Padding = new Padding(10);
             this.grpFiltros.Name   = "grpFiltros";
             this.grpFiltros.Text   = "Filtros";
 
@@ -64,14 +84,14 @@ namespace UI
 
             this.lblUsuarioFiltro.AutoSize = true;
             this.lblUsuarioFiltro.Location = new System.Drawing.Point(210, 23);
-            this.lblUsuarioFiltro.Text     = "Usuario:";
+            this.lblUsuarioFiltro.Text     = "Buscar usuario:";
 
-            this.txtUsuarioFiltro.Location = new System.Drawing.Point(270, 20);
+            this.txtUsuarioFiltro.Location = new System.Drawing.Point(305, 20);
             this.txtUsuarioFiltro.Name     = "txtUsuarioFiltro";
             this.txtUsuarioFiltro.Size     = new System.Drawing.Size(150, 23);
             this.txtUsuarioFiltro.TabIndex = 1;
 
-            this.btnLimpiar.Location            = new System.Drawing.Point(435, 18);
+            this.btnLimpiar.Location            = new System.Drawing.Point(470, 18);
             this.btnLimpiar.Name                = "btnLimpiar";
             this.btnLimpiar.Size                = new System.Drawing.Size(90, 26);
             this.btnLimpiar.TabIndex            = 3;
@@ -174,9 +194,12 @@ namespace UI
             this.Controls.Add(this.dgvUsuarios);
             this.Controls.Add(this.pnlAcciones);
             this.Controls.Add(this.grpFiltros);
+            this.Controls.Add(this.pnlTitulo);
             this.Name = "FormUsuarios";
             this.Text = "Gestión de Usuarios";
 
+            this.pnlTitulo.ResumeLayout(false);
+            this.pnlTitulo.PerformLayout();
             this.grpFiltros.ResumeLayout(false);
             this.grpFiltros.PerformLayout();
             this.pnlResumen.ResumeLayout(false);
@@ -190,6 +213,8 @@ namespace UI
 
         #endregion
 
+        private System.Windows.Forms.Panel pnlTitulo;
+        private System.Windows.Forms.Label lblTitulo;
         private System.Windows.Forms.GroupBox grpFiltros;
         private System.Windows.Forms.Label lblEstado;
         private System.Windows.Forms.ComboBox cmbEstado;

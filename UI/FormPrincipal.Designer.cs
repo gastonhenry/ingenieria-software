@@ -20,9 +20,16 @@ namespace UI
             this.menuUsuarios = new System.Windows.Forms.ToolStripMenuItem();
             this.menuInsertarUsuario = new System.Windows.Forms.ToolStripMenuItem();
             this.menuVerUsuarios = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuAsignacionPermisos = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuPermisos = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuGestionPermisos = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRoles = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuGestionRoles = new System.Windows.Forms.ToolStripMenuItem();
             this.menuBitacora = new System.Windows.Forms.ToolStripMenuItem();
             this.menuVerBitacora = new System.Windows.Forms.ToolStripMenuItem();
             this.menuLogout = new System.Windows.Forms.ToolStripMenuItem();
+            this.lblSesion = new System.Windows.Forms.ToolStripLabel();
+            this.lblEstadoSesion = new System.Windows.Forms.ToolStripLabel();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -34,11 +41,15 @@ namespace UI
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuInicio,
             this.menuUsuarios,
+            this.menuPermisos,
+            this.menuRoles,
             this.menuBitacora,
-            this.menuLogout});
+            this.menuLogout,
+            this.lblSesion,
+            this.lblEstadoSesion});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(800, 25);
+            this.menuStrip1.Size = new System.Drawing.Size(800, 29);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -46,7 +57,7 @@ namespace UI
             // 
             this.menuInicio.ForeColor = System.Drawing.Color.White;
             this.menuInicio.Name = "menuInicio";
-            this.menuInicio.Size = new System.Drawing.Size(50, 21);
+            this.menuInicio.Size = new System.Drawing.Size(50, 25);
             this.menuInicio.Text = "Inicio";
             this.menuInicio.Click += new System.EventHandler(this.menuInicio_Click);
             // 
@@ -54,25 +65,65 @@ namespace UI
             // 
             this.menuUsuarios.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuInsertarUsuario,
-            this.menuVerUsuarios});
+            this.menuVerUsuarios,
+            this.menuAsignacionPermisos});
             this.menuUsuarios.ForeColor = System.Drawing.Color.White;
             this.menuUsuarios.Name = "menuUsuarios";
-            this.menuUsuarios.Size = new System.Drawing.Size(71, 21);
+            this.menuUsuarios.Size = new System.Drawing.Size(71, 25);
             this.menuUsuarios.Text = "Usuarios";
             // 
             // menuInsertarUsuario
             // 
             this.menuInsertarUsuario.Name = "menuInsertarUsuario";
-            this.menuInsertarUsuario.Size = new System.Drawing.Size(194, 22);
+            this.menuInsertarUsuario.Size = new System.Drawing.Size(215, 22);
             this.menuInsertarUsuario.Text = "Insertar Usuario";
             this.menuInsertarUsuario.Click += new System.EventHandler(this.menuInsertarUsuario_Click);
             // 
             // menuVerUsuarios
             // 
             this.menuVerUsuarios.Name = "menuVerUsuarios";
-            this.menuVerUsuarios.Size = new System.Drawing.Size(194, 22);
+            this.menuVerUsuarios.Size = new System.Drawing.Size(215, 22);
             this.menuVerUsuarios.Text = "Gestión de Usuarios";
             this.menuVerUsuarios.Click += new System.EventHandler(this.menuVerUsuarios_Click);
+            // 
+            // menuAsignacionPermisos
+            // 
+            this.menuAsignacionPermisos.Name = "menuAsignacionPermisos";
+            this.menuAsignacionPermisos.Size = new System.Drawing.Size(215, 22);
+            this.menuAsignacionPermisos.Text = "Asignación de Permisos";
+            this.menuAsignacionPermisos.Click += new System.EventHandler(this.menuAsignacionPermisos_Click);
+            // 
+            // menuPermisos
+            // 
+            this.menuPermisos.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuGestionPermisos});
+            this.menuPermisos.ForeColor = System.Drawing.Color.White;
+            this.menuPermisos.Name = "menuPermisos";
+            this.menuPermisos.Size = new System.Drawing.Size(73, 25);
+            this.menuPermisos.Text = "Permisos";
+            // 
+            // menuGestionPermisos
+            // 
+            this.menuGestionPermisos.Name = "menuGestionPermisos";
+            this.menuGestionPermisos.Size = new System.Drawing.Size(196, 22);
+            this.menuGestionPermisos.Text = "Gestión de Permisos";
+            this.menuGestionPermisos.Click += new System.EventHandler(this.menuGestionPermisos_Click);
+            // 
+            // menuRoles
+            // 
+            this.menuRoles.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuGestionRoles});
+            this.menuRoles.ForeColor = System.Drawing.Color.White;
+            this.menuRoles.Name = "menuRoles";
+            this.menuRoles.Size = new System.Drawing.Size(52, 25);
+            this.menuRoles.Text = "Roles";
+            // 
+            // menuGestionRoles
+            // 
+            this.menuGestionRoles.Name = "menuGestionRoles";
+            this.menuGestionRoles.Size = new System.Drawing.Size(175, 22);
+            this.menuGestionRoles.Text = "Gestión de Roles";
+            this.menuGestionRoles.Click += new System.EventHandler(this.menuGestionRoles_Click);
             // 
             // menuBitacora
             // 
@@ -80,7 +131,7 @@ namespace UI
             this.menuVerBitacora});
             this.menuBitacora.ForeColor = System.Drawing.Color.White;
             this.menuBitacora.Name = "menuBitacora";
-            this.menuBitacora.Size = new System.Drawing.Size(67, 21);
+            this.menuBitacora.Size = new System.Drawing.Size(67, 25);
             this.menuBitacora.Text = "Bitácora";
             // 
             // menuVerBitacora
@@ -94,9 +145,30 @@ namespace UI
             // 
             this.menuLogout.ForeColor = System.Drawing.Color.White;
             this.menuLogout.Name = "menuLogout";
-            this.menuLogout.Size = new System.Drawing.Size(61, 21);
+            this.menuLogout.Size = new System.Drawing.Size(61, 25);
             this.menuLogout.Text = "Logout";
             this.menuLogout.Click += new System.EventHandler(this.menuLogout_Click);
+            // 
+            // lblSesion
+            // 
+            this.lblSesion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.lblSesion.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.lblSesion.ForeColor = System.Drawing.Color.White;
+            this.lblSesion.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
+            this.lblSesion.Name = "lblSesion";
+            this.lblSesion.Size = new System.Drawing.Size(61, 25);
+            this.lblSesion.Text = "Sesión: -";
+            // 
+            // lblEstadoSesion
+            // 
+            this.lblEstadoSesion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.lblEstadoSesion.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblEstadoSesion.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(57)))), ((int)(((byte)(255)))), ((int)(((byte)(20)))));
+            this.lblEstadoSesion.Margin = new System.Windows.Forms.Padding(0, 0, 4, 0);
+            this.lblEstadoSesion.Name = "lblEstadoSesion";
+            this.lblEstadoSesion.Size = new System.Drawing.Size(23, 25);
+            this.lblEstadoSesion.Text = "●";
+            this.lblEstadoSesion.ToolTipText = "Sesión activa";
             // 
             // FormPrincipal
             // 
@@ -109,6 +181,7 @@ namespace UI
             this.Name = "FormPrincipal";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormPrincipal_FormClosed);
+            this.Load += new System.EventHandler(this.FormPrincipal_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -123,8 +196,15 @@ namespace UI
         private System.Windows.Forms.ToolStripMenuItem menuUsuarios;
         private System.Windows.Forms.ToolStripMenuItem menuInsertarUsuario;
         private System.Windows.Forms.ToolStripMenuItem menuVerUsuarios;
+        private System.Windows.Forms.ToolStripMenuItem menuAsignacionPermisos;
         private System.Windows.Forms.ToolStripMenuItem menuBitacora;
         private System.Windows.Forms.ToolStripMenuItem menuVerBitacora;
+        private System.Windows.Forms.ToolStripMenuItem menuPermisos;
+        private System.Windows.Forms.ToolStripMenuItem menuGestionPermisos;
+        private System.Windows.Forms.ToolStripMenuItem menuRoles;
+        private System.Windows.Forms.ToolStripMenuItem menuGestionRoles;
         private System.Windows.Forms.ToolStripMenuItem menuLogout;
+        private System.Windows.Forms.ToolStripLabel lblSesion;
+        private System.Windows.Forms.ToolStripLabel lblEstadoSesion;
     }
 }

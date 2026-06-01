@@ -78,7 +78,11 @@ namespace UI
 
             string filtro = txtUsuarioFiltro.Text.Trim().ToLower();
             if (!string.IsNullOrEmpty(filtro))
-                resultado = resultado.Where(u => u.Username.ToLower().Contains(filtro));
+                resultado = resultado.Where(u =>
+                    (u.Username != null && u.Username.ToLower().Contains(filtro)) ||
+                    (u.Nombre   != null && u.Nombre.ToLower().Contains(filtro))   ||
+                    (u.Apellido != null && u.Apellido.ToLower().Contains(filtro)) ||
+                    (u.Email    != null && u.Email.ToLower().Contains(filtro)));
 
             var lista = resultado
                 .OrderByDescending(u => u.Bloqueado)
@@ -98,14 +102,16 @@ namespace UI
             dgvUsuarios.Columns.Add("Username",         "Usuario");
             dgvUsuarios.Columns.Add("Nombre",           "Nombre");
             dgvUsuarios.Columns.Add("Apellido",         "Apellido");
+            dgvUsuarios.Columns.Add("Email",            "Email");
             dgvUsuarios.Columns.Add("Estado",           "Estado");
             dgvUsuarios.Columns.Add("IntentosFallidos", "Int. Fallidos");
             dgvUsuarios.Columns.Add("UltimoLogin",      "Último Login");
 
             dgvUsuarios.Columns["Id"].Visible                             = false;
-            dgvUsuarios.Columns["Username"].Width                         = 160;
-            dgvUsuarios.Columns["Nombre"].Width                           = 130;
-            dgvUsuarios.Columns["Apellido"].Width                         = 130;
+            dgvUsuarios.Columns["Username"].Width                         = 140;
+            dgvUsuarios.Columns["Nombre"].Width                           = 120;
+            dgvUsuarios.Columns["Apellido"].Width                         = 120;
+            dgvUsuarios.Columns["Email"].Width                            = 200;
             dgvUsuarios.Columns["Estado"].Width                           = 90;
             dgvUsuarios.Columns["IntentosFallidos"].Width                 = 100;
             dgvUsuarios.Columns["IntentosFallidos"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
