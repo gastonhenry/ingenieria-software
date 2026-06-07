@@ -47,15 +47,67 @@ namespace MPP
 
             var parametros = new List<SqlParameter>
             {
-                db.CrearParametro("@Username", obj.Username),
-                db.CrearParametro("@Hash",     hashedPassword),
-                db.CrearParametro("@Salt",     salt),
-                db.CrearParametro("@Nombre",   obj.Nombre),
-                db.CrearParametro("@Apellido", obj.Apellido),
-                db.CrearParametro("@Email",    obj.Email)
+                db.CrearParametro("@Username",  obj.Username),
+                db.CrearParametro("@Hash",      hashedPassword),
+                db.CrearParametro("@Salt",      salt),
+                db.CrearParametro("@Nombre",    obj.Nombre),
+                db.CrearParametro("@Apellido",  obj.Apellido),
+                db.CrearParametro("@Email",     obj.Email),
+                db.CrearParametro("@Telefono",  obj.Telefono),
+                db.CrearParametro("@Documento", obj.Documento),
+                db.CrearParametro("@Domicilio", obj.Domicilio)
             };
 
             return db.LeerEscalar("InsertarUsuario", parametros);
+        }
+
+        public override int Editar(Usuario obj)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            var parametros = new List<SqlParameter>
+            {
+                db.CrearParametro("@UsuarioId", obj.Id),
+                db.CrearParametro("@Username",  obj.Username),
+                db.CrearParametro("@Nombre",    obj.Nombre),
+                db.CrearParametro("@Apellido",  obj.Apellido),
+                db.CrearParametro("@Email",     obj.Email),
+                db.CrearParametro("@Telefono",  obj.Telefono),
+                db.CrearParametro("@Documento", obj.Documento),
+                db.CrearParametro("@Domicilio", obj.Domicilio)
+            };
+            return db.Escribir("EditarUsuario", parametros);
+        }
+
+        public Usuario ObtenerPorId(int usuarioId)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            var parametros = new List<SqlParameter>
+            {
+                db.CrearParametro("@UsuarioId", usuarioId)
+            };
+            DataTable tabla = db.Leer("ObtenerUsuarioPorId", parametros);
+            if (tabla.Rows.Count == 0) return null;
+
+            DataRow row = tabla.Rows[0];
+            return new Usuario
+            {
+                Id          = (int)row["Id"],
+                Username    = (string)row["Username"],
+                Password    = string.Empty,
+                Hash        = (string)row["Hash"],
+                Salt        = (string)row["Salt"],
+                Nombre      = (string)row["Nombre"],
+                Apellido    = (string)row["Apellido"],
+                Email       = (string)row["Email"],
+                Telefono    = (string)row["Telefono"],
+                Documento   = (string)row["Documento"],
+                Domicilio   = (string)row["Domicilio"],
+                Bloqueado   = (bool)row["Bloqueado"],
+                IntentosFallidos = (int)row["IntentosFallidos"],
+                UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"],
+                IdIdioma    = row.IsNull("IdIdioma") ? (int?)null : (int)row["IdIdioma"],
+                DVH         = row.IsNull("DVH") ? null : (string)row["DVH"]
+            };
         }
 
         public Usuario Obtener(string username)
@@ -76,17 +128,35 @@ namespace MPP
 
             return new Usuario
             {
-                Id = (int)row["Id"],
-                Username = (string)row["Username"],
-                Password = string.Empty,
-                Hash = (string)row["Hash"],
-                Salt = (string)row["Salt"],
-                Nombre = (string)row["Nombre"],
-                Apellido = (string)row["Apellido"],
-                Email = (string)row["Email"],
+                Id        = (int)row["Id"],
+                Username  = (string)row["Username"],
+                Password  = string.Empty,
+                Hash      = (string)row["Hash"],
+                Salt      = (string)row["Salt"],
+                Nombre    = (string)row["Nombre"],
+                Apellido  = (string)row["Apellido"],
+                Email     = (string)row["Email"],
+                Telefono  = (string)row["Telefono"],
+                Documento = (string)row["Documento"],
+                Domicilio = (string)row["Domicilio"],
                 Bloqueado = (bool)row["Bloqueado"],
-                UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"]
+                UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"],
+                IdIdioma  = row.IsNull("IdIdioma") ? (int?)null : (int)row["IdIdioma"]
             };
+        }
+
+        public void ActualizarIdioma(int usuarioId, int? idiomaId)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            var parametros = new List<SqlParameter>
+            {
+                db.CrearParametro("@UsuarioId", usuarioId),
+                new SqlParameter("@IdIdioma", DbType.Int32)
+                {
+                    Value = idiomaId.HasValue ? (object)idiomaId.Value : DBNull.Value
+                }
+            };
+            db.Escribir("ActualizarIdiomaUsuario", parametros);
         }
 
         public override List<Usuario> Listar()
@@ -100,11 +170,14 @@ namespace MPP
             {
                 lista.Add(new Usuario
                 {
-                    Id = (int)row["Id"],
-                    Username = (string)row["Username"],
-                    Nombre = (string)row["Nombre"],
-                    Apellido = (string)row["Apellido"],
-                    Email = (string)row["Email"],
+                    Id        = (int)row["Id"],
+                    Username  = (string)row["Username"],
+                    Nombre    = (string)row["Nombre"],
+                    Apellido  = (string)row["Apellido"],
+                    Email     = (string)row["Email"],
+                    Telefono  = (string)row["Telefono"],
+                    Documento = (string)row["Documento"],
+                    Domicilio = (string)row["Domicilio"],
                     Bloqueado = (bool)row["Bloqueado"],
                     IntentosFallidos = (int)row["IntentosFallidos"],
                     UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"],
@@ -125,17 +198,20 @@ namespace MPP
             {
                 lista.Add(new Usuario
                 {
-                    Id = (int)row["Id"],
-                    Username = (string)row["Username"],
-                    Hash = (string)row["Hash"],
-                    Salt = (string)row["Salt"],
-                    Nombre = (string)row["Nombre"],
-                    Apellido = (string)row["Apellido"],
-                    Email = (string)row["Email"],
+                    Id        = (int)row["Id"],
+                    Username  = (string)row["Username"],
+                    Hash      = (string)row["Hash"],
+                    Salt      = (string)row["Salt"],
+                    Nombre    = (string)row["Nombre"],
+                    Apellido  = (string)row["Apellido"],
+                    Email     = (string)row["Email"],
+                    Telefono  = (string)row["Telefono"],
+                    Documento = (string)row["Documento"],
+                    Domicilio = (string)row["Domicilio"],
                     Bloqueado = (bool)row["Bloqueado"],
                     IntentosFallidos = (int)row["IntentosFallidos"],
                     UltimoLogin = row.IsNull("UltimoLogin") ? (DateTime?)null : (DateTime)row["UltimoLogin"],
-                    DVH = row.IsNull("DVH") ? null : (string)row["DVH"]
+                    DVH       = row.IsNull("DVH") ? null : (string)row["DVH"]
                 });
             }
 

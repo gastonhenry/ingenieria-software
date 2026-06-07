@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Reflection;
 
-namespace BE
+namespace BE.Enums
 {
     public enum TipoBitacora
     {
@@ -40,5 +39,11 @@ namespace BE
 
         [Description("Asignación de rol")]
         AsignacionRol = 11,
+
+        [Description("Alta de idioma")]
+        AltaIdioma = 12,
+
+        [Description("Edición de usuario")]
+        EdicionUsuario = 13,
     }
 }

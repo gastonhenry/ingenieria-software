@@ -6,28 +6,63 @@ using System.Windows.Forms;
 
 namespace UI
 {
-    public partial class FormAsignacionPermisos : Form
+    public partial class FormAsignacionPermisos : Form, IObservadorIdioma
     {
+        private const string CODIGO_FORM = "FormAsignacionPermisos";
+
         private readonly IUsuarioService _usuarioService;
-        private readonly IRolService _rolService;
         private readonly IPermisoService _permisoService;
+        private readonly IIdiomaService _idiomaService;
+        private bool _suscrito;
 
         public FormAsignacionPermisos()
         {
             InitializeComponent();
             _usuarioService = new UsuarioService();
-            _rolService = new RolService();
             _permisoService = new PermisoService();
+            _idiomaService = new IdiomaService();
 
-            if (!_usuarioService.EsAdmin())
+            bool permitido = _usuarioService.EsAdmin()
+                || _permisoService.UsuarioTienePermiso(HELPERS.SesionUsuario.GetInstancia().Usuario, "ASIGNAR_PERMISOS");
+            if (!permitido)
             {
-                MessageBox.Show("Solo el administrador puede asignar permisos a usuarios.",
-                    "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Tr("msgSinPermiso", "No tenés permiso para asignar permisos a usuarios."),
+                    Tr("msgAccesoDenegado", "Acceso denegado"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 this.Load += (s, e) => this.Close();
                 return;
             }
 
             CargarUsuarios();
+
+            _idiomaService.Suscribir(this);
+            _suscrito = true;
+            ActualizarIdioma(_idiomaService.IdiomaActual());
+        }
+
+        private string Tr(string codigo, string fallback)
+        {
+            try
+            {
+                string t = _idiomaService?.Traducir(CODIGO_FORM, codigo);
+                return string.IsNullOrEmpty(t) ? fallback : t;
+            }
+            catch { return fallback; }
+        }
+
+        private string TrError(Exception ex) => TraductorErrores.TraducirError(ex, _idiomaService);
+
+        public void ActualizarIdioma(Idioma nuevoIdioma)
+        {
+            lblTitulo.Text  = Tr("lblTitulo",  "Asignación de Permisos a Usuarios");
+            lblCol1.Text    = Tr("lblCol1",    "Usuarios");
+            lblCol3.Text    = Tr("lblCol3",    "Roles y Permisos disponibles");
+            btnQuitar.Text  = Tr("btnQuitar",  "Quitar del usuario →");
+            btnAsignar.Text = Tr("btnAsignar", "← Asignar al usuario");
+
+            var usuario = lstUsuarios.SelectedItem as Usuario;
+            lblCol2.Text = usuario == null
+                ? Tr("lblCol2", "Asignaciones del usuario")
+                : string.Format(Tr("lblCol2De", "Asignaciones de: {0}"), usuario.Username);
         }
 
         private void CargarUsuarios()
@@ -37,7 +72,7 @@ namespace UI
             lstUsuarios.Items.Clear();
             lstAsignado.Items.Clear();
             lstDisponible.Items.Clear();
-            lblCol2.Text = "Asignaciones del usuario";
+            lblCol2.Text = Tr("lblCol2", "Asignaciones del usuario");
 
             try
             {
@@ -54,8 +89,8 @@ namespace UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al cargar usuarios:\n" + ex.Message,
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Tr("msgErrorCargar", "Error al cargar usuarios:") + "\n" + TrError(ex),
+                    Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -69,12 +104,9 @@ namespace UI
         {
             lstAsignado.Items.Clear();
             var usuario = lstUsuarios.SelectedItem as Usuario;
-            if (usuario == null) { lblCol2.Text = "Asignaciones del usuario"; return; }
+            if (usuario == null) { lblCol2.Text = Tr("lblCol2", "Asignaciones del usuario"); return; }
 
-            lblCol2.Text = "Asignaciones de: " + usuario.Username;
-
-            foreach (Rol r in _usuarioService.ListarRolesDeUsuario(usuario.Id))
-                lstAsignado.Items.Add(r);
+            lblCol2.Text = string.Format(Tr("lblCol2De", "Asignaciones de: {0}"), usuario.Username);
 
             foreach (Permiso p in _usuarioService.ListarPermisosDirectosDeUsuario(usuario.Id))
                 lstAsignado.Items.Add(p);
@@ -85,21 +117,10 @@ namespace UI
             lstDisponible.Items.Clear();
             var usuario = lstUsuarios.SelectedItem as Usuario;
 
-            var rolesAsignados = new HashSet<int>();
             var permisosAsignados = new HashSet<int>();
             if (usuario != null)
-            {
-                foreach (Rol r in _usuarioService.ListarRolesDeUsuario(usuario.Id))
-                    rolesAsignados.Add(r.Id);
                 foreach (Permiso p in _usuarioService.ListarPermisosDirectosDeUsuario(usuario.Id))
                     permisosAsignados.Add(p.Id);
-            }
-
-            foreach (Rol r in _rolService.Listar())
-            {
-                if (rolesAsignados.Contains(r.Id)) continue;
-                lstDisponible.Items.Add(r);
-            }
 
             foreach (Permiso p in _permisoService.ListarPlano())
             {
@@ -113,42 +134,36 @@ namespace UI
             var usuario = lstUsuarios.SelectedItem as Usuario;
             if (usuario == null)
             {
-                MessageBox.Show("Seleccioná un usuario a la izquierda.",
-                    "Validación", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Tr("msgSelectUsuario", "Seleccioná un usuario a la izquierda."),
+                    Tr("msgValidacion", "Validación"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             if (lstDisponible.SelectedItems.Count == 0)
             {
-                MessageBox.Show("Seleccioná uno o más roles/permisos de la lista de la derecha (Ctrl+click o Shift+click para varios).",
-                    "Validación", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Tr("msgSelectPermisos", "Seleccioná uno o más permisos de la lista de la derecha (Ctrl+click o Shift+click para varios)."),
+                    Tr("msgValidacion", "Validación"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            var items = new List<object>();
-            foreach (object o in lstDisponible.SelectedItems) items.Add(o);
+            var items = new List<Permiso>();
+            foreach (Permiso p in lstDisponible.SelectedItems) items.Add(p);
 
             int procesados = 0;
             int redundanciasTotal = 0;
-            object falla = null;
+            Permiso falla = null;
             string motivo = null;
 
-            foreach (object item in items)
+            foreach (Permiso item in items)
             {
                 try
                 {
-                    int red;
-                    if (item is Rol r)
-                        red = _usuarioService.AsignarRol(usuario.Id, r.Id);
-                    else
-                        red = _usuarioService.AsignarPermiso(usuario.Id, ((Permiso)item).Id);
-
-                    redundanciasTotal += red;
+                    redundanciasTotal += _usuarioService.AsignarPermiso(usuario.Id, item.Id);
                     procesados++;
                 }
                 catch (Exception ex)
                 {
                     falla = item;
-                    motivo = ex.Message;
+                    motivo = TrError(ex);
                     break;
                 }
             }
@@ -159,14 +174,16 @@ namespace UI
             if (falla != null)
             {
                 MessageBox.Show(
-                    $"Se procesaron {procesados} de {items.Count}. Falló en '{falla}': {motivo}",
-                    "Operación interrumpida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    string.Format(Tr("msgFallaProc", "Se procesaron {0} de {1}. Falló en '{2}': {3}"),
+                        procesados, items.Count, falla.Codigo, motivo),
+                    Tr("msgOperacionInterrumpida", "Operación interrumpida"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             else if (redundanciasTotal > 0)
             {
                 MessageBox.Show(
-                    $"Se asignaron {procesados}. Se quitaron {redundanciasTotal} asignación(es) directa(s) redundante(s) porque quedaron cubiertas.",
-                    "Limpieza automática", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    string.Format(Tr("msgLimpiezaAuto", "Se asignaron {0}. Se quitaron {1} asignación(es) directa(s) redundante(s) porque quedaron cubiertas."),
+                        procesados, redundanciasTotal),
+                    Tr("msgLimpiezaAutoTitulo", "Limpieza automática"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -175,38 +192,35 @@ namespace UI
             var usuario = lstUsuarios.SelectedItem as Usuario;
             if (usuario == null)
             {
-                MessageBox.Show("Seleccioná un usuario a la izquierda.",
-                    "Validación", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Tr("msgSelectUsuario", "Seleccioná un usuario a la izquierda."),
+                    Tr("msgValidacion", "Validación"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             if (lstAsignado.SelectedItems.Count == 0)
             {
-                MessageBox.Show("Seleccioná una o más asignaciones a quitar (Ctrl+click o Shift+click para varias).",
-                    "Validación", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Tr("msgSelectAsignaciones", "Seleccioná una o más asignaciones a quitar (Ctrl+click o Shift+click para varias)."),
+                    Tr("msgValidacion", "Validación"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            var items = new List<object>();
-            foreach (object o in lstAsignado.SelectedItems) items.Add(o);
+            var items = new List<Permiso>();
+            foreach (Permiso p in lstAsignado.SelectedItems) items.Add(p);
 
             int procesados = 0;
-            object falla = null;
+            Permiso falla = null;
             string motivo = null;
 
-            foreach (object item in items)
+            foreach (Permiso item in items)
             {
                 try
                 {
-                    if (item is Rol r)
-                        _usuarioService.QuitarRol(usuario.Id, r.Id);
-                    else
-                        _usuarioService.QuitarPermiso(usuario.Id, ((Permiso)item).Id);
+                    _usuarioService.QuitarPermiso(usuario.Id, item.Id);
                     procesados++;
                 }
                 catch (Exception ex)
                 {
                     falla = item;
-                    motivo = ex.Message;
+                    motivo = TrError(ex);
                     break;
                 }
             }
@@ -216,8 +230,19 @@ namespace UI
 
             if (falla != null)
                 MessageBox.Show(
-                    $"Se procesaron {procesados} de {items.Count}. Falló en '{falla}': {motivo}",
-                    "Operación interrumpida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    string.Format(Tr("msgFallaProc", "Se procesaron {0} de {1}. Falló en '{2}': {3}"),
+                        procesados, items.Count, falla.Codigo, motivo),
+                    Tr("msgOperacionInterrumpida", "Operación interrumpida"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (_suscrito)
+            {
+                try { _idiomaService.Desuscribir(this); } catch { }
+                _suscrito = false;
+            }
+            base.OnFormClosed(e);
         }
     }
 }

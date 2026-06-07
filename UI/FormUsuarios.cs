@@ -8,28 +8,118 @@ using System.Windows.Forms;
 
 namespace UI
 {
-    public partial class FormUsuarios : Form
+    public partial class FormUsuarios : Form, IObservadorIdioma
     {
+        private const string CODIGO_FORM = "FormUsuarios";
+
         private readonly IUsuarioService _usuarioService;
+        private readonly IPermisoService _permisoService;
+        private readonly IIdiomaService _idiomaService;
         private List<Usuario> _allData = new List<Usuario>();
+        private int _ultimoTotal;
+        private int _ultimoBloqueados;
+        private int _ultimoActivos;
+        private bool _suscrito;
+        private bool _puedeEditar;
+        private bool _puedeVerHistorial;
 
         public FormUsuarios()
         {
             InitializeComponent();
             _usuarioService = new UsuarioService();
+            _permisoService = new PermisoService();
+            _idiomaService = new IdiomaService();
 
-            if (!_usuarioService.EsAdmin())
+            bool permitido = _usuarioService.EsAdmin()
+                || _permisoService.UsuarioTienePermiso(HELPERS.SesionUsuario.GetInstancia().Usuario, "GESTIONAR_USUARIOS");
+            if (!permitido)
             {
-                MessageBox.Show("Solo el administrador puede acceder a esta sección.",
-                    "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Tr("msgSinPermiso", "No tenés permiso para acceder a esta sección."),
+                    Tr("msgAccesoDenegado", "Acceso denegado"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 this.Load += (s, e) => this.Close();
                 return;
             }
+
+            _puedeEditar = _usuarioService.EsAdmin()
+                || _permisoService.UsuarioTienePermiso(HELPERS.SesionUsuario.GetInstancia().Usuario, "EDITAR_USUARIO");
+            btnEditar.Visible = _puedeEditar;
+
+            _puedeVerHistorial = _usuarioService.EsAdmin()
+                || _permisoService.UsuarioTienePermiso(HELPERS.SesionUsuario.GetInstancia().Usuario, "VER_HISTORIAL_USUARIO");
+            btnHistorial.Visible = _puedeVerHistorial;
 
             InicializarGrilla();
             InicializarFiltros();
             dgvUsuarios.SelectionChanged += (s, e) => ActualizarBotones();
             CargarDatos();
+
+            _idiomaService.Suscribir(this);
+            _suscrito = true;
+            ActualizarIdioma(_idiomaService.IdiomaActual());
+        }
+
+        private string Tr(string codigo, string fallback)
+        {
+            try
+            {
+                string t = _idiomaService?.Traducir(CODIGO_FORM, codigo);
+                return string.IsNullOrEmpty(t) ? fallback : t;
+            }
+            catch { return fallback; }
+        }
+
+        private string TrError(Exception ex) => TraductorErrores.TraducirError(ex, _idiomaService);
+
+        public void ActualizarIdioma(Idioma nuevoIdioma)
+        {
+            lblTitulo.Text         = Tr("lblTitulo",        "Gestión de Usuarios");
+            grpFiltros.Text        = Tr("grpFiltros",       "Filtros");
+            lblEstado.Text         = Tr("lblEstado",        "Estado:");
+            lblUsuarioFiltro.Text  = Tr("lblUsuarioFiltro", "Buscar usuario:");
+            btnLimpiar.Text        = Tr("btnLimpiar",       "Limpiar");
+            lblHint.Text           = Tr("lblHint",          "← Seleccioná un usuario");
+            btnEditar.Text         = Tr("btnEditar",        "Editar");
+            btnHistorial.Text      = Tr("btnHistorial",     "Historial");
+            btnBloquear.Text       = Tr("btnBloquear",      "Bloquear");
+            btnDesbloquear.Text    = Tr("btnDesbloquear",   "Desbloquear");
+            lblTotal.Text          = string.Format(Tr("lblTotal",      "Total: {0}"),      _ultimoTotal);
+            lblBloqueados.Text     = string.Format(Tr("lblBloqueados", "Bloqueados: {0}"), _ultimoBloqueados);
+            lblActivos.Text        = string.Format(Tr("lblActivos",    "Activos: {0}"),    _ultimoActivos);
+
+            if (cmbEstado.Items.Count >= 3)
+            {
+                int idx = cmbEstado.SelectedIndex;
+                cmbEstado.Items[0] = Tr("itemTodos",      "Todos");
+                cmbEstado.Items[1] = Tr("itemActivos",    "Activos");
+                cmbEstado.Items[2] = Tr("itemBloqueados", "Bloqueados");
+                cmbEstado.SelectedIndex = idx;
+            }
+
+            if (dgvUsuarios.Columns.Count > 0)
+            {
+                dgvUsuarios.Columns["Id"].HeaderText               = Tr("colId",               "ID");
+                dgvUsuarios.Columns["Username"].HeaderText         = Tr("colUsername",         "Usuario");
+                dgvUsuarios.Columns["Nombre"].HeaderText           = Tr("colNombre",           "Nombre");
+                dgvUsuarios.Columns["Apellido"].HeaderText         = Tr("colApellido",         "Apellido");
+                dgvUsuarios.Columns["Email"].HeaderText            = Tr("colEmail",            "Email");
+                dgvUsuarios.Columns["Estado"].HeaderText           = Tr("colEstado",           "Estado");
+                dgvUsuarios.Columns["IntentosFallidos"].HeaderText = Tr("colIntentosFallidos", "Int. Fallidos");
+                dgvUsuarios.Columns["UltimoLogin"].HeaderText      = Tr("colUltimoLogin",      "Último Login");
+            }
+            RefrescarCeldasEstado();
+        }
+
+        private void RefrescarCeldasEstado()
+        {
+            if (dgvUsuarios.Columns.Count == 0) return;
+            string bloq = Tr("valorBloqueado", "Bloqueado");
+            string act  = Tr("valorActivo",    "Activo");
+            foreach (DataGridViewRow row in dgvUsuarios.Rows)
+            {
+                var cell = row.Cells["Estado"];
+                if (cell?.Tag is bool esBloqueado)
+                    cell.Value = esBloqueado ? bloq : act;
+            }
         }
 
         private void InicializarGrilla()
@@ -54,15 +144,31 @@ namespace UI
 
         private void CargarDatos()
         {
+            int? idAMantener = GetSelectedId();
             try
             {
                 _allData = _usuarioService.Listar();
                 AplicarFiltros();
+                if (idAMantener.HasValue) SeleccionarFilaPorId(idAMantener.Value);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al cargar usuarios:\n" + ex.Message,
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Tr("msgErrorCargar", "Error al cargar usuarios:") + "\n" + TrError(ex),
+                    Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SeleccionarFilaPorId(int id)
+        {
+            foreach (DataGridViewRow row in dgvUsuarios.Rows)
+            {
+                if (row.Cells["Id"].Value is int rowId && rowId == id)
+                {
+                    dgvUsuarios.ClearSelection();
+                    row.Selected = true;
+                    dgvUsuarios.CurrentCell = row.Cells["Username"];
+                    return;
+                }
             }
         }
 
@@ -98,14 +204,14 @@ namespace UI
             dgvUsuarios.Rows.Clear();
             dgvUsuarios.Columns.Clear();
 
-            dgvUsuarios.Columns.Add("Id",               "ID");
-            dgvUsuarios.Columns.Add("Username",         "Usuario");
-            dgvUsuarios.Columns.Add("Nombre",           "Nombre");
-            dgvUsuarios.Columns.Add("Apellido",         "Apellido");
-            dgvUsuarios.Columns.Add("Email",            "Email");
-            dgvUsuarios.Columns.Add("Estado",           "Estado");
-            dgvUsuarios.Columns.Add("IntentosFallidos", "Int. Fallidos");
-            dgvUsuarios.Columns.Add("UltimoLogin",      "Último Login");
+            dgvUsuarios.Columns.Add("Id",               Tr("colId",               "ID"));
+            dgvUsuarios.Columns.Add("Username",         Tr("colUsername",         "Usuario"));
+            dgvUsuarios.Columns.Add("Nombre",           Tr("colNombre",           "Nombre"));
+            dgvUsuarios.Columns.Add("Apellido",         Tr("colApellido",         "Apellido"));
+            dgvUsuarios.Columns.Add("Email",            Tr("colEmail",            "Email"));
+            dgvUsuarios.Columns.Add("Estado",           Tr("colEstado",           "Estado"));
+            dgvUsuarios.Columns.Add("IntentosFallidos", Tr("colIntentosFallidos", "Int. Fallidos"));
+            dgvUsuarios.Columns.Add("UltimoLogin",      Tr("colUltimoLogin",      "Último Login"));
 
             dgvUsuarios.Columns["Id"].Visible                             = false;
             dgvUsuarios.Columns["Username"].Width                         = 140;
@@ -118,13 +224,18 @@ namespace UI
             dgvUsuarios.Columns["UltimoLogin"].AutoSizeMode               = DataGridViewAutoSizeColumnMode.Fill;
             dgvUsuarios.Columns["UltimoLogin"].MinimumWidth               = 130;
 
+            string bloq = Tr("valorBloqueado", "Bloqueado");
+            string act  = Tr("valorActivo",    "Activo");
+
             foreach (Usuario u in lista)
             {
                 int idx = dgvUsuarios.Rows.Add(
                     u.Id, u.Username, u.Nombre, u.Apellido, u.Email,
-                    u.Bloqueado ? "Bloqueado" : "Activo",
+                    u.Bloqueado ? bloq : act,
                     u.IntentosFallidos,
                     u.UltimoLogin.HasValue ? u.UltimoLogin.Value.ToString("dd/MM/yyyy HH:mm") : "-");
+
+                dgvUsuarios.Rows[idx].Cells["Estado"].Tag = u.Bloqueado;
 
                 if (u.Bloqueado)
                 {
@@ -139,13 +250,17 @@ namespace UI
         private void ActualizarResumen(List<Usuario> lista)
         {
             bool mostrarTodos = cmbEstado.SelectedIndex == 0;
-            lblTotal.Text          = $"Total: {lista.Count}";
-            lblBloqueados.Visible  = mostrarTodos;
-            lblActivos.Visible     = mostrarTodos;
+            _ultimoTotal = lista.Count;
+            _ultimoBloqueados = lista.Count(u => u.Bloqueado);
+            _ultimoActivos = lista.Count(u => !u.Bloqueado);
+
+            lblTotal.Text         = string.Format(Tr("lblTotal", "Total: {0}"), _ultimoTotal);
+            lblBloqueados.Visible = mostrarTodos;
+            lblActivos.Visible    = mostrarTodos;
             if (mostrarTodos)
             {
-                lblBloqueados.Text = $"Bloqueados: {lista.Count(u => u.Bloqueado)}";
-                lblActivos.Text    = $"Activos: {lista.Count(u => !u.Bloqueado)}";
+                lblBloqueados.Text = string.Format(Tr("lblBloqueados", "Bloqueados: {0}"), _ultimoBloqueados);
+                lblActivos.Text    = string.Format(Tr("lblActivos",    "Activos: {0}"),    _ultimoActivos);
             }
         }
 
@@ -154,13 +269,43 @@ namespace UI
             if (dgvUsuarios.SelectedRows.Count == 0)
             {
                 btnBloquear.Enabled = btnDesbloquear.Enabled = false;
+                btnEditar.Enabled = false;
+                btnHistorial.Enabled = false;
                 lblHint.Visible = true;
                 return;
             }
             lblHint.Visible = false;
-            bool esBloqueado = dgvUsuarios.SelectedRows[0].Cells["Estado"].Value?.ToString() == "Bloqueado";
+            bool esBloqueado = false;
+            var tag = dgvUsuarios.SelectedRows[0].Cells["Estado"].Tag;
+            if (tag is bool b) esBloqueado = b;
             btnBloquear.Enabled    = !esBloqueado;
             btnDesbloquear.Enabled =  esBloqueado;
+            btnEditar.Enabled      = _puedeEditar;
+            btnHistorial.Enabled   = _puedeVerHistorial;
+        }
+
+        private void btnEditar_Click(object sender, EventArgs e)
+        {
+            int? id = GetSelectedId();
+            if (id == null) return;
+
+            using (var form = new FormEditarUsuario(id.Value))
+            {
+                form.ShowDialog(this);
+                if (form.Guardado) CargarDatos();
+            }
+        }
+
+        private void btnHistorial_Click(object sender, EventArgs e)
+        {
+            int? id = GetSelectedId();
+            if (id == null) return;
+
+            using (var form = new FormHistorialUsuario(id.Value))
+            {
+                form.ShowDialog(this);
+                if (form.HuboRestauracion) CargarDatos();
+            }
         }
 
         private int? GetSelectedId()
@@ -176,7 +321,8 @@ namespace UI
 
             string username = dgvUsuarios.SelectedRows[0].Cells["Username"].Value?.ToString();
 
-            if (MessageBox.Show($"¿Bloquear al usuario '{username}'?", "Confirmar",
+            if (MessageBox.Show(string.Format(Tr("msgConfirmarBloqueo", "¿Bloquear al usuario '{0}'?"), username),
+                Tr("msgConfirmar", "Confirmar"),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
             try
@@ -186,7 +332,7 @@ namespace UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -196,7 +342,8 @@ namespace UI
             if (id == null) return;
 
             string username = dgvUsuarios.SelectedRows[0].Cells["Username"].Value?.ToString();
-            if (MessageBox.Show($"¿Desbloquear al usuario '{username}'?", "Confirmar",
+            if (MessageBox.Show(string.Format(Tr("msgConfirmarDesbloqueo", "¿Desbloquear al usuario '{0}'?"), username),
+                Tr("msgConfirmar", "Confirmar"),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
             try
@@ -206,7 +353,7 @@ namespace UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -217,5 +364,15 @@ namespace UI
             AplicarFiltros();
         }
         private void btnActualizar_Click(object sender, EventArgs e) => CargarDatos();
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (_suscrito)
+            {
+                try { _idiomaService.Desuscribir(this); } catch { }
+                _suscrito = false;
+            }
+            base.OnFormClosed(e);
+        }
     }
 }

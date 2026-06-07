@@ -29,9 +29,8 @@ namespace UI
             this.pnlAccesosHeader = new System.Windows.Forms.Panel();
             this.lblAccesosTitulo = new System.Windows.Forms.Label();
             this.flowAccesos = new System.Windows.Forms.FlowLayoutPanel();
-            this.btnAcceso1 = new System.Windows.Forms.Button();
-            this.btnAcceso2 = new System.Windows.Forms.Button();
-            this.btnAcceso3 = new System.Windows.Forms.Button();
+            this.btnAcceso1 = new UI.BotonPlano();
+            this.btnAcceso2 = new UI.BotonPlano();
 
             this.pnlTitulo.SuspendLayout();
             this.tableCards.SuspendLayout();
@@ -63,7 +62,8 @@ namespace UI
             //
             // tableCards
             //
-            this.tableCards.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableCards.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tableCards.Height = 380;
             this.tableCards.ColumnCount = 2;
             this.tableCards.RowCount = 1;
             this.tableCards.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -78,7 +78,6 @@ namespace UI
             // pnlNovedades (card izquierda)
             //
             this.pnlNovedades.BackColor = System.Drawing.Color.White;
-            this.pnlNovedades.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlNovedades.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlNovedades.Margin = new System.Windows.Forms.Padding(10);
             this.pnlNovedades.Controls.Add(this.lblNovedadesBody);
@@ -105,13 +104,12 @@ namespace UI
             this.lblNovedadesBody.Font = new System.Drawing.Font("Segoe UI", 9.5F);
             this.lblNovedadesBody.ForeColor = System.Drawing.Color.FromArgb(60, 60, 70);
             this.lblNovedadesBody.Padding = new System.Windows.Forms.Padding(14, 14, 14, 14);
-            this.lblNovedadesBody.Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.";
+            this.lblNovedadesBody.Text = "Bienvenido al sistema";
 
             //
             // pnlAccesos (card derecha)
             //
             this.pnlAccesos.BackColor = System.Drawing.Color.White;
-            this.pnlAccesos.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlAccesos.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlAccesos.Margin = new System.Windows.Forms.Padding(10);
             this.pnlAccesos.Controls.Add(this.flowAccesos);
@@ -130,7 +128,7 @@ namespace UI
             this.lblAccesosTitulo.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
             this.lblAccesosTitulo.ForeColor = System.Drawing.Color.White;
             this.lblAccesosTitulo.Location = new System.Drawing.Point(14, 10);
-            this.lblAccesosTitulo.Text = "Accesos Rápidos";
+            this.lblAccesosTitulo.Text = "Accesos rápidos";
             //
             // flowAccesos
             //
@@ -140,17 +138,42 @@ namespace UI
             this.flowAccesos.Padding = new System.Windows.Forms.Padding(14, 14, 14, 14);
             this.flowAccesos.Controls.Add(this.btnAcceso1);
             this.flowAccesos.Controls.Add(this.btnAcceso2);
-            this.flowAccesos.Controls.Add(this.btnAcceso3);
-            //
-            // botones fantasma
-            //
-            ConfigurarBotonFantasma(this.btnAcceso1, "Ver últimas novedades");
-            ConfigurarBotonFantasma(this.btnAcceso2, "Mis tareas pendientes");
-            ConfigurarBotonFantasma(this.btnAcceso3, "Ayuda");
 
-            this.btnAcceso1.Click += new System.EventHandler(this.btnAccesoRapido_Click);
-            this.btnAcceso2.Click += new System.EventHandler(this.btnAccesoRapido_Click);
-            this.btnAcceso3.Click += new System.EventHandler(this.btnAccesoRapido_Click);
+            //
+            // btnAcceso1
+            //
+            this.btnAcceso1.BackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnAcceso1.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnAcceso1.FlatAppearance.BorderSize = 0;
+            this.btnAcceso1.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(215, 228, 250);
+            this.btnAcceso1.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnAcceso1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAcceso1.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.btnAcceso1.ForeColor = System.Drawing.Color.FromArgb(30, 90, 200);
+            this.btnAcceso1.Margin = new System.Windows.Forms.Padding(0, 0, 0, 10);
+            this.btnAcceso1.Name = "btnAcceso1";
+            this.btnAcceso1.Size = new System.Drawing.Size(280, 40);
+            this.btnAcceso1.Text = "Ayuda";
+            this.btnAcceso1.UseVisualStyleBackColor = false;
+            this.btnAcceso1.Click += new System.EventHandler(this.btnAyuda_Click);
+
+            //
+            // btnAcceso2
+            //
+            this.btnAcceso2.BackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnAcceso2.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnAcceso2.FlatAppearance.BorderSize = 0;
+            this.btnAcceso2.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(215, 228, 250);
+            this.btnAcceso2.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnAcceso2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAcceso2.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.btnAcceso2.ForeColor = System.Drawing.Color.FromArgb(30, 90, 200);
+            this.btnAcceso2.Margin = new System.Windows.Forms.Padding(0, 0, 0, 10);
+            this.btnAcceso2.Name = "btnAcceso2";
+            this.btnAcceso2.Size = new System.Drawing.Size(280, 40);
+            this.btnAcceso2.Text = "Contactános";
+            this.btnAcceso2.UseVisualStyleBackColor = false;
+            this.btnAcceso2.Click += new System.EventHandler(this.btnContacto_Click);
 
             //
             // FormHome
@@ -177,24 +200,6 @@ namespace UI
             this.ResumeLayout(false);
         }
 
-        private void ConfigurarBotonFantasma(System.Windows.Forms.Button btn, string texto)
-        {
-            btn.Width = 280;
-            btn.Height = 40;
-            btn.Margin = new System.Windows.Forms.Padding(0, 0, 0, 10);
-            btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btn.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(30, 90, 200);
-            btn.FlatAppearance.BorderSize = 1;
-            btn.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(235, 242, 255);
-            btn.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(215, 228, 250);
-            btn.BackColor = System.Drawing.Color.White;
-            btn.ForeColor = System.Drawing.Color.FromArgb(30, 90, 200);
-            btn.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            btn.Text = texto;
-            btn.UseVisualStyleBackColor = false;
-            btn.Cursor = System.Windows.Forms.Cursors.Hand;
-        }
-
         #endregion
 
         private System.Windows.Forms.Panel pnlTitulo;
@@ -210,8 +215,7 @@ namespace UI
         private System.Windows.Forms.Panel pnlAccesosHeader;
         private System.Windows.Forms.Label lblAccesosTitulo;
         private System.Windows.Forms.FlowLayoutPanel flowAccesos;
-        private System.Windows.Forms.Button btnAcceso1;
-        private System.Windows.Forms.Button btnAcceso2;
-        private System.Windows.Forms.Button btnAcceso3;
+        private UI.BotonPlano btnAcceso1;
+        private UI.BotonPlano btnAcceso2;
     }
 }

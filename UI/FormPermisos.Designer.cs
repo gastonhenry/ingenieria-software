@@ -24,20 +24,20 @@ namespace UI
             this.lblCol1 = new System.Windows.Forms.Label();
             this.lstContenedores = new System.Windows.Forms.ListBox();
             this.pnlCol1Botones = new System.Windows.Forms.Panel();
-            this.btnNuevaFamilia = new System.Windows.Forms.Button();
-            this.btnEliminarFamilia = new System.Windows.Forms.Button();
+            this.btnNuevoRol = new UI.BotonPlano();
+            this.btnEliminarRol = new UI.BotonPlano();
 
             this.pnlCol2 = new System.Windows.Forms.Panel();
             this.lblCol2 = new System.Windows.Forms.Label();
             this.lstContenido = new System.Windows.Forms.ListBox();
             this.pnlCol2Botones = new System.Windows.Forms.Panel();
-            this.btnQuitar = new System.Windows.Forms.Button();
+            this.btnQuitar = new UI.BotonPlano();
 
             this.pnlCol3 = new System.Windows.Forms.Panel();
             this.lblCol3 = new System.Windows.Forms.Label();
             this.lstDisponibles = new System.Windows.Forms.ListBox();
             this.pnlCol3Botones = new System.Windows.Forms.Panel();
-            this.btnAgregar = new System.Windows.Forms.Button();
+            this.btnAgregar = new UI.BotonPlano();
 
             this.pnlTitulo.SuspendLayout();
             this.tableMain.SuspendLayout();
@@ -84,7 +84,7 @@ namespace UI
             this.tableMain.Size = new System.Drawing.Size(960, 580);
 
             //
-            // pnlCol1 — Roles y Familias
+            // pnlCol1 — Roles
             //
             this.pnlCol1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlCol1.Padding = new System.Windows.Forms.Padding(8);
@@ -95,7 +95,7 @@ namespace UI
             this.lblCol1.Dock = System.Windows.Forms.DockStyle.Top;
             this.lblCol1.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.lblCol1.Height = 28;
-            this.lblCol1.Text = "Familias de Permisos";
+            this.lblCol1.Text = "Roles";
             this.lblCol1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             //
             this.lstContenedores.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -106,28 +106,28 @@ namespace UI
             //
             this.pnlCol1Botones.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.pnlCol1Botones.Height = 50;
-            this.pnlCol1Botones.Controls.Add(this.btnNuevaFamilia);
-            this.pnlCol1Botones.Controls.Add(this.btnEliminarFamilia);
+            this.pnlCol1Botones.Controls.Add(this.btnNuevoRol);
+            this.pnlCol1Botones.Controls.Add(this.btnEliminarRol);
             //
-            this.btnNuevaFamilia.BackColor = System.Drawing.Color.FromArgb(30, 90, 200);
-            this.btnNuevaFamilia.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnNuevaFamilia.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.btnNuevaFamilia.ForeColor = System.Drawing.Color.White;
-            this.btnNuevaFamilia.Location = new System.Drawing.Point(0, 10);
-            this.btnNuevaFamilia.Size = new System.Drawing.Size(135, 32);
-            this.btnNuevaFamilia.Text = "Nueva Familia";
-            this.btnNuevaFamilia.UseVisualStyleBackColor = false;
-            this.btnNuevaFamilia.Click += new System.EventHandler(this.btnNuevaFamilia_Click);
+            this.btnNuevoRol.BackColor = System.Drawing.Color.FromArgb(30, 90, 200);
+            this.btnNuevoRol.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnNuevoRol.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.btnNuevoRol.ForeColor = System.Drawing.Color.White;
+            this.btnNuevoRol.Location = new System.Drawing.Point(0, 10);
+            this.btnNuevoRol.Size = new System.Drawing.Size(135, 32);
+            this.btnNuevoRol.Text = "Nuevo Rol";
+            this.btnNuevoRol.UseVisualStyleBackColor = false;
+            this.btnNuevoRol.Click += new System.EventHandler(this.btnNuevoRol_Click);
             //
-            this.btnEliminarFamilia.BackColor = System.Drawing.Color.FromArgb(190, 60, 60);
-            this.btnEliminarFamilia.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnEliminarFamilia.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.btnEliminarFamilia.ForeColor = System.Drawing.Color.White;
-            this.btnEliminarFamilia.Location = new System.Drawing.Point(140, 10);
-            this.btnEliminarFamilia.Size = new System.Drawing.Size(135, 32);
-            this.btnEliminarFamilia.Text = "Borrar Familia";
-            this.btnEliminarFamilia.UseVisualStyleBackColor = false;
-            this.btnEliminarFamilia.Click += new System.EventHandler(this.btnEliminarFamilia_Click);
+            this.btnEliminarRol.BackColor = System.Drawing.Color.FromArgb(190, 60, 60);
+            this.btnEliminarRol.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnEliminarRol.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.btnEliminarRol.ForeColor = System.Drawing.Color.White;
+            this.btnEliminarRol.Location = new System.Drawing.Point(140, 10);
+            this.btnEliminarRol.Size = new System.Drawing.Size(135, 32);
+            this.btnEliminarRol.Text = "Borrar Rol";
+            this.btnEliminarRol.UseVisualStyleBackColor = false;
+            this.btnEliminarRol.Click += new System.EventHandler(this.btnEliminarRol_Click);
 
             //
             // pnlCol2 — Contenido del seleccionado
@@ -165,7 +165,7 @@ namespace UI
             this.btnQuitar.Click += new System.EventHandler(this.btnQuitar_Click);
 
             //
-            // pnlCol3 — Permisos disponibles
+            // pnlCol3 — Roles y Permisos disponibles
             //
             this.pnlCol3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlCol3.Padding = new System.Windows.Forms.Padding(8);
@@ -176,7 +176,7 @@ namespace UI
             this.lblCol3.Dock = System.Windows.Forms.DockStyle.Top;
             this.lblCol3.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.lblCol3.Height = 28;
-            this.lblCol3.Text = "Permisos disponibles";
+            this.lblCol3.Text = "Roles y Permisos disponibles";
             this.lblCol3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             //
             this.lstDisponibles.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -234,19 +234,19 @@ namespace UI
         private System.Windows.Forms.Label lblCol1;
         private System.Windows.Forms.ListBox lstContenedores;
         private System.Windows.Forms.Panel pnlCol1Botones;
-        private System.Windows.Forms.Button btnNuevaFamilia;
-        private System.Windows.Forms.Button btnEliminarFamilia;
+        private UI.BotonPlano btnNuevoRol;
+        private UI.BotonPlano btnEliminarRol;
 
         private System.Windows.Forms.Panel pnlCol2;
         private System.Windows.Forms.Label lblCol2;
         private System.Windows.Forms.ListBox lstContenido;
         private System.Windows.Forms.Panel pnlCol2Botones;
-        private System.Windows.Forms.Button btnQuitar;
+        private UI.BotonPlano btnQuitar;
 
         private System.Windows.Forms.Panel pnlCol3;
         private System.Windows.Forms.Label lblCol3;
         private System.Windows.Forms.ListBox lstDisponibles;
         private System.Windows.Forms.Panel pnlCol3Botones;
-        private System.Windows.Forms.Button btnAgregar;
+        private UI.BotonPlano btnAgregar;
     }
 }

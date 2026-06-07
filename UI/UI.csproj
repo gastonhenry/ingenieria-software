@@ -33,7 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <Reference Include="System">
+      <HintPath>..\..\..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -76,6 +78,18 @@
     <Compile Include="FormInsertarUsuario.Designer.cs">
       <DependentUpon>FormInsertarUsuario.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormEditarUsuario.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormEditarUsuario.Designer.cs">
+      <DependentUpon>FormEditarUsuario.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormHistorialUsuario.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormHistorialUsuario.Designer.cs">
+      <DependentUpon>FormHistorialUsuario.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormAsignacionPermisos.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -88,17 +102,20 @@
     <Compile Include="FormPermisos.Designer.cs">
       <DependentUpon>FormPermisos.cs</DependentUpon>
     </Compile>
-    <Compile Include="FormRoles.cs">
+    <Compile Include="FormIdiomas.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormRoles.Designer.cs">
-      <DependentUpon>FormRoles.cs</DependentUpon>
+    <Compile Include="FormIdiomas.Designer.cs">
+      <DependentUpon>FormIdiomas.cs</DependentUpon>
     </Compile>
     <Compile Include="FormUsuarios.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormUsuarios.Designer.cs">
       <DependentUpon>FormUsuarios.cs</DependentUpon>
+    </Compile>
+    <Compile Include="BotonPlano.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -120,11 +137,11 @@
     <EmbeddedResource Include="FormPermisos.resx">
       <DependentUpon>FormPermisos.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormIdiomas.resx">
+      <DependentUpon>FormIdiomas.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormAsignacionPermisos.resx">
       <DependentUpon>FormAsignacionPermisos.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="FormRoles.resx">
-      <DependentUpon>FormRoles.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

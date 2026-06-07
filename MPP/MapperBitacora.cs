@@ -1,4 +1,5 @@
 using BE;
+using BE.Enums;
 using DAL;
 using System;
 using System.Collections.Generic;

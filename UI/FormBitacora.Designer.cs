@@ -28,10 +28,10 @@ namespace UI
             this.dtpDesde = new System.Windows.Forms.DateTimePicker();
             this.lblHasta = new System.Windows.Forms.Label();
             this.dtpHasta = new System.Windows.Forms.DateTimePicker();
-            this.btnLimpiar = new System.Windows.Forms.Button();
+            this.btnLimpiar = new UI.BotonPlano();
             this.pnlResumen = new System.Windows.Forms.Panel();
             this.lblTotal = new System.Windows.Forms.Label();
-            this.btnActualizar = new System.Windows.Forms.Button();
+            this.btnActualizar = new UI.BotonPlano();
             this.dgvBitacora = new System.Windows.Forms.DataGridView();
             this.pnlTitulo.SuspendLayout();
             this.grpFiltros.SuspendLayout();
@@ -250,10 +250,10 @@ namespace UI
         private System.Windows.Forms.DateTimePicker dtpDesde;
         private System.Windows.Forms.Label lblHasta;
         private System.Windows.Forms.DateTimePicker dtpHasta;
-        private System.Windows.Forms.Button btnLimpiar;
+        private UI.BotonPlano btnLimpiar;
         private System.Windows.Forms.Panel pnlResumen;
         private System.Windows.Forms.Label lblTotal;
-        private System.Windows.Forms.Button btnActualizar;
+        private UI.BotonPlano btnActualizar;
         private System.Windows.Forms.DataGridView dgvBitacora;
     }
 }

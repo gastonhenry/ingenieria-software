@@ -1,4 +1,5 @@
 using BE;
+using BE.Enums;
 using BLL;
 using HELPERS;
 using System;
@@ -9,15 +10,21 @@ using System.Windows.Forms;
 
 namespace UI
 {
-    public partial class FormBitacora : Form
+    public partial class FormBitacora : Form, IObservadorIdioma
     {
+        private const string CODIGO_FORM = "FormBitacora";
+
         private readonly IBitacoraService _bitacoraService;
+        private readonly IIdiomaService _idiomaService;
         private List<Bitacora> _bitacoras = new List<Bitacora>();
+        private int _ultimoTotal;
+        private bool _suscrito;
 
         public FormBitacora()
         {
             InitializeComponent();
             _bitacoraService = new BitacoraService();
+            _idiomaService = new IdiomaService();
 
             var usuarioService = new UsuarioService();
             var permisoService = new PermisoService();
@@ -25,8 +32,8 @@ namespace UI
             bool permitido = usuarioService.EsAdmin() || permisoService.UsuarioTienePermiso(SesionUsuario.GetInstancia().Usuario, "VER_BITACORA");
             if (!permitido)
             {
-                MessageBox.Show("No tenés permiso para acceder a esta sección.",
-                    "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Tr("msgSinPermiso", "No tenés permiso para acceder a esta sección."),
+                    Tr("msgAccesoDenegado", "Acceso denegado"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 this.Load += (s, e) => this.Close();
                 return;
             }
@@ -34,6 +41,55 @@ namespace UI
             InicializarGrilla();
             InicializarFiltros();
             CargarDatos();
+
+            _idiomaService.Suscribir(this);
+            _suscrito = true;
+            ActualizarIdioma(_idiomaService.IdiomaActual());
+        }
+
+        private string Tr(string codigo, string fallback)
+        {
+            try
+            {
+                string t = _idiomaService?.Traducir(CODIGO_FORM, codigo);
+                return string.IsNullOrEmpty(t) ? fallback : t;
+            }
+            catch { return fallback; }
+        }
+
+        private string TrError(Exception ex) => TraductorErrores.TraducirError(ex, _idiomaService);
+
+        public void ActualizarIdioma(Idioma nuevoIdioma)
+        {
+            lblTitulo.Text         = Tr("lblTitulo",         "Bitácora");
+            grpFiltros.Text        = Tr("grpFiltros",        "Filtros");
+            lblTipo.Text           = Tr("lblTipo",           "Tipo:");
+            lblUsuarioFiltro.Text  = Tr("lblUsuarioFiltro",  "Usuario:");
+            lblDesde.Text          = Tr("lblDesde",          "Desde:");
+            lblHasta.Text          = Tr("lblHasta",          "Hasta:");
+            btnLimpiar.Text        = Tr("btnLimpiar",        "Limpiar");
+            btnActualizar.Text     = Tr("btnActualizar",     "Actualizar");
+            lblTotal.Text          = string.Format(Tr("lblTotal", "Total: {0}"), _ultimoTotal);
+
+            if (cmbTipo.Items.Count > 0)
+                cmbTipo.Items[0] = Tr("cmbTipoTodos", "Todos");
+
+            if (dgvBitacora.Columns.Count > 0)
+            {
+                dgvBitacora.Columns["Id"].HeaderText        = Tr("colId",        "ID");
+                dgvBitacora.Columns["Usuario"].HeaderText   = Tr("colUsuario",   "Usuario");
+                dgvBitacora.Columns["Tipo"].HeaderText      = Tr("colTipo",      "Tipo");
+                dgvBitacora.Columns["FechaHora"].HeaderText = Tr("colFechaHora", "Fecha y Hora");
+                dgvBitacora.Columns["Detalle"].HeaderText   = Tr("colDetalle",   "Detalle");
+
+                foreach (DataGridViewRow row in dgvBitacora.Rows)
+                {
+                    if (row.Cells["Tipo"].Tag is TipoBitacora tipo)
+                        row.Cells["Tipo"].Value = tipo.GetDescripcionTraducida();
+                }
+            }
+
+            cmbTipo.Refresh();
         }
 
         private void InicializarGrilla()
@@ -54,11 +110,11 @@ namespace UI
             cmbTipo.Format += (s, e) =>
             {
                 if (e.Value is TipoBitacora t)
-                    e.Value = t.GetDescripcion();
+                    e.Value = t.GetDescripcionTraducida();
             };
 
             cmbTipo.Items.Clear();
-            cmbTipo.Items.Add("Todos");
+            cmbTipo.Items.Add(Tr("cmbTipoTodos", "Todos"));
             foreach (TipoBitacora valor in Enum.GetValues(typeof(TipoBitacora)))
                 cmbTipo.Items.Add(valor);
             cmbTipo.SelectedIndex = 0;
@@ -102,8 +158,8 @@ namespace UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al cargar la bitácora:\n" + ex.Message,
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Tr("msgErrorCargar", "Error al cargar la bitácora:") + "\n" + TrError(ex),
+                    Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -134,11 +190,11 @@ namespace UI
             dgvBitacora.Rows.Clear();
             dgvBitacora.Columns.Clear();
 
-            dgvBitacora.Columns.Add("Id",          "ID");
-            dgvBitacora.Columns.Add("Usuario",     "Usuario");
-            dgvBitacora.Columns.Add("Tipo",        "Tipo");
-            dgvBitacora.Columns.Add("FechaHora",   "Fecha y Hora");
-            dgvBitacora.Columns.Add("Detalle",     "Detalle");
+            dgvBitacora.Columns.Add("Id",        Tr("colId",        "ID"));
+            dgvBitacora.Columns.Add("Usuario",   Tr("colUsuario",   "Usuario"));
+            dgvBitacora.Columns.Add("Tipo",      Tr("colTipo",      "Tipo"));
+            dgvBitacora.Columns.Add("FechaHora", Tr("colFechaHora", "Fecha y Hora"));
+            dgvBitacora.Columns.Add("Detalle",   Tr("colDetalle",   "Detalle"));
 
             dgvBitacora.Columns["Id"].Visible      = false;
             dgvBitacora.Columns["Usuario"].Width   = 240;
@@ -149,19 +205,21 @@ namespace UI
 
             foreach (Bitacora item in lista)
             {
-                dgvBitacora.Rows.Add(
+                int idx = dgvBitacora.Rows.Add(
                     item.Id,
                     item.Usuario.Username,
-                    item.Tipo.GetDescripcion(),
+                    item.Tipo.GetDescripcionTraducida(),
                     item.FechaHora.ToString("dd/MM/yyyy HH:mm:ss"),
                     item.Detalle
                 );
+                dgvBitacora.Rows[idx].Cells["Tipo"].Tag = item.Tipo;
             }
         }
 
         private void ActualizarResumen(List<Bitacora> lista)
         {
-            lblTotal.Text = $"Total: {lista.Count}";
+            _ultimoTotal = lista.Count;
+            lblTotal.Text = string.Format(Tr("lblTotal", "Total: {0}"), _ultimoTotal);
         }
 
         private void btnLimpiar_Click(object sender, EventArgs e)
@@ -175,6 +233,16 @@ namespace UI
         private void btnActualizar_Click(object sender, EventArgs e)
         {
             CargarDatos();
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (_suscrito)
+            {
+                try { _idiomaService.Desuscribir(this); } catch { }
+                _suscrito = false;
+            }
+            base.OnFormClosed(e);
         }
     }
 }

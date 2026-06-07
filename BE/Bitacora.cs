@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BE.Enums;
+using System;
 
 namespace BE
 {

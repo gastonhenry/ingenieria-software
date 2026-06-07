@@ -1,4 +1,4 @@
-namespace BE
+namespace BE.Enums
 {
     public enum LoginResultado
     {

@@ -1,4 +1,5 @@
 using BE;
+using BE.Enums;
 using HELPERS;
 using MPP;
 using System;
@@ -44,7 +45,7 @@ namespace BLL
                 int? idPadre = idPadrePorHijo[permiso.Id];
                 if (idPadre.HasValue && indice.ContainsKey(idPadre.Value))
                 {
-                    var padre = indice[idPadre.Value] as FamiliaPermiso;
+                    var padre = indice[idPadre.Value] as Rol;
                     if (padre != null)
                         padre.Hijos.Add(permiso);
                     else
@@ -59,27 +60,27 @@ namespace BLL
             return raices;
         }
 
-        public int CrearFamiliaPermiso(string codigo, string descripcion)
+        public int CrearRol(string codigo, string descripcion)
         {
-            RequerirAdmin("CrearFamiliaPermiso");
+            RequerirAdminOPermiso("GESTIONAR_PERMISOS", "CrearRol");
             if (string.IsNullOrWhiteSpace(codigo))
-                throw new ArgumentException("Código es obligatorio.");
+                throw new BLLException("ERR_CODIGO_OBLIGATORIO", "Código es obligatorio.");
 
             codigo = codigo.Trim().ToUpper();
 
             if (ExisteCodigo(codigo))
-                throw new InvalidOperationException(
-                    $"Ya existe un permiso con el código '{codigo}'. Los códigos deben ser únicos.");
+                throw new BLLException("ERR_PERMISO_CODIGO_DUPLICADO",
+                    "Ya existe un permiso con el código '{0}'. Los códigos deben ser únicos.", codigo);
 
-            var familia = new FamiliaPermiso
+            var rol = new Rol
             {
                 Codigo = codigo,
                 Descripcion = descripcion
             };
 
-            int id = _mapperPermiso.Insertar(familia);
-            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AltaPermiso,
-                $"Familia de permisos creada: {codigo}");
+            int id = _mapperPermiso.Insertar(rol);
+            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AltaRol,
+                $"Rol creado: {codigo}");
             return id;
         }
 
@@ -93,13 +94,13 @@ namespace BLL
 
         public int AgregarHijo(int idPadre, int idHijo)
         {
-            RequerirAdmin("AgregarHijo");
+            RequerirAdminOPermiso("GESTIONAR_PERMISOS", "AgregarHijo");
 
             if (idPadre == idHijo)
-                throw new InvalidOperationException("Un permiso no puede contenerse a sí mismo.");
+                throw new BLLException("ERR_PERMISO_AUTOCONTENCION", "Un permiso no puede contenerse a sí mismo.");
 
             if (GeneraCiclo(idPadre, idHijo))
-                throw new InvalidOperationException(
+                throw new BLLException("ERR_PERMISO_CICLICO",
                     "La asignación generaría una referencia circular entre permisos.");
 
             string codHijo  = CodigoDePermiso(idHijo);
@@ -107,45 +108,40 @@ namespace BLL
 
             _mapperPermiso.AgregarHijo(idPadre, idHijo);
 
-            var rolService = new RolService();
-            int quitados = rolService.LimpiarRedundanciasDeTodosLosRoles();
-
             string detalle = $"Permiso {codHijo} agregado como hijo de {codPadre}";
-            if (quitados > 0)
-                detalle += $". Limpieza global: {quitados} asignación(es) directa(s) redundante(s) quitadas de roles.";
-
             _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AsignacionPermiso, detalle);
-            return quitados;
+            return 0;
         }
 
         public void QuitarHijo(int idHijo)
         {
-            RequerirAdmin("QuitarHijo");
+            RequerirAdminOPermiso("GESTIONAR_PERMISOS", "QuitarHijo");
             string codHijo = CodigoDePermiso(idHijo);
             _mapperPermiso.QuitarHijo(idHijo);
             _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AsignacionPermiso,
-                $"Permiso {codHijo} desvinculado de su familia padre");
+                $"Permiso {codHijo} desvinculado de su rol padre");
         }
 
-        public void EliminarFamilia(int familiaId)
+        public void EliminarRol(int rolId)
         {
-            RequerirAdmin("EliminarFamiliaPermiso");
+            RequerirAdminOPermiso("GESTIONAR_PERMISOS", "EliminarRol");
 
-            var familia = _mapperPermiso.ListarConPadre()
-                .Find(par => par.Key.Id == familiaId).Key as FamiliaPermiso;
+            var rol = _mapperPermiso.ListarConPadre()
+                .Find(par => par.Key.Id == rolId).Key as Rol;
 
-            if (familia == null)
-                throw new InvalidOperationException("La familia no existe o no es una familia de permisos.");
+            if (rol == null)
+                throw new BLLException("ERR_ROL_NO_EXISTE", "El rol no existe.");
 
-            _mapperPermiso.Eliminar(familia);
+            _mapperPermiso.Eliminar(rol);
 
-            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AltaPermiso,
-                $"Familia {familia.Codigo} eliminada (se desasignó de roles y usuarios que la tenían)");
+            _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AltaRol,
+                $"Rol {rol.Codigo} eliminado (se desasignó de los usuarios que lo tenían)");
         }
 
         public void AsignarAUsuario(int usuarioId, int permisoId)
         {
-            RequerirAdmin("AsignarPermisoAUsuario");
+            RequerirAdminOPermiso("ASIGNAR_PERMISOS", "AsignarPermisoAUsuario");
+            RequerirNoAutoasignacion(usuarioId, "AsignarPermisoAUsuario");
             string codPermiso = CodigoDePermiso(permisoId);
             string username   = UsernameDeUsuario(usuarioId);
             _mapperPermiso.AsignarAUsuario(usuarioId, permisoId);
@@ -155,7 +151,8 @@ namespace BLL
 
         public void QuitarDeUsuario(int usuarioId, int permisoId)
         {
-            RequerirAdmin("QuitarPermisoDeUsuario");
+            RequerirAdminOPermiso("ASIGNAR_PERMISOS", "QuitarPermisoDeUsuario");
+            RequerirNoAutoasignacion(usuarioId, "QuitarPermisoDeUsuario");
             string codPermiso = CodigoDePermiso(permisoId);
             string username   = UsernameDeUsuario(usuarioId);
             _mapperPermiso.QuitarDeUsuario(usuarioId, permisoId);
@@ -181,8 +178,6 @@ namespace BLL
         public List<Permiso> ListarPermisosDeUsuario(int usuarioId)
         {
             var directos = _mapperPermiso.ListarDirectosDeUsuario(usuarioId);
-            var mapperRol = new MapperRol();
-            var roles = mapperRol.ListarDeUsuario(usuarioId);
 
             var arbol = ListarArbol();
             var indice = new Dictionary<int, Permiso>();
@@ -191,13 +186,6 @@ namespace BLL
             var resultado = new Dictionary<int, Permiso>();
             foreach (var p in directos)
                 AcumularConHijos(p.Id, indice, resultado);
-
-            foreach (var rol in roles)
-            {
-                var permisosRol = _mapperPermiso.ListarPorRol(rol.Id);
-                foreach (var p in permisosRol)
-                    AcumularConHijos(p.Id, indice, resultado);
-            }
 
             return new List<Permiso>(resultado.Values);
         }
@@ -254,9 +242,9 @@ namespace BLL
             foreach (var n in nodos)
             {
                 indice[n.Id] = n;
-                var familia = n as FamiliaPermiso;
-                if (familia != null)
-                    IndexarArbol(familia.Hijos, indice);
+                var rol = n as Rol;
+                if (rol != null)
+                    IndexarArbol(rol.Hijos, indice);
             }
         }
 
@@ -266,25 +254,52 @@ namespace BLL
             if (!resultado.ContainsKey(p.Id))
                 resultado[p.Id] = p;
 
-            var familia = p as FamiliaPermiso;
-            if (familia != null)
-                foreach (var h in familia.Hijos)
+            var rol = p as Rol;
+            if (rol != null)
+                foreach (var h in rol.Hijos)
                     AcumularConHijos(h.Id, indice, resultado);
         }
 
         private void RequerirAdmin(string accion)
         {
             var usuario = SesionUsuario.GetInstancia().Usuario;
-            bool esAdmin = usuario != null && usuario.Username != null
-                && usuario.Username.ToLower() == "admin";
-
-            if (!esAdmin)
+            if (!EsAdmin(usuario))
             {
                 _bitacoraService.Insertar(usuario, TipoBitacora.Error,
                     $"Acceso denegado a '{accion}': se requiere usuario admin.");
-                throw new UnauthorizedAccessException(
+                throw new BLLException("ERR_SOLO_ADMIN_PERMISOS",
                     "Sólo el usuario administrador puede gestionar permisos.");
             }
+        }
+
+        private void RequerirAdminOPermiso(string codigoPermiso, string accion)
+        {
+            var usuario = SesionUsuario.GetInstancia().Usuario;
+            if (EsAdmin(usuario)) return;
+            if (UsuarioTienePermiso(usuario, codigoPermiso)) return;
+
+            _bitacoraService.Insertar(usuario, TipoBitacora.Error,
+                $"Acceso denegado a '{accion}': se requiere admin o permiso '{codigoPermiso}'.");
+            throw new BLLException("ERR_SIN_PERMISO_ACCION",
+                "No tenés permiso para ejecutar esta acción ({0}).", codigoPermiso);
+        }
+
+        private static bool EsAdmin(Usuario usuario)
+        {
+            return usuario != null && usuario.Username != null
+                && usuario.Username.ToLower() == "admin";
+        }
+
+        private void RequerirNoAutoasignacion(int usuarioIdDestino, string accion)
+        {
+            var usuarioActual = SesionUsuario.GetInstancia().Usuario;
+            if (EsAdmin(usuarioActual)) return;
+            if (usuarioActual == null || usuarioActual.Id != usuarioIdDestino) return;
+
+            _bitacoraService.Insertar(usuarioActual, TipoBitacora.Error,
+                $"Acceso denegado a '{accion}': no podés modificar tus propios permisos.");
+            throw new BLLException("ERR_AUTOASIGNACION_PERMISOS",
+                "No podés asignarte o quitarte permisos a vos mismo. Sólo el administrador puede hacerlo.");
         }
     }
 }

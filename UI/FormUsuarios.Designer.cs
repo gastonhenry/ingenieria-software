@@ -24,12 +24,14 @@ namespace UI
             this.cmbEstado        = new System.Windows.Forms.ComboBox();
             this.lblUsuarioFiltro = new System.Windows.Forms.Label();
             this.txtUsuarioFiltro = new System.Windows.Forms.TextBox();
-            this.btnLimpiar       = new System.Windows.Forms.Button();
+            this.btnLimpiar       = new UI.BotonPlano();
             this.pnlAcciones      = new System.Windows.Forms.Panel();
             this.pnlBotones       = new System.Windows.Forms.Panel();
-            this.btnActualizar    = new System.Windows.Forms.Button();
-            this.btnDesbloquear   = new System.Windows.Forms.Button();
-            this.btnBloquear      = new System.Windows.Forms.Button();
+            this.btnActualizar    = new UI.BotonPlano();
+            this.btnDesbloquear   = new UI.BotonPlano();
+            this.btnBloquear      = new UI.BotonPlano();
+            this.btnEditar        = new UI.BotonPlano();
+            this.btnHistorial     = new UI.BotonPlano();
             this.lblHint          = new System.Windows.Forms.Label();
             this.pnlResumen       = new System.Windows.Forms.Panel();
             this.lblActivos       = new System.Windows.Forms.Label();
@@ -111,10 +113,12 @@ namespace UI
             this.pnlBotones.Controls.Add(this.btnActualizar);
             this.pnlBotones.Controls.Add(this.btnDesbloquear);
             this.pnlBotones.Controls.Add(this.btnBloquear);
+            this.pnlBotones.Controls.Add(this.btnHistorial);
+            this.pnlBotones.Controls.Add(this.btnEditar);
             this.pnlBotones.Controls.Add(this.lblHint);
             this.pnlBotones.BackColor = System.Drawing.Color.Transparent;
             this.pnlBotones.Dock      = System.Windows.Forms.DockStyle.Right;
-            this.pnlBotones.Width     = 390;
+            this.pnlBotones.Width     = 590;
             this.pnlBotones.Name      = "pnlBotones";
 
             this.lblHint.AutoSize  = true;
@@ -124,28 +128,48 @@ namespace UI
             this.lblHint.Name      = "lblHint";
             this.lblHint.Text      = "← Seleccioná un usuario";
 
-            this.btnBloquear.Location            = new System.Drawing.Point(145, 13);
+            this.btnEditar.Location              = new System.Drawing.Point(145, 13);
+            this.btnEditar.Name                  = "btnEditar";
+            this.btnEditar.Size                  = new System.Drawing.Size(90, 28);
+            this.btnEditar.TabIndex              = 0;
+            this.btnEditar.Text                  = "Editar";
+            this.btnEditar.Enabled               = false;
+            this.btnEditar.Visible               = false;
+            this.btnEditar.UseVisualStyleBackColor = true;
+            this.btnEditar.Click += new System.EventHandler(this.btnEditar_Click);
+
+            this.btnHistorial.Location           = new System.Drawing.Point(245, 13);
+            this.btnHistorial.Name               = "btnHistorial";
+            this.btnHistorial.Size               = new System.Drawing.Size(95, 28);
+            this.btnHistorial.TabIndex           = 1;
+            this.btnHistorial.Text               = "Historial";
+            this.btnHistorial.Enabled            = false;
+            this.btnHistorial.Visible            = false;
+            this.btnHistorial.UseVisualStyleBackColor = true;
+            this.btnHistorial.Click += new System.EventHandler(this.btnHistorial_Click);
+
+            this.btnBloquear.Location            = new System.Drawing.Point(350, 13);
             this.btnBloquear.Name                = "btnBloquear";
             this.btnBloquear.Size                = new System.Drawing.Size(95, 28);
-            this.btnBloquear.TabIndex            = 1;
+            this.btnBloquear.TabIndex            = 2;
             this.btnBloquear.Text                = "Bloquear";
             this.btnBloquear.Enabled             = false;
             this.btnBloquear.UseVisualStyleBackColor = true;
             this.btnBloquear.Click += new System.EventHandler(this.btnBloquear_Click);
 
-            this.btnDesbloquear.Location            = new System.Drawing.Point(247, 13);
+            this.btnDesbloquear.Location            = new System.Drawing.Point(452, 13);
             this.btnDesbloquear.Name                = "btnDesbloquear";
             this.btnDesbloquear.Size                = new System.Drawing.Size(110, 28);
-            this.btnDesbloquear.TabIndex            = 2;
+            this.btnDesbloquear.TabIndex            = 3;
             this.btnDesbloquear.Text                = "Desbloquear";
             this.btnDesbloquear.Enabled             = false;
             this.btnDesbloquear.UseVisualStyleBackColor = true;
             this.btnDesbloquear.Click += new System.EventHandler(this.btnDesbloquear_Click);
 
-            this.btnActualizar.Location            = new System.Drawing.Point(364, 13);
+            this.btnActualizar.Location            = new System.Drawing.Point(564, 13);
             this.btnActualizar.Name                = "btnActualizar";
             this.btnActualizar.Size                = new System.Drawing.Size(22, 28);
-            this.btnActualizar.TabIndex            = 3;
+            this.btnActualizar.TabIndex            = 4;
             this.btnActualizar.Text                = "↺";
             this.btnActualizar.UseVisualStyleBackColor = true;
             this.btnActualizar.Click += new System.EventHandler(this.btnActualizar_Click);
@@ -220,7 +244,7 @@ namespace UI
         private System.Windows.Forms.ComboBox cmbEstado;
         private System.Windows.Forms.Label lblUsuarioFiltro;
         private System.Windows.Forms.TextBox txtUsuarioFiltro;
-        private System.Windows.Forms.Button btnLimpiar;
+        private UI.BotonPlano btnLimpiar;
         private System.Windows.Forms.Panel pnlAcciones;
         private System.Windows.Forms.Panel pnlBotones;
         private System.Windows.Forms.Panel pnlResumen;
@@ -228,9 +252,11 @@ namespace UI
         private System.Windows.Forms.Label lblBloqueados;
         private System.Windows.Forms.Label lblActivos;
         private System.Windows.Forms.Label lblHint;
-        private System.Windows.Forms.Button btnBloquear;
-        private System.Windows.Forms.Button btnDesbloquear;
-        private System.Windows.Forms.Button btnActualizar;
+        private UI.BotonPlano btnEditar;
+        private UI.BotonPlano btnHistorial;
+        private UI.BotonPlano btnBloquear;
+        private UI.BotonPlano btnDesbloquear;
+        private UI.BotonPlano btnActualizar;
         private System.Windows.Forms.DataGridView dgvUsuarios;
     }
 }

@@ -61,6 +61,27 @@ namespace BE
             set { email = value; }
         }
 
+        private string telefono;
+        public string Telefono
+        {
+            get { return telefono; }
+            set { telefono = value; }
+        }
+
+        private string documento;
+        public string Documento
+        {
+            get { return documento; }
+            set { documento = value; }
+        }
+
+        private string domicilio;
+        public string Domicilio
+        {
+            get { return domicilio; }
+            set { domicilio = value; }
+        }
+
         private bool bloqueado;
         public bool Bloqueado
         {
@@ -82,18 +103,18 @@ namespace BE
             set { ultimoLogin = value; }
         }
 
+        private int? idIdioma;
+        public int? IdIdioma
+        {
+            get { return idIdioma; }
+            set { idIdioma = value; }
+        }
+
         private string dvh;
         public string DVH
         {
             get { return dvh; }
             set { dvh = value; }
-        }
-
-        private List<Rol> roles = new List<Rol>();
-        public List<Rol> Roles
-        {
-            get { return roles; }
-            set { roles = value; }
         }
 
         private List<Permiso> permisos = new List<Permiso>();

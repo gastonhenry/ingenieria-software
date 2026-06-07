@@ -42,16 +42,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitacoraService.cs" />
+    <Compile Include="BLLException.cs" />
+    <Compile Include="EnumExtensionsIdioma.cs" />
+    <Compile Include="IUsuarioHistorialService.cs" />
+    <Compile Include="UsuarioHistorialService.cs" />
     <Compile Include="DigitoVerificadorService.cs" />
     <Compile Include="IBitacoraService.cs" />
     <Compile Include="IDigitoVerificadorService.cs" />
     <Compile Include="IPermisoService.cs" />
-    <Compile Include="IRolService.cs" />
     <Compile Include="IUsuarioService.cs" />
     <Compile Include="PermisoService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RolService.cs" />
     <Compile Include="UsuarioService.cs" />
+    <Compile Include="IObservadorIdioma.cs" />
+    <Compile Include="GestorIdiomas.cs" />
+    <Compile Include="IIdiomaService.cs" />
+    <Compile Include="IdiomaService.cs" />
+    <Compile Include="TraductorErrores.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HELPERS\HELPERS.csproj">

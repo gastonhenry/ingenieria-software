@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Enums;
 using MPP;
 using System.Collections.Generic;
 

@@ -28,13 +28,13 @@ namespace UI
             this.lblCol2 = new System.Windows.Forms.Label();
             this.lstAsignado = new System.Windows.Forms.ListBox();
             this.pnlCol2Botones = new System.Windows.Forms.Panel();
-            this.btnQuitar = new System.Windows.Forms.Button();
+            this.btnQuitar = new UI.BotonPlano();
 
             this.pnlCol3 = new System.Windows.Forms.Panel();
             this.lblCol3 = new System.Windows.Forms.Label();
             this.lstDisponible = new System.Windows.Forms.ListBox();
             this.pnlCol3Botones = new System.Windows.Forms.Panel();
-            this.btnAsignar = new System.Windows.Forms.Button();
+            this.btnAsignar = new UI.BotonPlano();
 
             this.pnlTitulo.SuspendLayout();
             this.tableMain.SuspendLayout();
@@ -61,7 +61,7 @@ namespace UI
             this.lblTitulo.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
             this.lblTitulo.ForeColor = System.Drawing.Color.White;
             this.lblTitulo.Location = new System.Drawing.Point(15, 22);
-            this.lblTitulo.Text = "Asignación de Permisos a Usuario";
+            this.lblTitulo.Text = "Asignación de Permisos a Usuarios";
 
             //
             // tableMain
@@ -146,7 +146,7 @@ namespace UI
             this.lblCol3.Dock = System.Windows.Forms.DockStyle.Top;
             this.lblCol3.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.lblCol3.Height = 28;
-            this.lblCol3.Text = "Roles y permisos disponibles";
+            this.lblCol3.Text = "Roles y Permisos disponibles";
             this.lblCol3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             //
             this.lstDisponible.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -178,7 +178,7 @@ namespace UI
             this.Controls.Add(this.tableMain);
             this.Controls.Add(this.pnlTitulo);
             this.Name = "FormAsignacionPermisos";
-            this.Text = "Asignación de Permisos";
+            this.Text = "Asignación de Permisos a Usuarios";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 
             this.pnlTitulo.ResumeLayout(false);
@@ -207,12 +207,12 @@ namespace UI
         private System.Windows.Forms.Label lblCol2;
         private System.Windows.Forms.ListBox lstAsignado;
         private System.Windows.Forms.Panel pnlCol2Botones;
-        private System.Windows.Forms.Button btnQuitar;
+        private UI.BotonPlano btnQuitar;
 
         private System.Windows.Forms.Panel pnlCol3;
         private System.Windows.Forms.Label lblCol3;
         private System.Windows.Forms.ListBox lstDisponible;
         private System.Windows.Forms.Panel pnlCol3Botones;
-        private System.Windows.Forms.Button btnAsignar;
+        private UI.BotonPlano btnAsignar;
     }
 }

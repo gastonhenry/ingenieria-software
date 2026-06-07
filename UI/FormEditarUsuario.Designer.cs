@@ -1,6 +1,6 @@
 namespace UI
 {
-    partial class FormInsertarUsuario
+    partial class FormEditarUsuario
     {
         private System.ComponentModel.IContainer components = null;
 
@@ -18,11 +18,7 @@ namespace UI
             this.pnlTitulo = new System.Windows.Forms.Panel();
             this.lblTitulo = new System.Windows.Forms.Label();
             this.lblUsername = new System.Windows.Forms.Label();
-            this.txtUsername = new System.Windows.Forms.TextBox();
-            this.lblPassword = new System.Windows.Forms.Label();
-            this.txtPassword = new System.Windows.Forms.TextBox();
-            this.lblConfirmarPassword = new System.Windows.Forms.Label();
-            this.txtConfirmarPassword = new System.Windows.Forms.TextBox();
+            this.lblUsernameValor = new System.Windows.Forms.Label();
             this.lblNombre = new System.Windows.Forms.Label();
             this.txtNombre = new System.Windows.Forms.TextBox();
             this.lblApellido = new System.Windows.Forms.Label();
@@ -35,7 +31,9 @@ namespace UI
             this.txtDocumento = new System.Windows.Forms.TextBox();
             this.lblDomicilio = new System.Windows.Forms.Label();
             this.txtDomicilio = new System.Windows.Forms.TextBox();
-            this.btnRegistrar = new UI.BotonPlano();
+            this.lblIdioma = new System.Windows.Forms.Label();
+            this.lblIdiomaValor = new System.Windows.Forms.Label();
+            this.btnGuardar = new UI.BotonPlano();
             this.pnlTitulo.SuspendLayout();
             this.SuspendLayout();
             //
@@ -54,183 +52,164 @@ namespace UI
             this.lblTitulo.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
             this.lblTitulo.ForeColor = System.Drawing.Color.White;
             this.lblTitulo.Location = new System.Drawing.Point(15, 22);
-            this.lblTitulo.Text = "Registrar Usuario";
+            this.lblTitulo.Text = "Editar Usuario";
             //
             // lblUsername
             //
             this.lblUsername.AutoSize = true;
             this.lblUsername.Location = new System.Drawing.Point(40, 80);
             this.lblUsername.Name = "lblUsername";
-            this.lblUsername.TabIndex = 0;
             this.lblUsername.Text = "Usuario:";
             //
-            // txtUsername
+            // lblUsernameValor
             //
-            this.txtUsername.Location = new System.Drawing.Point(170, 77);
-            this.txtUsername.Name = "txtUsername";
-            this.txtUsername.Size = new System.Drawing.Size(200, 20);
-            this.txtUsername.TabIndex = 0;
-            //
-            // lblPassword
-            //
-            this.lblPassword.AutoSize = true;
-            this.lblPassword.Location = new System.Drawing.Point(40, 117);
-            this.lblPassword.Name = "lblPassword";
-            this.lblPassword.TabIndex = 1;
-            this.lblPassword.Text = "Contraseña:";
-            //
-            // txtPassword
-            //
-            this.txtPassword.Location = new System.Drawing.Point(170, 114);
-            this.txtPassword.Name = "txtPassword";
-            this.txtPassword.PasswordChar = '*';
-            this.txtPassword.Size = new System.Drawing.Size(200, 20);
-            this.txtPassword.TabIndex = 1;
-            //
-            // lblConfirmarPassword
-            //
-            this.lblConfirmarPassword.AutoSize = true;
-            this.lblConfirmarPassword.Location = new System.Drawing.Point(40, 154);
-            this.lblConfirmarPassword.Name = "lblConfirmarPassword";
-            this.lblConfirmarPassword.TabIndex = 7;
-            this.lblConfirmarPassword.Text = "Repetir contraseña:";
-            //
-            // txtConfirmarPassword
-            //
-            this.txtConfirmarPassword.Location = new System.Drawing.Point(170, 151);
-            this.txtConfirmarPassword.Name = "txtConfirmarPassword";
-            this.txtConfirmarPassword.PasswordChar = '*';
-            this.txtConfirmarPassword.Size = new System.Drawing.Size(200, 20);
-            this.txtConfirmarPassword.TabIndex = 2;
+            this.lblUsernameValor.AutoSize = false;
+            this.lblUsernameValor.Location = new System.Drawing.Point(170, 80);
+            this.lblUsernameValor.Name = "lblUsernameValor";
+            this.lblUsernameValor.Size = new System.Drawing.Size(200, 20);
+            this.lblUsernameValor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
+            this.lblUsernameValor.ForeColor = System.Drawing.Color.FromArgb(90, 90, 90);
+            this.lblUsernameValor.Text = "—";
             //
             // lblNombre
             //
             this.lblNombre.AutoSize = true;
-            this.lblNombre.Location = new System.Drawing.Point(40, 191);
+            this.lblNombre.Location = new System.Drawing.Point(40, 117);
             this.lblNombre.Name = "lblNombre";
-            this.lblNombre.TabIndex = 2;
             this.lblNombre.Text = "Nombre:";
             //
             // txtNombre
             //
-            this.txtNombre.Location = new System.Drawing.Point(170, 188);
+            this.txtNombre.Location = new System.Drawing.Point(170, 114);
             this.txtNombre.Name = "txtNombre";
             this.txtNombre.Size = new System.Drawing.Size(200, 20);
-            this.txtNombre.TabIndex = 3;
+            this.txtNombre.TabIndex = 1;
             //
             // lblApellido
             //
             this.lblApellido.AutoSize = true;
-            this.lblApellido.Location = new System.Drawing.Point(40, 228);
+            this.lblApellido.Location = new System.Drawing.Point(40, 154);
             this.lblApellido.Name = "lblApellido";
-            this.lblApellido.TabIndex = 3;
             this.lblApellido.Text = "Apellido:";
             //
             // txtApellido
             //
-            this.txtApellido.Location = new System.Drawing.Point(170, 225);
+            this.txtApellido.Location = new System.Drawing.Point(170, 151);
             this.txtApellido.Name = "txtApellido";
             this.txtApellido.Size = new System.Drawing.Size(200, 20);
-            this.txtApellido.TabIndex = 4;
+            this.txtApellido.TabIndex = 2;
             //
             // lblEmail
             //
             this.lblEmail.AutoSize = true;
-            this.lblEmail.Location = new System.Drawing.Point(40, 265);
+            this.lblEmail.Location = new System.Drawing.Point(40, 191);
             this.lblEmail.Name = "lblEmail";
-            this.lblEmail.TabIndex = 5;
             this.lblEmail.Text = "Email:";
             //
             // txtEmail
             //
-            this.txtEmail.Location = new System.Drawing.Point(170, 262);
+            this.txtEmail.Location = new System.Drawing.Point(170, 188);
             this.txtEmail.Name = "txtEmail";
             this.txtEmail.Size = new System.Drawing.Size(200, 20);
-            this.txtEmail.TabIndex = 5;
+            this.txtEmail.TabIndex = 3;
             //
             // lblTelefono
             //
             this.lblTelefono.AutoSize = true;
-            this.lblTelefono.Location = new System.Drawing.Point(40, 302);
+            this.lblTelefono.Location = new System.Drawing.Point(40, 228);
             this.lblTelefono.Name = "lblTelefono";
-            this.lblTelefono.TabIndex = 8;
             this.lblTelefono.Text = "Teléfono:";
             //
             // txtTelefono
             //
-            this.txtTelefono.Location = new System.Drawing.Point(170, 299);
+            this.txtTelefono.Location = new System.Drawing.Point(170, 225);
             this.txtTelefono.Name = "txtTelefono";
             this.txtTelefono.Size = new System.Drawing.Size(200, 20);
-            this.txtTelefono.TabIndex = 6;
+            this.txtTelefono.TabIndex = 4;
             //
             // lblDocumento
             //
             this.lblDocumento.AutoSize = true;
-            this.lblDocumento.Location = new System.Drawing.Point(40, 339);
+            this.lblDocumento.Location = new System.Drawing.Point(40, 265);
             this.lblDocumento.Name = "lblDocumento";
-            this.lblDocumento.TabIndex = 9;
             this.lblDocumento.Text = "Documento:";
             //
             // txtDocumento
             //
-            this.txtDocumento.Location = new System.Drawing.Point(170, 336);
+            this.txtDocumento.Location = new System.Drawing.Point(170, 262);
             this.txtDocumento.Name = "txtDocumento";
             this.txtDocumento.Size = new System.Drawing.Size(200, 20);
-            this.txtDocumento.TabIndex = 7;
+            this.txtDocumento.TabIndex = 5;
             //
             // lblDomicilio
             //
             this.lblDomicilio.AutoSize = true;
-            this.lblDomicilio.Location = new System.Drawing.Point(40, 376);
+            this.lblDomicilio.Location = new System.Drawing.Point(40, 302);
             this.lblDomicilio.Name = "lblDomicilio";
-            this.lblDomicilio.TabIndex = 10;
             this.lblDomicilio.Text = "Domicilio:";
             //
             // txtDomicilio
             //
-            this.txtDomicilio.Location = new System.Drawing.Point(170, 373);
+            this.txtDomicilio.Location = new System.Drawing.Point(170, 299);
             this.txtDomicilio.Name = "txtDomicilio";
             this.txtDomicilio.Size = new System.Drawing.Size(200, 20);
-            this.txtDomicilio.TabIndex = 8;
+            this.txtDomicilio.TabIndex = 6;
             //
-            // btnRegistrar
+            // lblIdioma
             //
-            this.btnRegistrar.Location = new System.Drawing.Point(170, 415);
-            this.btnRegistrar.Name = "btnRegistrar";
-            this.btnRegistrar.Size = new System.Drawing.Size(200, 32);
-            this.btnRegistrar.TabIndex = 9;
-            this.btnRegistrar.Text = "Registrar";
-            this.btnRegistrar.UseVisualStyleBackColor = true;
-            this.btnRegistrar.Click += new System.EventHandler(this.btnRegistrar_Click);
+            this.lblIdioma.AutoSize = true;
+            this.lblIdioma.Location = new System.Drawing.Point(40, 339);
+            this.lblIdioma.Name = "lblIdioma";
+            this.lblIdioma.Text = "Idioma preferido:";
             //
-            // FormInsertarUsuario
+            // lblIdiomaValor
+            //
+            this.lblIdiomaValor.AutoSize = false;
+            this.lblIdiomaValor.Location = new System.Drawing.Point(170, 339);
+            this.lblIdiomaValor.Name = "lblIdiomaValor";
+            this.lblIdiomaValor.Size = new System.Drawing.Size(200, 20);
+            this.lblIdiomaValor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
+            this.lblIdiomaValor.ForeColor = System.Drawing.Color.FromArgb(90, 90, 90);
+            this.lblIdiomaValor.Text = "—";
+            //
+            // btnGuardar
+            //
+            this.btnGuardar.Location = new System.Drawing.Point(170, 378);
+            this.btnGuardar.Name = "btnGuardar";
+            this.btnGuardar.Size = new System.Drawing.Size(200, 32);
+            this.btnGuardar.TabIndex = 7;
+            this.btnGuardar.Text = "Guardar cambios";
+            this.btnGuardar.UseVisualStyleBackColor = true;
+            this.btnGuardar.Click += new System.EventHandler(this.btnGuardar_Click);
+            //
+            // FormEditarUsuario
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(422, 470);
-            this.Controls.Add(this.lblEmail);
-            this.Controls.Add(this.txtEmail);
+            this.ClientSize = new System.Drawing.Size(422, 430);
             this.Controls.Add(this.lblUsername);
-            this.Controls.Add(this.txtUsername);
-            this.Controls.Add(this.lblPassword);
-            this.Controls.Add(this.txtPassword);
-            this.Controls.Add(this.lblConfirmarPassword);
-            this.Controls.Add(this.txtConfirmarPassword);
+            this.Controls.Add(this.lblUsernameValor);
             this.Controls.Add(this.lblNombre);
             this.Controls.Add(this.txtNombre);
             this.Controls.Add(this.lblApellido);
             this.Controls.Add(this.txtApellido);
+            this.Controls.Add(this.lblEmail);
+            this.Controls.Add(this.txtEmail);
             this.Controls.Add(this.lblTelefono);
             this.Controls.Add(this.txtTelefono);
             this.Controls.Add(this.lblDocumento);
             this.Controls.Add(this.txtDocumento);
             this.Controls.Add(this.lblDomicilio);
             this.Controls.Add(this.txtDomicilio);
-            this.Controls.Add(this.btnRegistrar);
+            this.Controls.Add(this.lblIdioma);
+            this.Controls.Add(this.lblIdiomaValor);
+            this.Controls.Add(this.btnGuardar);
             this.Controls.Add(this.pnlTitulo);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "FormInsertarUsuario";
+            this.Name = "FormEditarUsuario";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Text = "Editar Usuario";
             this.pnlTitulo.ResumeLayout(false);
             this.pnlTitulo.PerformLayout();
             this.ResumeLayout(false);
@@ -242,11 +221,7 @@ namespace UI
         private System.Windows.Forms.Panel pnlTitulo;
         private System.Windows.Forms.Label lblTitulo;
         private System.Windows.Forms.Label lblUsername;
-        private System.Windows.Forms.TextBox txtUsername;
-        private System.Windows.Forms.Label lblPassword;
-        private System.Windows.Forms.TextBox txtPassword;
-        private System.Windows.Forms.Label lblConfirmarPassword;
-        private System.Windows.Forms.TextBox txtConfirmarPassword;
+        private System.Windows.Forms.Label lblUsernameValor;
         private System.Windows.Forms.Label lblNombre;
         private System.Windows.Forms.TextBox txtNombre;
         private System.Windows.Forms.Label lblApellido;
@@ -259,6 +234,8 @@ namespace UI
         private System.Windows.Forms.TextBox txtDocumento;
         private System.Windows.Forms.Label lblDomicilio;
         private System.Windows.Forms.TextBox txtDomicilio;
-        private UI.BotonPlano btnRegistrar;
+        private System.Windows.Forms.Label lblIdioma;
+        private System.Windows.Forms.Label lblIdiomaValor;
+        private UI.BotonPlano btnGuardar;
     }
 }

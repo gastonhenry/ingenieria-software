@@ -19,11 +19,14 @@ namespace UI
             this.pnlHeader = new System.Windows.Forms.Panel();
             this.lblAppName = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
+            this.lblToggleEs = new System.Windows.Forms.Label();
+            this.lblToggleSep = new System.Windows.Forms.Label();
+            this.lblToggleEn = new System.Windows.Forms.Label();
             this.lblUsuario = new System.Windows.Forms.Label();
             this.txtUsername = new System.Windows.Forms.TextBox();
             this.lblPassword = new System.Windows.Forms.Label();
             this.txtPassword = new System.Windows.Forms.TextBox();
-            this.btnLogin = new System.Windows.Forms.Button();
+            this.btnLogin = new UI.BotonPlano();
             this.pnlCard.SuspendLayout();
             this.pnlHeader.SuspendLayout();
             this.SuspendLayout();
@@ -45,6 +48,9 @@ namespace UI
             // pnlHeader
             // 
             this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(90)))), ((int)(((byte)(200)))));
+            this.pnlHeader.Controls.Add(this.lblToggleEs);
+            this.pnlHeader.Controls.Add(this.lblToggleSep);
+            this.pnlHeader.Controls.Add(this.lblToggleEn);
             this.pnlHeader.Controls.Add(this.lblAppName);
             this.pnlHeader.Controls.Add(this.lblTitle);
             this.pnlHeader.Location = new System.Drawing.Point(0, 0);
@@ -60,7 +66,7 @@ namespace UI
             this.lblAppName.Name = "lblAppName";
             this.lblAppName.Size = new System.Drawing.Size(360, 18);
             this.lblAppName.TabIndex = 0;
-            this.lblAppName.Text = "INGENIERIA DE SOFTWARE";
+            this.lblAppName.Text = "Bienvenidos";
             this.lblAppName.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lblTitle
@@ -73,9 +79,44 @@ namespace UI
             this.lblTitle.TabIndex = 1;
             this.lblTitle.Text = "Iniciar Sesión";
             this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
+            //
+            // lblToggleEs
+            //
+            this.lblToggleEs.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblToggleEs.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblToggleEs.ForeColor = System.Drawing.Color.White;
+            this.lblToggleEs.Location = new System.Drawing.Point(272, 8);
+            this.lblToggleEs.Name = "lblToggleEs";
+            this.lblToggleEs.Size = new System.Drawing.Size(28, 20);
+            this.lblToggleEs.TabIndex = 10;
+            this.lblToggleEs.Text = "ES";
+            this.lblToggleEs.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            //
+            // lblToggleSep
+            //
+            this.lblToggleSep.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblToggleSep.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(210)))), ((int)(((byte)(255)))));
+            this.lblToggleSep.Location = new System.Drawing.Point(300, 8);
+            this.lblToggleSep.Name = "lblToggleSep";
+            this.lblToggleSep.Size = new System.Drawing.Size(8, 20);
+            this.lblToggleSep.TabIndex = 11;
+            this.lblToggleSep.Text = "|";
+            this.lblToggleSep.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            //
+            // lblToggleEn
+            //
+            this.lblToggleEn.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblToggleEn.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblToggleEn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(210)))), ((int)(((byte)(255)))));
+            this.lblToggleEn.Location = new System.Drawing.Point(308, 8);
+            this.lblToggleEn.Name = "lblToggleEn";
+            this.lblToggleEn.Size = new System.Drawing.Size(28, 20);
+            this.lblToggleEn.TabIndex = 12;
+            this.lblToggleEn.Text = "EN";
+            this.lblToggleEn.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            //
             // lblUsuario
-            // 
+            //
             this.lblUsuario.AutoSize = true;
             this.lblUsuario.Font = new System.Drawing.Font("Segoe UI", 8.5F);
             this.lblUsuario.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
@@ -132,7 +173,7 @@ namespace UI
             this.btnLogin.UseVisualStyleBackColor = false;
             this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
             // 
-            // Form1
+            // FormLogin
             // 
             this.AcceptButton = this.btnLogin;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -142,10 +183,10 @@ namespace UI
             this.Controls.Add(this.pnlCard);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-            this.Name = "Form1";
+            this.Name = "FormLogin";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.Resize += new System.EventHandler(this.Form1_Resize);
+            this.Load += new System.EventHandler(this.FormLogin_Load);
+            this.Resize += new System.EventHandler(this.FormLogin_Resize);
             this.pnlCard.ResumeLayout(false);
             this.pnlCard.PerformLayout();
             this.pnlHeader.ResumeLayout(false);
@@ -159,10 +200,13 @@ namespace UI
         private System.Windows.Forms.Panel   pnlHeader;
         private System.Windows.Forms.Label   lblAppName;
         private System.Windows.Forms.Label   lblTitle;
+        private System.Windows.Forms.Label   lblToggleEs;
+        private System.Windows.Forms.Label   lblToggleSep;
+        private System.Windows.Forms.Label   lblToggleEn;
         private System.Windows.Forms.Label   lblUsuario;
         private System.Windows.Forms.TextBox txtUsername;
         private System.Windows.Forms.Label   lblPassword;
         private System.Windows.Forms.TextBox txtPassword;
-        private System.Windows.Forms.Button  btnLogin;
+        private UI.BotonPlano  btnLogin;
     }
 }

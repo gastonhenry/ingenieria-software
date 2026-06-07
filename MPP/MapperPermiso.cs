@@ -12,7 +12,7 @@ namespace MPP
         public override int Insertar(Permiso obj)
         {
             AccesoDB db = AccesoDB.GetInstancia();
-            string tipo = obj is FamiliaPermiso ? "F" : "I";
+            string tipo = obj is Rol ? "R" : "I";
 
             var parametros = new List<SqlParameter>
             {
@@ -26,11 +26,11 @@ namespace MPP
 
         public override int Eliminar(Permiso obj)
         {
-            if (!(obj is FamiliaPermiso))
-                throw new InvalidOperationException("Sólo se pueden eliminar familias de permisos, no patentes.");
+            if (!(obj is Rol))
+                throw new InvalidOperationException("Sólo se pueden eliminar roles, no permisos simples.");
 
             AccesoDB db = AccesoDB.GetInstancia();
-            return db.Escribir("EliminarFamiliaPermiso", new List<SqlParameter>
+            return db.Escribir("EliminarRol", new List<SqlParameter>
             {
                 db.CrearParametro("@PermisoId", obj.Id)
             });
@@ -56,19 +56,6 @@ namespace MPP
             var lista = new List<KeyValuePair<Permiso, int?>>();
             foreach (DataRow row in tabla.Rows)
                 lista.Add(new KeyValuePair<Permiso, int?>(MapearFila(row), ObtenerIdPadre(row)));
-
-            return lista;
-        }
-
-        public List<Permiso> ListarPorRol(int rolId)
-        {
-            AccesoDB db = AccesoDB.GetInstancia();
-            var parametros = new List<SqlParameter> { db.CrearParametro("@RolId", rolId) };
-            DataTable tabla = db.Leer("ListarPermisosDeRol", parametros);
-
-            var lista = new List<Permiso>();
-            foreach (DataRow row in tabla.Rows)
-                lista.Add(MapearFila(row));
 
             return lista;
         }
@@ -138,7 +125,7 @@ namespace MPP
         private static Permiso MapearFila(DataRow row)
         {
             string tipo = (string)row["Tipo"];
-            Permiso permiso = tipo == "F" ? (Permiso)new FamiliaPermiso() : new PermisoIndividual();
+            Permiso permiso = tipo == "R" ? (Permiso)new Rol() : new PermisoIndividual();
 
             permiso.Id          = (int)row["Id"];
             permiso.Codigo      = (string)row["Codigo"];
