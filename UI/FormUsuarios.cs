@@ -102,6 +102,9 @@ namespace UI
                 dgvUsuarios.Columns["Nombre"].HeaderText           = Tr("colNombre",           "Nombre");
                 dgvUsuarios.Columns["Apellido"].HeaderText         = Tr("colApellido",         "Apellido");
                 dgvUsuarios.Columns["Email"].HeaderText            = Tr("colEmail",            "Email");
+                dgvUsuarios.Columns["Telefono"].HeaderText         = Tr("colTelefono",         "Teléfono");
+                dgvUsuarios.Columns["Documento"].HeaderText        = Tr("colDocumento",        "Documento");
+                dgvUsuarios.Columns["Domicilio"].HeaderText        = Tr("colDomicilio",        "Domicilio");
                 dgvUsuarios.Columns["Estado"].HeaderText           = Tr("colEstado",           "Estado");
                 dgvUsuarios.Columns["IntentosFallidos"].HeaderText = Tr("colIntentosFallidos", "Int. Fallidos");
                 dgvUsuarios.Columns["UltimoLogin"].HeaderText      = Tr("colUltimoLogin",      "Último Login");
@@ -209,15 +212,21 @@ namespace UI
             dgvUsuarios.Columns.Add("Nombre",           Tr("colNombre",           "Nombre"));
             dgvUsuarios.Columns.Add("Apellido",         Tr("colApellido",         "Apellido"));
             dgvUsuarios.Columns.Add("Email",            Tr("colEmail",            "Email"));
+            dgvUsuarios.Columns.Add("Telefono",         Tr("colTelefono",         "Teléfono"));
+            dgvUsuarios.Columns.Add("Documento",        Tr("colDocumento",        "Documento"));
+            dgvUsuarios.Columns.Add("Domicilio",        Tr("colDomicilio",        "Domicilio"));
             dgvUsuarios.Columns.Add("Estado",           Tr("colEstado",           "Estado"));
             dgvUsuarios.Columns.Add("IntentosFallidos", Tr("colIntentosFallidos", "Int. Fallidos"));
             dgvUsuarios.Columns.Add("UltimoLogin",      Tr("colUltimoLogin",      "Último Login"));
 
             dgvUsuarios.Columns["Id"].Visible                             = false;
-            dgvUsuarios.Columns["Username"].Width                         = 140;
-            dgvUsuarios.Columns["Nombre"].Width                           = 120;
-            dgvUsuarios.Columns["Apellido"].Width                         = 120;
-            dgvUsuarios.Columns["Email"].Width                            = 200;
+            dgvUsuarios.Columns["Username"].Width                         = 130;
+            dgvUsuarios.Columns["Nombre"].Width                           = 110;
+            dgvUsuarios.Columns["Apellido"].Width                         = 110;
+            dgvUsuarios.Columns["Email"].Width                            = 180;
+            dgvUsuarios.Columns["Telefono"].Width                         = 130;
+            dgvUsuarios.Columns["Documento"].Width                        = 110;
+            dgvUsuarios.Columns["Domicilio"].Width                        = 200;
             dgvUsuarios.Columns["Estado"].Width                           = 90;
             dgvUsuarios.Columns["IntentosFallidos"].Width                 = 100;
             dgvUsuarios.Columns["IntentosFallidos"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -231,6 +240,7 @@ namespace UI
             {
                 int idx = dgvUsuarios.Rows.Add(
                     u.Id, u.Username, u.Nombre, u.Apellido, u.Email,
+                    u.Telefono, u.Documento, u.Domicilio,
                     u.Bloqueado ? bloq : act,
                     u.IntentosFallidos,
                     u.UltimoLogin.HasValue ? u.UltimoLogin.Value.ToString("dd/MM/yyyy HH:mm") : "-");

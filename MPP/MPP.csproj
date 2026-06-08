@@ -44,6 +44,7 @@
     <Compile Include="Mapper.cs" />
     <Compile Include="MapperBitacora.cs" />
     <Compile Include="MapperDigitoVerificador.cs" />
+    <Compile Include="MapperMantenimiento.cs" />
     <Compile Include="MapperPermiso.cs" />
     <Compile Include="MapperUsuario.cs" />
     <Compile Include="MapperUsuarioHistorial.cs" />

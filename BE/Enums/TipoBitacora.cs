@@ -45,5 +45,8 @@ namespace BE.Enums
 
         [Description("Edición de usuario")]
         EdicionUsuario = 13,
+
+        [Description("Mantenimiento")]
+        Mantenimiento = 14,
     }
 }

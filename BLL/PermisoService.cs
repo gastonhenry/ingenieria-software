@@ -79,9 +79,15 @@ namespace BLL
             };
 
             int id = _mapperPermiso.Insertar(rol);
+            RecalcularDVPermisos();
             _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AltaRol,
                 $"Rol creado: {codigo}");
             return id;
+        }
+
+        public static void RecalcularDVPermisos()
+        {
+            new VerificadorPermiso().RecalcularDVs();
         }
 
         private bool ExisteCodigo(string codigo)
@@ -133,6 +139,7 @@ namespace BLL
                 throw new BLLException("ERR_ROL_NO_EXISTE", "El rol no existe.");
 
             _mapperPermiso.Eliminar(rol);
+            RecalcularDVPermisos();
 
             _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AltaRol,
                 $"Rol {rol.Codigo} eliminado (se desasignó de los usuarios que lo tenían)");

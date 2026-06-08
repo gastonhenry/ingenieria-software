@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -49,6 +50,11 @@
     <Compile Include="DigitoVerificadorService.cs" />
     <Compile Include="IBitacoraService.cs" />
     <Compile Include="IDigitoVerificadorService.cs" />
+    <Compile Include="IMantenimientoService.cs" />
+    <Compile Include="IVerificadorEntidad.cs" />
+    <Compile Include="MantenimientoService.cs" />
+    <Compile Include="VerificadorUsuario.cs" />
+    <Compile Include="VerificadorPermiso.cs" />
     <Compile Include="IPermisoService.cs" />
     <Compile Include="IUsuarioService.cs" />
     <Compile Include="PermisoService.cs" />

@@ -12,7 +12,8 @@ namespace UI
     public partial class FormLogin : Form
     {
         private readonly IUsuarioService _usuarioService;
-        private bool _integridadOk;
+        private readonly IMantenimientoService _mantenimientoService;
+        private ResultadoIntegridadGlobal _resultadoIntegridad;
         private bool _idiomaEnIngles;
 
         private static readonly Color ColorTextoActivo   = Color.White;
@@ -26,7 +27,7 @@ namespace UI
             { "lblUsuario",                "Usuario" },
             { "lblPassword",               "Contraseña" },
             { "btnLogin",                  "Ingresar" },
-            { "msgLoginDeshabilitado",     "Login deshabilitado por inconsistencias en la base de datos." },
+            { "msgLoginDeshabilitado",     "Login deshabilitado por inconsistencias en la base de datos. Sólo está habilitado para usuarios administradores." },
             { "msgAccesoDenegado",         "Acceso denegado" },
             { "msgCamposVacios",           "Ingresá usuario y contraseña." },
             { "msgAdvertencia",            "Advertencia" },
@@ -35,6 +36,7 @@ namespace UI
             { "msgUsuarioBloqueado",       "El usuario se encuentra bloqueado. Contacte al administrador." },
             { "msgBloqueado",              "Su cuenta fue bloqueada por superar la cantidad máxima de intentos. Contacte al administrador." },
             { "msgErrorLogin",             "Error al iniciar sesión. Por favor, reintente más tarde." },
+            { "msgCredencialesMantenimiento", "Credenciales de mantenimiento inválidas.\n\nRecordá que en modo mantenimiento es la definida en App.config." },
         };
 
         private static readonly Dictionary<string, string> _textosEn = new Dictionary<string, string>
@@ -45,7 +47,7 @@ namespace UI
             { "lblUsuario",                "Username" },
             { "lblPassword",               "Password" },
             { "btnLogin",                  "Sign in" },
-            { "msgLoginDeshabilitado",     "Login disabled due to database integrity issues." },
+            { "msgLoginDeshabilitado",     "Login disabled due to database integrity issues. Only admin users can access." },
             { "msgAccesoDenegado",         "Access denied" },
             { "msgCamposVacios",           "Please enter your username and password." },
             { "msgAdvertencia",            "Warning" },
@@ -54,14 +56,20 @@ namespace UI
             { "msgUsuarioBloqueado",       "User is locked. Please contact the administrator." },
             { "msgBloqueado",              "Your account has been locked after too many failed attempts. Please contact the administrator." },
             { "msgErrorLogin",             "Login error. Please try again later." },
+            { "msgCredencialesMantenimiento", "Invalid maintenance credentials.\n\nRemember that in maintenance mode the password is defined in App.config." },
         };
 
         private string Tr(string clave) => (_idiomaEnIngles ? _textosEn : _textosEs)[clave];
 
-        public FormLogin()
+        public FormLogin() : this(null) { }
+
+        public FormLogin(ResultadoIntegridadGlobal resultadoIntegridad)
         {
             InitializeComponent();
             _usuarioService = new UsuarioService();
+            _mantenimientoService = new MantenimientoService();
+            _resultadoIntegridad = resultadoIntegridad ?? VerificarIntegridadSegura();
+
             var screen = Screen.PrimaryScreen.WorkingArea;
             this.Size = new Size(screen.Width / 2, screen.Height / 2);
             CentrarCard();
@@ -69,8 +77,6 @@ namespace UI
             lblToggleEs.Click += (s, e) => CambiarIdiomaLogin(false);
             lblToggleEn.Click += (s, e) => CambiarIdiomaLogin(true);
             AplicarTextos();
-
-            VerificarIntegridad();
         }
 
         private void CambiarIdiomaLogin(bool ingles)
@@ -95,22 +101,14 @@ namespace UI
             lblToggleEn.Font      = new Font("Segoe UI", 9F, _idiomaEnIngles ? FontStyle.Bold    : FontStyle.Regular);
         }
 
-        private void VerificarIntegridad()
+        private ResultadoIntegridadGlobal VerificarIntegridadSegura()
         {
-            try
+            try { return _mantenimientoService.VerificarTodo(); }
+            catch
             {
-                ResultadoIntegridad resultado = _usuarioService.VerificarIntegridad();
-                _integridadOk = resultado.Ok;
-                if (_integridadOk) return;
-
-                MessageBox.Show("No se permitirán inicios de sesión hasta restaurar la integridad. Contacte al administrador."
-                    , "Error de integridad de la base de datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception)
-            {
-                _integridadOk = false;
-                MessageBox.Show("No se pudo verificar la integridad de la base de datos. Contacte al administrador.",
-                    "Error de integridad de la base de datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                var fallback = new ResultadoIntegridadGlobal { Ok = false };
+                fallback.PorTabla["__startup__"] = new ResultadoIntegridad { Ok = false, DVVInvalido = true };
+                return fallback;
             }
         }
 
@@ -125,13 +123,6 @@ namespace UI
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            if (!_integridadOk)
-            {
-                MessageBox.Show(Tr("msgLoginDeshabilitado"),
-                    Tr("msgAccesoDenegado"), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
             string username = txtUsername.Text.Trim();
             string password = txtPassword.Text;
 
@@ -141,6 +132,61 @@ namespace UI
                 return;
             }
 
+            // Reverificar integridad por si la BD fue tampered entre el arranque y este intento de login.
+            Cursor cursorPrevio = this.Cursor;
+            this.Cursor = Cursors.WaitCursor;
+            try
+            {
+                _resultadoIntegridad = VerificarIntegridadSegura();
+            }
+            finally
+            {
+                this.Cursor = cursorPrevio;
+            }
+
+            if (_resultadoIntegridad != null && !_resultadoIntegridad.Ok)
+            {
+                IngresarEnModoMantenimiento(username, password);
+                return;
+            }
+
+            IngresarEnModoNormal(username, password);
+        }
+
+        private void IngresarEnModoMantenimiento(string username, string password)
+        {
+            bool esAdmin = string.Equals(username, "admin", StringComparison.OrdinalIgnoreCase);
+            if (!esAdmin)
+            {
+                MessageBox.Show(Tr("msgLoginDeshabilitado"),
+                    Tr("msgAccesoDenegado"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            bool ok = _mantenimientoService.AutenticarMantenimiento(username, password);
+            if (!ok)
+            {
+                MessageBox.Show(Tr("msgCredencialesMantenimiento"),
+                    Tr("msgError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (var formMant = new FormMantenimiento(_resultadoIntegridad))
+            {
+                this.Hide();
+                formMant.ShowDialog();
+            }
+
+            // Al cerrar mantenimiento, reverificamos por si quedó OK y el admin quiere ingresar normal.
+            try { _resultadoIntegridad = _mantenimientoService.VerificarTodo(); }
+            catch { /* dejamos el resultado anterior */ }
+
+            txtPassword.Text = string.Empty;
+            this.Show();
+        }
+
+        private void IngresarEnModoNormal(string username, string password)
+        {
             try
             {
                 LoginResultado resultado = _usuarioService.Login(username, password);

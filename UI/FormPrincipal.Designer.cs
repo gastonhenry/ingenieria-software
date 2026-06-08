@@ -28,6 +28,7 @@ namespace UI
             this.menuIdiomas = new System.Windows.Forms.ToolStripMenuItem();
             this.menuGestionIdiomas = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSeleccionIdioma = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuMantenimiento = new System.Windows.Forms.ToolStripMenuItem();
             this.menuLogout = new System.Windows.Forms.ToolStripMenuItem();
             this.lblSesion = new System.Windows.Forms.ToolStripLabel();
             this.lblEstadoSesion = new System.Windows.Forms.ToolStripLabel();
@@ -46,6 +47,7 @@ namespace UI
             this.menuBitacora,
             this.menuIdiomas,
             this.menuSeleccionIdioma,
+            this.menuMantenimiento,
             this.menuLogout,
             this.lblSesion,
             this.lblEstadoSesion});
@@ -150,6 +152,14 @@ namespace UI
             this.menuSeleccionIdioma.Size = new System.Drawing.Size(70, 25);
             this.menuSeleccionIdioma.Text = "Idioma ▾";
             //
+            // menuMantenimiento
+            //
+            this.menuMantenimiento.ForeColor = System.Drawing.Color.White;
+            this.menuMantenimiento.Name = "menuMantenimiento";
+            this.menuMantenimiento.Size = new System.Drawing.Size(100, 25);
+            this.menuMantenimiento.Text = "Mantenimiento";
+            this.menuMantenimiento.Click += new System.EventHandler(this.menuMantenimiento_Click);
+            //
             // menuLogout
             //
             this.menuLogout.ForeColor = System.Drawing.Color.White;
@@ -214,6 +224,7 @@ namespace UI
         private System.Windows.Forms.ToolStripMenuItem menuIdiomas;
         private System.Windows.Forms.ToolStripMenuItem menuGestionIdiomas;
         private System.Windows.Forms.ToolStripMenuItem menuSeleccionIdioma;
+        private System.Windows.Forms.ToolStripMenuItem menuMantenimiento;
         private System.Windows.Forms.ToolStripMenuItem menuLogout;
         private System.Windows.Forms.ToolStripLabel lblSesion;
         private System.Windows.Forms.ToolStripLabel lblEstadoSesion;

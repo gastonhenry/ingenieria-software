@@ -45,6 +45,7 @@ namespace UI
 
             menuIdiomas.Visible  = esAdmin || TienePermiso("GESTIONAR_IDIOMAS");
             menuBitacora.Visible = esAdmin || TienePermiso("VER_BITACORA");
+            menuMantenimiento.Visible = esAdmin;
 
             CargarSelectorIdiomas();
             menuSeleccionIdioma.DropDownOpening += (s, e) => CargarSelectorIdiomas();
@@ -134,6 +135,7 @@ namespace UI
             menuIdiomas.Text             = Tr("menuIdiomas",             "Idiomas");
             menuGestionIdiomas.Text      = Tr("menuGestionIdiomas",      "Gestión de Idiomas");
             menuSeleccionIdioma.Text     = Tr("menuSeleccionIdioma",     "Idioma ▾");
+            menuMantenimiento.Text       = Tr("menuMantenimiento",       "Mantenimiento");
             menuLogout.Text              = Tr("menuLogout",              "Logout");
 
             foreach (ToolStripMenuItem item in menuSeleccionIdioma.DropDownItems)
@@ -202,6 +204,47 @@ namespace UI
 
         private void menuGestionIdiomas_Click(object sender, EventArgs e) =>
             Navegar(new FormIdiomas());
+
+        private void menuMantenimiento_Click(object sender, EventArgs e)
+        {
+            var mantSrv = new MantenimientoService();
+            ResultadoIntegridadGlobal resultado;
+            try { resultado = mantSrv.VerificarTodo(); }
+            catch (Exception)
+            {
+                MessageBox.Show(
+                    Tr("msgMantenimientoErrorVerificar", "No se pudo verificar la integridad antes de abrir mantenimiento."),
+                    Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            bool restauracionEjecutada;
+            using (var formMant = new FormMantenimiento(resultado))
+            {
+                formMant.ShowDialog(this);
+                restauracionEjecutada = formMant.RestauracionEjecutada;
+            }
+
+            if (restauracionEjecutada)
+            {
+                MessageBox.Show(
+                    Tr("msgMantenimientoLogoutForzado",
+                       "Se realizó una restauración de la base de datos. Por seguridad la sesión se cerrará y volverás al login."),
+                    Tr("msgMantenimientoLogoutForzadoTitulo", "Sesión cerrada"),
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                CerrarSesionYVolverAlLogin();
+            }
+        }
+
+        private void CerrarSesionYVolverAlLogin()
+        {
+            try { _usuarioService.Logout(); } catch { /* la sesión puede haber quedado inválida tras el restore */ }
+            SesionUsuario.GetInstancia().Usuario = null;
+            _loggingOut = true;
+            var login = new FormLogin();
+            login.Show();
+            this.Close();
+        }
 
         private void menuLogout_Click(object sender, EventArgs e)
         {

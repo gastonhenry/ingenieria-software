@@ -10,12 +10,10 @@ namespace BLL
     public class UsuarioService : IUsuarioService
     {
         private const int MaxIntentosFallidos = 3;
-        private const string NombreTabla = "Usuario";
 
         private readonly MapperUsuario _mapperUsuario;
         private readonly MapperPermiso _mapperPermiso;
         private readonly BitacoraService _bitacoraService;
-        private readonly DigitoVerificadorService _digitoVerificadorService;
         private readonly PermisoService _permisoService;
         private readonly UsuarioHistorialService _historialService;
 
@@ -24,7 +22,6 @@ namespace BLL
             _mapperUsuario = new MapperUsuario();
             _mapperPermiso = new MapperPermiso();
             _bitacoraService = new BitacoraService();
-            _digitoVerificadorService = new DigitoVerificadorService();
             _permisoService = new PermisoService();
             _historialService = new UsuarioHistorialService();
         }
@@ -291,57 +288,31 @@ namespace BLL
             return true;
         }
 
-        public ResultadoIntegridad VerificarIntegridad() 
-        {
-            try
-            {
-                var filas = _mapperUsuario.ListarParaVerificacion();
-                ResultadoIntegridad resultado = _digitoVerificadorService.Verificar(NombreTabla, filas, ObtenerCamposParaDVH);
-                if (resultado.RequiereInicializacion)
-                {
-                    _digitoVerificadorService.Recalcular(NombreTabla, filas, ObtenerCamposParaDVH, _mapperUsuario.ActualizarDVH);
-                    resultado.Ok = true;
-                }
-
-                if (resultado.Ok)
-                    return resultado;
-
-                string detalleError = $"Se detectaron inconsistencias en la tabla '{NombreTabla}' de la base de datos.";
-                if (resultado.FilasInvalidas.Count > 0)
-                    detalleError += $" Filas con DVH inválido: {resultado.FilasInvalidas.Count} (Ids: {string.Join(", ", resultado.FilasInvalidas)}).";
-                if (resultado.DVVInvalido)
-                    detalleError += " DVV inválido.";
-                detalleError += " No se permitirán inicios de sesión hasta restaurar la integridad.";
-
-                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error, detalleError);
-
-                return resultado;
-            }
-            catch (Exception ex)
-            {
-                _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.Error,
-                    $"Error al verificar la integridad de la tabla '{NombreTabla}': Error: {ex.Message}");
-                throw ex;
-            }
-        }
-
         private void RecalcularDV() => RecalcularDVUsuarios();
 
         public static void RecalcularDVUsuarios()
         {
-            var mapper = new MapperUsuario();
-            var dvSrv  = new DigitoVerificadorService();
-            var filas  = mapper.ListarParaVerificacion();
-            dvSrv.Recalcular(NombreTabla, filas, ObtenerCamposParaDVH, mapper.ActualizarDVH);
+            new VerificadorUsuario().RecalcularDVs();
         }
 
-        private static string ObtenerCamposParaDVH(Usuario u)
+        internal static IList<KeyValuePair<string, string>> ObtenerCamposParaDVH(Usuario u)
         {
             string ultimoLogin = u.UltimoLogin?.ToString("yyyy-MM-ddTHH:mm:ss.fff") ?? string.Empty;
-            return string.Join("|",
-                u.Username, u.Hash, u.Salt, u.Nombre, u.Apellido, u.Email,
-                u.Telefono ?? string.Empty, u.Documento ?? string.Empty, u.Domicilio ?? string.Empty,
-                u.Bloqueado.ToString(), u.IntentosFallidos.ToString(), ultimoLogin);
+            return new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("Username",         u.Username         ?? string.Empty),
+                new KeyValuePair<string, string>("Hash",             u.Hash             ?? string.Empty),
+                new KeyValuePair<string, string>("Salt",             u.Salt             ?? string.Empty),
+                new KeyValuePair<string, string>("Nombre",           u.Nombre           ?? string.Empty),
+                new KeyValuePair<string, string>("Apellido",         u.Apellido         ?? string.Empty),
+                new KeyValuePair<string, string>("Email",            u.Email            ?? string.Empty),
+                new KeyValuePair<string, string>("Telefono",         u.Telefono         ?? string.Empty),
+                new KeyValuePair<string, string>("Documento",        u.Documento        ?? string.Empty),
+                new KeyValuePair<string, string>("Domicilio",        u.Domicilio        ?? string.Empty),
+                new KeyValuePair<string, string>("Bloqueado",        u.Bloqueado.ToString()),
+                new KeyValuePair<string, string>("IntentosFallidos", u.IntentosFallidos.ToString()),
+                new KeyValuePair<string, string>("UltimoLogin",      ultimoLogin),
+            };
         }
 
         public int AsignarPermiso(int usuarioId, int permisoId)

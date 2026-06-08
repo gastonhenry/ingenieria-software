@@ -17,7 +17,6 @@ namespace BLL
         void Desbloquear(int usuarioId, string username);
         bool EstaAutenticado();
         bool EsAdmin();
-        ResultadoIntegridad VerificarIntegridad();
 
         int AsignarPermiso(int usuarioId, int permisoId);
         void QuitarPermiso(int usuarioId, int permisoId);

@@ -50,6 +50,7 @@
     <Compile Include="PermisoIndividual.cs" />
     <Compile Include="Rol.cs" />
     <Compile Include="ResultadoIntegridad.cs" />
+    <Compile Include="ResultadoIntegridadGlobal.cs" />
     <Compile Include="Idioma.cs" />
     <Compile Include="Control.cs" />
     <Compile Include="Traduccion.cs" />
