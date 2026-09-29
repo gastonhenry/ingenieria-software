@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -7,8 +8,16 @@ namespace DAL
 {
     public class AccesoDB
     {
-        private const string CONNECTION_STRING =
-            "Data Source=localhost\\SQLEXPRESS; Initial Catalog=ingenieria; Integrated Security=SSPI;";
+        private static readonly string CONNECTION_STRING = ObtenerConnectionString();
+
+        private static string ObtenerConnectionString()
+        {
+            var cs = ConfigurationManager.ConnectionStrings["Avanti"];
+            if (cs == null || string.IsNullOrWhiteSpace(cs.ConnectionString))
+                throw new ConfigurationErrorsException(
+                    "Falta el connection string 'Avanti' en la configuración (UI.exe.config).");
+            return cs.ConnectionString;
+        }
 
         private static readonly AccesoDB _instancia = new AccesoDB();
         public static AccesoDB GetInstancia() => _instancia;
@@ -87,14 +96,16 @@ namespace DAL
 
         public void Restore(string rutaArchivo)
         {
-            const string sql = @"
-                ALTER DATABASE [ingenieria] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                RESTORE DATABASE [ingenieria] FROM DISK = @ruta WITH REPLACE;
-                ALTER DATABASE [ingenieria] SET MULTI_USER;";
+            var builder = new SqlConnectionStringBuilder(CONNECTION_STRING);
+            string dbName = builder.InitialCatalog;
+            builder.InitialCatalog = "master";
 
-            string conexionMaster = CONNECTION_STRING.Replace("ingenieria", "master");
+            string sql = string.Format(@"
+                ALTER DATABASE [{0}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                RESTORE DATABASE [{0}] FROM DISK = @ruta WITH REPLACE;
+                ALTER DATABASE [{0}] SET MULTI_USER;", dbName);
 
-            using (var conn = new SqlConnection(conexionMaster))
+            using (var conn = new SqlConnection(builder.ConnectionString))
             {
                 conn.Open();
                 using (var cmd = new SqlCommand(sql, conn))

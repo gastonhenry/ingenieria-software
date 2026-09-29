@@ -10,7 +10,7 @@ namespace UI
     public partial class FormHome : Form, IObservadorIdioma
     {
         private const string CODIGO_FORM = "FormHome";
-        private const string EMAIL_SOPORTE = "soporte@ingenieria-software.com.ar";
+        private const string EMAIL_SOPORTE = "gastonhenry@software.com";
 
         private readonly IIdiomaService _idiomaService;
         private bool _suscrito;

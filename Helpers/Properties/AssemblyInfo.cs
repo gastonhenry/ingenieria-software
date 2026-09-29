@@ -2,11 +2,11 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("HELPERS")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Utilidades compartidas - Avanti Auto")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("HELPERS")]
-[assembly: AssemblyCopyright("Copyright ©  2026")]
+[assembly: AssemblyCompany("UAI - Trabajo de Diploma")]
+[assembly: AssemblyProduct("Avanti Auto")]
+[assembly: AssemblyCopyright("Copyright © Gastón Henry 2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]

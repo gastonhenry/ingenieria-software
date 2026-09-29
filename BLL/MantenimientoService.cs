@@ -32,7 +32,7 @@ namespace BLL
             {
                 string carpeta = ConfigurationManager.AppSettings["BackupFolder"];
                 if (string.IsNullOrWhiteSpace(carpeta))
-                    carpeta = Path.Combine(Path.GetTempPath(), "IngenieriaBackups");
+                    carpeta = Path.Combine(Path.GetTempPath(), "AvantiBackups");
                 return carpeta;
             }
         }
@@ -71,7 +71,7 @@ namespace BLL
         {
             string carpeta = CarpetaBackups;
             Directory.CreateDirectory(carpeta);
-            string nombreArchivo = $"ingenieria_{DateTime.Now:yyyyMMdd_HHmmss}.bak";
+            string nombreArchivo = $"avanti_{DateTime.Now:yyyyMMdd_HHmmss}.bak";
             string ruta = Path.Combine(carpeta, nombreArchivo);
 
             _mapperMantenimiento.Backup(ruta);

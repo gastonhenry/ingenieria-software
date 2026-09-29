@@ -1,4 +1,7 @@
-USE [ingenieria]
+﻿IF DB_ID('avanti') IS NULL CREATE DATABASE avanti;
+GO
+
+USE [avanti]
 GO
 
 -- 1) Drop SPs
@@ -372,7 +375,7 @@ CREATE OR ALTER PROCEDURE [dbo].[BackupBaseDeDatos]
 AS
 BEGIN
     DECLARE @SQL NVARCHAR(1000)
-    SET @SQL = 'BACKUP DATABASE [ingenieria] TO DISK = ''' + @RutaArchivo + ''' WITH FORMAT'
+    SET @SQL = 'BACKUP DATABASE [avanti] TO DISK = ''' + @RutaArchivo + ''' WITH FORMAT'
     EXEC sp_executesql @SQL
 END
 GO
@@ -519,22 +522,34 @@ VALUES (
     'VQUk8CQ1S2V3oSbMWAp4qg==',
     'Admin',
     'Admin',
-    'admin@ingenieria.com',
+    'admin@avanti.com',
     '+54 11 5555-0001',
     '99999999',
     'Av. Siempre Viva 742, CABA',
     NULL
 ),
 (
-    'pepe',
+    'comercial',
     '6e2cdcd54b07b8de670b1583026a554abd84bb7a7fa99b92f85244205cdbeff9',
     'VQUk8CQ1S2V3oSbMWAp4qg==',
-    'Pepe',
-    'Pepe',
-    'pepe@ingenieria.com',
+    'Comercial',
+    'Comercial',
+    'comercial@avanti.com',
     '+54 11 5555-0002',
     '30123456',
     'Calle Falsa 123, CABA',
+    NULL
+),
+(
+    'operador-taller',
+    '6e2cdcd54b07b8de670b1583026a554abd84bb7a7fa99b92f85244205cdbeff9',
+    'VQUk8CQ1S2V3oSbMWAp4qg==',
+    'Operador',
+    'Taller',
+    'taller@avanti.com',
+    '+54 11 5555-0003',
+    '30123457',
+    'Av. Corrientes 1234, CABA',
     NULL
 )
 GO
@@ -546,7 +561,7 @@ INSERT INTO UsuarioHistorial
 SELECT Id, N'Alta', NULL,
        Nombre, Apellido, Email, Telefono, Documento, Domicilio, Bloqueado
 FROM Usuario
-WHERE Username IN ('admin', 'pepe');
+WHERE Username IN ('admin', 'comercial', 'operador-taller');
 GO
 
 -- Permisos fijos que se crean cuando se desarrolla un nuevo módulo o funcionalidad.
@@ -559,6 +574,29 @@ INSERT INTO Permiso (Codigo, Descripcion, Tipo) VALUES
     ('ASIGNAR_PERMISOS',   'Habilita la asignación de permisos a usuarios.',            'I'),
     ('GESTIONAR_PERMISOS', 'Habilita la gestión de permisos y roles (alta, jerarquía).', 'I'),
     ('GESTIONAR_IDIOMAS',  'Habilita la gestión de idiomas y traducciones.',             'I')
+GO
+
+-- Roles seed y asignaciones a usuarios seed.
+INSERT INTO Permiso (Codigo, Descripcion, Tipo) VALUES
+    ('COMPRADOR', 'Rol del área comercial: registra unidades ingresadas.', 'R'),
+    ('TALLER',    'Rol del taller: revisa unidades y ejecuta preparación.', 'R')
+GO
+
+-- Hijos de los roles (patrón Composite: se setea IdPadre del permiso individual).
+UPDATE Permiso SET IdPadre = (SELECT Id FROM Permiso WHERE Codigo = 'COMPRADOR')
+    WHERE Codigo = 'VER_BITACORA';
+UPDATE Permiso SET IdPadre = (SELECT Id FROM Permiso WHERE Codigo = 'TALLER')
+    WHERE Codigo = 'VER_HISTORIAL_USUARIO';
+GO
+
+-- Asignación de roles a usuarios seed.
+INSERT INTO UsuarioPermiso (UsuarioId, PermisoId)
+SELECT u.Id, p.Id FROM Usuario u, Permiso p
+WHERE u.Username = 'comercial' AND p.Codigo = 'COMPRADOR';
+
+INSERT INTO UsuarioPermiso (UsuarioId, PermisoId)
+SELECT u.Id, p.Id FROM Usuario u, Permiso p
+WHERE u.Username = 'operador-taller' AND p.Codigo = 'TALLER';
 GO
 
 -- =========================================================

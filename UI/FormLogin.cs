@@ -195,6 +195,7 @@ namespace UI
                     case LoginResultado.Exitoso:
                         AplicarIdiomaPreferido();
                         var principal = new FormPrincipal(username);
+                        principal.FormClosed += (s, args) => this.Close();
                         principal.Show();
                         this.Hide();
                         break;
