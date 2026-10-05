@@ -4,16 +4,6 @@ using System.Collections.Generic;
 
 namespace BLL
 {
-    // Resultado de una consulta de trazabilidad: agrega la unidad con su persona vendedora,
-    // el checklist (puede ser null si nunca se armó) y el historial completo.
-    public class TrazabilidadUnidad
-    {
-        public Unidad Unidad { get; set; }
-        public Persona Persona { get; set; }
-        public ChecklistPreparacion Checklist { get; set; }
-        public List<HistorialEstadoUnidad> Historial { get; set; }
-    }
-
     public interface IUnidadService
     {
         // Alta / consultas
@@ -22,7 +12,7 @@ namespace BLL
         Unidad ObtenerPorDominio(string dominio);
         List<Unidad> ListarPorEstado(EstadoUnidad estado);
         List<Unidad> Listar();
-        TrazabilidadUnidad ObtenerTrazabilidad(int unidadId);
+        Unidad ObtenerTrazabilidad(int unidadId);                               // unidad con vendedor, checklist, historial, publicación, imágenes y ventas
 
         // Transiciones (nuevo flujo N01)
         void TomarParaPreparacion(int unidadId);                                // Ingresado → EnPreparacion (crea checklist si falta)

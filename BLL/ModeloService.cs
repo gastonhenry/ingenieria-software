@@ -29,41 +29,41 @@ namespace BLL
             return null;
         }
 
-        public int Registrar(string nombre, int idMarca, TipoCarroceria tipoCarroceria)
+        public int Registrar(string nombre, Marca marca, TipoCarroceria tipoCarroceria)
         {
             RequerirAdminOPermiso("GESTIONAR_MODELOS", "RegistrarModelo");
 
             if (string.IsNullOrWhiteSpace(nombre))
                 throw new BLLException("ERR_MODELO_NOMBRE_OBLIGATORIO", "El nombre del modelo es obligatorio.");
-            if (idMarca <= 0)
+            if (marca == null || marca.Id <= 0)
                 throw new BLLException("ERR_MODELO_MARCA_OBLIGATORIA", "Debés seleccionar una marca para el modelo.");
 
             nombre = nombre.Trim();
 
-            if (_mapperModelo.ObtenerPorNombreYMarca(nombre, idMarca) != null)
+            if (_mapperModelo.ObtenerPorNombreYMarca(nombre, marca.Id) != null)
                 throw new BLLException("ERR_MODELO_NOMBRE_DUPLICADO",
                     "Ya existe un modelo con el nombre '{0}' para esta marca.", nombre);
 
             int id = _mapperModelo.Insertar(new Modelo
             {
                 Nombre = nombre,
-                IdMarca = idMarca,
+                Marca = marca,
                 TipoCarroceria = tipoCarroceria
             });
 
             _bitacoraService.Insertar(SesionUsuario.GetInstancia().Usuario, TipoBitacora.AltaModelo,
-                $"Modelo creado: '{nombre}' (IdMarca {idMarca}, carrocería {tipoCarroceria}).");
+                $"Modelo creado: '{nombre}' (marca {marca.Nombre}, carrocería {tipoCarroceria}).");
 
             return id;
         }
 
-        public void Editar(int id, string nuevoNombre, int idMarca, TipoCarroceria tipoCarroceria)
+        public void Editar(int id, string nuevoNombre, Marca marca, TipoCarroceria tipoCarroceria)
         {
             RequerirAdminOPermiso("GESTIONAR_MODELOS", "EditarModelo");
 
             if (string.IsNullOrWhiteSpace(nuevoNombre))
                 throw new BLLException("ERR_MODELO_NOMBRE_OBLIGATORIO", "El nombre del modelo es obligatorio.");
-            if (idMarca <= 0)
+            if (marca == null || marca.Id <= 0)
                 throw new BLLException("ERR_MODELO_MARCA_OBLIGATORIA", "Debés seleccionar una marca para el modelo.");
 
             nuevoNombre = nuevoNombre.Trim();
@@ -73,10 +73,10 @@ namespace BLL
                 throw new BLLException("ERR_MODELO_NO_EXISTE", "El modelo no existe.");
 
             bool cambioNombre = !string.Equals(modelo.Nombre, nuevoNombre, StringComparison.OrdinalIgnoreCase);
-            bool cambioMarca  = modelo.IdMarca != idMarca;
+            bool cambioMarca  = modelo.Marca.Id != marca.Id;
             if (cambioNombre || cambioMarca)
             {
-                var dup = _mapperModelo.ObtenerPorNombreYMarca(nuevoNombre, idMarca);
+                var dup = _mapperModelo.ObtenerPorNombreYMarca(nuevoNombre, marca.Id);
                 if (dup != null && dup.Id != id)
                     throw new BLLException("ERR_MODELO_NOMBRE_DUPLICADO",
                         "Ya existe un modelo con el nombre '{0}' para esta marca.", nuevoNombre);
@@ -84,7 +84,7 @@ namespace BLL
 
             string nombreAnterior = modelo.Nombre;
             modelo.Nombre = nuevoNombre;
-            modelo.IdMarca = idMarca;
+            modelo.Marca = marca;
             modelo.TipoCarroceria = tipoCarroceria;
             _mapperModelo.Editar(modelo);
 
@@ -100,7 +100,7 @@ namespace BLL
             if (modelo == null)
                 throw new BLLException("ERR_MODELO_NO_EXISTE", "El modelo no existe.");
 
-            int unidadesConElModelo = _mapperModelo.ContarUnidadesConModelo(modelo.Nombre);
+            int unidadesConElModelo = _mapperModelo.ContarUnidadesConModelo(modelo.Id);
             if (unidadesConElModelo > 0)
                 throw new BLLException("ERR_MODELO_EN_USO",
                     "No se puede eliminar el modelo '{0}' porque hay {1} unidad(es) asociada(s).",

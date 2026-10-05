@@ -21,9 +21,8 @@ namespace UI
         private readonly IVentaService _ventaService;
         private readonly IPermisoService _permisoService;
         private readonly IIdiomaService _idiomaService;
-        private readonly IPersonaService _personaService;
         private bool _suscrito;
-        private TrazabilidadUnidad _traza;
+        private Unidad _unidad;
         private int? _itemChecklistASeleccionar;
 
         public FormDetalleUnidad(int unidadId)
@@ -38,7 +37,6 @@ namespace UI
             _ventaService = new VentaService();
             _permisoService = new PermisoService();
             _idiomaService = new IdiomaService();
-            _personaService = new PersonaService();
 
             _idiomaService.Suscribir(this);
             _suscrito = true;
@@ -101,10 +99,10 @@ namespace UI
             btnMarcarItemEjecutado.Text     = Tr("btnMarcarOK",             "Marcar OK");
             btnMarcarObservado.Text         = Tr("btnMarcarObservado",      "Marcar Observado");
             lblResultado.Text               = Tr("lblComentarioRevision",   "Comentario (obligatorio al Observar):");
-            btnMarcarImpecable.Text         = Tr("btnTomarPreparacion",     "Preparar Unidad");
-            btnEnviarAutorizacion.Text      = Tr("btnEnviarPresupuesto",    "Enviar presupuesto");
-            btnAutorizarChecklist.Text      = Tr("btnAprobarPresupuesto",   "Aprobar presupuesto");
-            btnRechazarChecklist.Text       = Tr("btnRechazarPresupuesto",  "Rechazar presupuesto");
+            btnTomarPreparacion.Text        = Tr("btnTomarPreparacion",     "Preparar Unidad");
+            btnEnviarPresupuesto.Text       = Tr("btnEnviarPresupuesto",    "Enviar presupuesto");
+            btnAprobarPresupuesto.Text      = Tr("btnAprobarPresupuesto",   "Aprobar presupuesto");
+            btnRechazarPresupuesto.Text     = Tr("btnRechazarPresupuesto",  "Rechazar presupuesto");
             btnFinalizarPreparacion.Text    = Tr("btnFinalizarPreparacion", "Finalizar preparación");
             btnAutorizarPublicacion.Text    = Tr("btnAutorizarPublicacion", "Autorizar publicación");
             btnRechazarPublicacion.Text     = Tr("btnRechazarPublicacion",  "Rechazar publicación");
@@ -135,7 +133,7 @@ namespace UI
                 dgvHistorial.Columns[4].HeaderText = Tr("colHistMotivo",  "Motivo / obs.");
             }
 
-            if (_traza != null)
+            if (_unidad != null)
             {
                 PintarDatos();
                 PintarChecklist();
@@ -152,7 +150,7 @@ namespace UI
         {
             try
             {
-                _traza = _unidadService.ObtenerTrazabilidad(_unidadId);
+                _unidad = _unidadService.ObtenerTrazabilidad(_unidadId);
                 PintarDatos();
                 PintarChecklist();
                 PintarHistorial();
@@ -167,9 +165,9 @@ namespace UI
 
         private void PintarDatos()
         {
-            var u = _traza.Unidad;
-            var p = _traza.Persona;
-            lblTitulo.Text = $"{u.Dominio} — {u.Marca} {u.Modelo} ({u.Anio})";
+            var u = _unidad;
+            var p = _unidad.Vendedor;
+            lblTitulo.Text = $"{u.Dominio} — {u.Modelo.Marca.Nombre} {u.Modelo.Nombre} ({u.Anio})";
             lblEstado.Text = Tr("lblEstadoPrefix", "Estado: ") + TrEstado(u.EstadoActual);
             lblEstado.ForeColor = ColoresEstadoUnidad.Obtener(u.EstadoActual);
             lblEstado.Font = new System.Drawing.Font(lblEstado.Font, System.Drawing.FontStyle.Bold);
@@ -179,8 +177,8 @@ namespace UI
 
             string datos =
                 "Dominio: " + u.Dominio + Environment.NewLine +
-                "Marca: " + u.Marca + Environment.NewLine +
-                "Modelo: " + u.Modelo + Environment.NewLine +
+                "Marca: " + u.Modelo.Marca.Nombre + Environment.NewLine +
+                "Modelo: " + u.Modelo.Nombre + Environment.NewLine +
                 "Año: " + u.Anio + Environment.NewLine +
                 "Kilometraje: " + u.Kilometraje + Environment.NewLine +
                 "Precio de compra: " + u.PrecioCompra.ToString("N2") + Environment.NewLine +
@@ -201,10 +199,10 @@ namespace UI
             {
                 try
                 {
-                    var venta = _ventaService.ObtenerActiva(_unidadId);
+                    var venta = u.Ventas.Find(v => v.Activa);
                     if (venta != null)
                     {
-                        var comp = _personaService.ObtenerPorId(venta.IdPersonaComprador);
+                        var comp = venta.Comprador;
                         string tipoC = comp == null ? "" :
                             (comp.TipoPersona == 'J' ? Tr("vendedorTipoJuridica", "Jurídica") : Tr("vendedorTipoFisica", "Física"));
                         string titulo = venta.Tipo == TipoOperacionVenta.Venta ? "-- Comprador --" : "-- Reservado por --";
@@ -237,7 +235,7 @@ namespace UI
 
         private void PintarChecklist()
         {
-            if (_traza.Checklist == null)
+            if (_unidad.Checklist == null)
             {
                 lblChecklistMsg.Text = Tr("lblChecklistVacio", "Aún no hay checklist para esta unidad.");
                 dgvChecklist.DataSource = null;
@@ -255,10 +253,10 @@ namespace UI
             // decide después qué botones mostrar según el estado).
             dgvChecklist.Visible = true;
             lblChecklistMsg.Text = string.Format(Tr("lblChecklistInfo", "Checklist creado el {0} — {1} items."),
-                _traza.Checklist.FechaCreacion.ToString("g"), _traza.Checklist.Items.Count);
+                _unidad.Checklist.FechaCreacion.ToString("g"), _unidad.Checklist.Items.Count);
             dgvChecklist.AutoGenerateColumns = false;
             dgvChecklist.DataSource = null;
-            dgvChecklist.DataSource = _traza.Checklist.Items.ToList();
+            dgvChecklist.DataSource = _unidad.Checklist.Items.ToList();
 
             // Preservar la selección del ítem si el handler lo pidió (ej. tras Marcar OK / Observado).
             if (_itemChecklistASeleccionar.HasValue)
@@ -281,7 +279,7 @@ namespace UI
         {
             dgvHistorial.AutoGenerateColumns = false;
             dgvHistorial.DataSource = null;
-            dgvHistorial.DataSource = _traza.Historial;
+            dgvHistorial.DataSource = _unidad.Historial;
         }
 
         private void dgvChecklist_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -327,6 +325,11 @@ namespace UI
                 e.CellStyle.SelectionForeColor = System.Drawing.Color.White;
                 e.CellStyle.Font = new System.Drawing.Font(dgvHistorial.Font, System.Drawing.FontStyle.Bold);
             }
+            if (col == "Usuario" && e.Value is Usuario usr)
+            {
+                e.Value = usr.Username;
+                e.FormattingApplied = true;
+            }
             if (col == "EstadoDestino" && e.Value is EstadoUnidad d)
             {
                 e.Value = TrEstado(d);
@@ -351,16 +354,16 @@ namespace UI
 
         private void ActualizarBotonesAccion()
         {
-            var estado = _traza.Unidad.EstadoActual;
+            var estado = _unidad.EstadoActual;
 
             // El Encargado toma la unidad (Ingresado → EnPreparacion). Ahora en el nuevo flujo
             // ya no hay "marcar impecable" ni "enviar a autorización": se reemplazan por
             // "Preparar Unidad" (y luego "Finalizar preparación" si no detecta nada).
-            btnMarcarImpecable.Visible = estado == EstadoUnidad.Ingresado && Tiene("REVISAR_UNIDAD");
-            btnEnviarAutorizacion.Visible = estado == EstadoUnidad.EnPreparacion && Tiene("REVISAR_UNIDAD");
+            btnTomarPreparacion.Visible = estado == EstadoUnidad.Ingresado && Tiene("REVISAR_UNIDAD");
+            btnEnviarPresupuesto.Visible = estado == EstadoUnidad.EnPreparacion && Tiene("REVISAR_UNIDAD");
             // Gerente aprueba/rechaza el presupuesto de extras.
-            btnAutorizarChecklist.Visible = estado == EstadoUnidad.RequiereAprobacionPresupuesto && Tiene("AUTORIZAR_CHECKLIST");
-            btnRechazarChecklist.Visible = estado == EstadoUnidad.RequiereAprobacionPresupuesto && Tiene("AUTORIZAR_CHECKLIST");
+            btnAprobarPresupuesto.Visible = estado == EstadoUnidad.RequiereAprobacionPresupuesto && Tiene("AUTORIZAR_CHECKLIST");
+            btnRechazarPresupuesto.Visible = estado == EstadoUnidad.RequiereAprobacionPresupuesto && Tiene("AUTORIZAR_CHECKLIST");
             btnFinalizarPreparacion.Visible = estado == EstadoUnidad.EnPreparacion && Tiene("EJECUTAR_PREPARACION");
             btnAutorizarPublicacion.Visible = estado == EstadoUnidad.PendienteVenta && Tiene("AUTORIZAR_PUBLICACION");
             btnRechazarPublicacion.Visible = estado == EstadoUnidad.PendienteVenta && Tiene("AUTORIZAR_PUBLICACION");
@@ -392,26 +395,26 @@ namespace UI
         // Handlers de acción
         // ------------------------------------------------------------
 
-        private void btnMarcarImpecable_Click(object sender, EventArgs e)
+        private void btnTomarPreparacion_Click(object sender, EventArgs e)
         {
             // "Preparar Unidad": Ingresado → EnPreparacion. Crea el checklist si no existe.
             EjecutarAccion(() => _unidadService.TomarParaPreparacion(_unidadId));
         }
 
-        private void btnEnviarAutorizacion_Click(object sender, EventArgs e)
+        private void btnEnviarPresupuesto_Click(object sender, EventArgs e)
         {
             // "Enviar presupuesto": EnPreparacion → RequiereAprobacionPresupuesto.
             EjecutarAccion(() => _unidadService.EnviarPresupuestoAGerente(_unidadId));
         }
 
-        private void btnAutorizarChecklist_Click(object sender, EventArgs e)
+        private void btnAprobarPresupuesto_Click(object sender, EventArgs e)
         {
             // Gerente aprueba el presupuesto de extras: RequiereAprobacionPresupuesto → EnPreparacion.
             string obs = PromptInput(Tr("promptObservaciones", "Observaciones (opcional):"));
             EjecutarAccion(() => _unidadService.AprobarPresupuesto(_unidadId, obs));
         }
 
-        private void btnRechazarChecklist_Click(object sender, EventArgs e)
+        private void btnRechazarPresupuesto_Click(object sender, EventArgs e)
         {
             // Gerente rechaza el presupuesto de extras: RequiereAprobacionPresupuesto → EnPreparacion.
             string motivo = PromptInput(Tr("promptMotivoRechazo", "Motivo del rechazo (obligatorio):"));

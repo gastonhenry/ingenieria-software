@@ -39,12 +39,12 @@ namespace MPP
             return db.Escribir("EliminarMarca", parametros);
         }
 
-        public int ContarUnidadesConMarca(string nombre)
+        public int ContarUnidadesConMarca(int idMarca)
         {
             AccesoDB db = AccesoDB.GetInstancia();
             var parametros = new List<SqlParameter>
             {
-                db.CrearParametro("@Nombre", nombre)
+                db.CrearParametro("@IdMarca", idMarca)
             };
             return db.LeerEscalar("ContarUnidadesConMarca", parametros);
         }

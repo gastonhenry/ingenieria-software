@@ -140,7 +140,7 @@ namespace UI
                 string todos = Tr("itemTodos", "(Todos)");
 
                 // Marcas: todas las de _todas, ordenadas alfabéticamente.
-                var marcas = _todas.Select(u => u.Marca).Where(m => !string.IsNullOrEmpty(m))
+                var marcas = _todas.Select(NombreMarca).Where(m => !string.IsNullOrEmpty(m))
                                    .Distinct().OrderBy(m => m).ToList();
                 cmbMarca.Items.Clear();
                 cmbMarca.Items.Add(todos);
@@ -175,8 +175,8 @@ namespace UI
                 string marcaSel = ValorCombo(cmbMarca);
                 var query = _todas.AsEnumerable();
                 if (!string.IsNullOrEmpty(marcaSel) && marcaSel != todos)
-                    query = query.Where(u => u.Marca == marcaSel);
-                var modelos = query.Select(u => u.Modelo).Where(m => !string.IsNullOrEmpty(m))
+                    query = query.Where(u => NombreMarca(u) == marcaSel);
+                var modelos = query.Select(NombreModelo).Where(m => !string.IsNullOrEmpty(m))
                                    .Distinct().OrderBy(m => m).ToList();
                 cmbModelo.Items.Clear();
                 cmbModelo.Items.Add(todos);
@@ -200,9 +200,9 @@ namespace UI
                 string modeloSel = ValorCombo(cmbModelo);
                 var query = _todas.AsEnumerable();
                 if (!string.IsNullOrEmpty(marcaSel) && marcaSel != todos)
-                    query = query.Where(u => u.Marca == marcaSel);
+                    query = query.Where(u => NombreMarca(u) == marcaSel);
                 if (!string.IsNullOrEmpty(modeloSel) && modeloSel != todos)
-                    query = query.Where(u => u.Modelo == modeloSel);
+                    query = query.Where(u => NombreModelo(u) == modeloSel);
                 var anios = query.Select(u => u.Anio).Distinct().OrderByDescending(a => a).ToList();
                 cmbAnio.Items.Clear();
                 cmbAnio.Items.Add(todos);
@@ -215,6 +215,11 @@ namespace UI
 
         private static string ValorCombo(ComboBox cmb) =>
             cmb.SelectedItem?.ToString();
+
+        // La unidad tiene el Modelo como objeto (y el Modelo su Marca): estos helpers dan los nombres
+        // para filtros, columnas y orden de la grilla.
+        private static string NombreMarca(Unidad u) => u.Modelo?.Marca?.Nombre;
+        private static string NombreModelo(Unidad u) => u.Modelo?.Nombre;
 
         private HashSet<EstadoUnidad> EstadosTildados()
         {
@@ -254,11 +259,11 @@ namespace UI
 
             string marca = ValorCombo(cmbMarca);
             if (!string.IsNullOrEmpty(marca) && marca != todos)
-                q = q.Where(u => u.Marca == marca);
+                q = q.Where(u => NombreMarca(u) == marca);
 
             string modelo = ValorCombo(cmbModelo);
             if (!string.IsNullOrEmpty(modelo) && modelo != todos)
-                q = q.Where(u => u.Modelo == modelo);
+                q = q.Where(u => NombreModelo(u) == modelo);
 
             string anio = ValorCombo(cmbAnio);
             if (!string.IsNullOrEmpty(anio) && anio != todos && int.TryParse(anio, out int a))
@@ -287,11 +292,18 @@ namespace UI
         private void OrdenarDatos()
         {
             if (string.IsNullOrEmpty(_sortProp)) return;
-            PropertyInfo prop = typeof(Unidad).GetProperty(_sortProp);
-            if (prop == null) return;
+            Func<Unidad, object> clave;
+            if (_sortProp == "Marca") clave = u => NombreMarca(u);
+            else if (_sortProp == "Modelo") clave = u => NombreModelo(u);
+            else
+            {
+                PropertyInfo prop = typeof(Unidad).GetProperty(_sortProp);
+                if (prop == null) return;
+                clave = u => prop.GetValue(u, null);
+            }
             _datos = _sortAsc
-                ? _datos.OrderBy(u => prop.GetValue(u, null)).ToList()
-                : _datos.OrderByDescending(u => prop.GetValue(u, null)).ToList();
+                ? _datos.OrderBy(clave).ToList()
+                : _datos.OrderByDescending(clave).ToList();
         }
 
         private void MostrarIndicadorOrden()
@@ -424,7 +436,14 @@ namespace UI
         private void dgvUnidades_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-            if (dgvUnidades.Columns[e.ColumnIndex].DataPropertyName == "EstadoActual" && e.Value is EstadoUnidad est)
+            string propCol = dgvUnidades.Columns[e.ColumnIndex].DataPropertyName;
+            if ((propCol == "Marca" || propCol == "Modelo") && dgvUnidades.Rows[e.RowIndex].DataBoundItem is Unidad fila)
+            {
+                e.Value = propCol == "Marca" ? NombreMarca(fila) : NombreModelo(fila);
+                e.FormattingApplied = true;
+                return;
+            }
+            if (propCol == "EstadoActual" && e.Value is EstadoUnidad est)
             {
                 e.Value = TrEstado(est);
                 e.FormattingApplied = true;

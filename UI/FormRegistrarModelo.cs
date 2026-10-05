@@ -146,25 +146,23 @@ namespace UI
             if (modelo == null) return;
             txtNombre.Text = modelo.Nombre;
             for (int i = 0; i < cboMarca.Items.Count; i++)
-                if (((Marca)cboMarca.Items[i]).Id == modelo.IdMarca) { cboMarca.SelectedIndex = i; break; }
+                if (((Marca)cboMarca.Items[i]).Id == modelo.Marca.Id) { cboMarca.SelectedIndex = i; break; }
             for (int i = 0; i < cboTipoCarroceria.Items.Count; i++)
                 if (((CarroceriaItem)cboTipoCarroceria.Items[i]).Valor == modelo.TipoCarroceria) { cboTipoCarroceria.SelectedIndex = i; break; }
         }
 
-        private bool ValidarCamposAlta(out string nombre, out int idMarca, out TipoCarroceria tc)
+        private bool ValidarCamposAlta(out string nombre, out Marca marca, out TipoCarroceria tc)
         {
             nombre = txtNombre.Text.Trim();
-            idMarca = 0;
+            marca = cboMarca.SelectedItem as Marca;
             tc = TipoCarroceria.Sedan;
 
-            var marca = cboMarca.SelectedItem as Marca;
             if (marca == null)
             {
                 MessageBox.Show(Tr("msgMarcaVacia", "Seleccioná una marca."),
                     Tr("msgAdvertencia", "Advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-            idMarca = marca.Id;
 
             if (string.IsNullOrEmpty(nombre))
             {
@@ -183,9 +181,9 @@ namespace UI
         {
             try
             {
-                if (!ValidarCamposAlta(out string nombre, out int idMarca, out TipoCarroceria tc)) return;
+                if (!ValidarCamposAlta(out string nombre, out Marca marca, out TipoCarroceria tc)) return;
 
-                _modeloService.Registrar(nombre, idMarca, tc);
+                _modeloService.Registrar(nombre, marca, tc);
                 MessageBox.Show(string.Format(Tr("msgModeloRegistrado", "Modelo '{0}' registrado."), nombre),
                     Tr("msgExito", "Éxito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 txtNombre.Clear();
@@ -209,9 +207,9 @@ namespace UI
                     return;
                 }
 
-                if (!ValidarCamposAlta(out string nombre, out int idMarca, out TipoCarroceria tc)) return;
+                if (!ValidarCamposAlta(out string nombre, out Marca marca, out TipoCarroceria tc)) return;
 
-                _modeloService.Editar(modelo.Id, nombre, idMarca, tc);
+                _modeloService.Editar(modelo.Id, nombre, marca, tc);
                 MessageBox.Show(Tr("msgModeloEditado", "Modelo editado correctamente."),
                     Tr("msgExito", "Éxito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 txtNombre.Clear();

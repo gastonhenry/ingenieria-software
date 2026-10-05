@@ -51,7 +51,6 @@ namespace MPP
             return new ImagenUnidad
             {
                 Id          = (int)row["Id"],
-                IdUnidad    = (int)row["IdUnidad"],
                 RutaArchivo = (string)row["RutaArchivo"],
                 Orden       = (int)row["Orden"],
                 FechaCarga  = (DateTime)row["FechaCarga"]

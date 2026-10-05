@@ -1,4 +1,6 @@
+using BE;
 using BE.Enums;
+using BLL;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
@@ -7,8 +9,12 @@ namespace UI
 {
     // Modal que explica la máquina de estados de Unidad. Reutiliza ColoresEstadoUnidad
     // para pintar cada estado con el mismo color que la grilla.
-    public partial class FormAyudaFlujoEstados : Form
+    public partial class FormAyudaFlujoEstados : Form, IObservadorIdioma
     {
+        private const string CODIGO_FORM = "FormAyudaFlujoEstados";
+        private const string CODIGO_FORM_ESTADO = "EstadoUnidad";
+
+        // Descripción por defecto (español) de cada estado; la traducción se busca como "desc{Estado}".
         private static readonly (EstadoUnidad Estado, string Descripcion)[] Secuencia = new[]
         {
             (EstadoUnidad.Ingresado,
@@ -29,14 +35,53 @@ namespace UI
              "La unidad fue vendida. Es un estado terminal: no admite más transiciones.")
         };
 
+        private readonly IIdiomaService _idiomaService;
+        private bool _suscrito;
+
         public FormAyudaFlujoEstados()
         {
             InitializeComponent();
+            _idiomaService = new IdiomaService();
+            _idiomaService.Suscribir(this);
+            _suscrito = true;
+            ActualizarIdioma(_idiomaService.IdiomaActual());
+        }
+
+        private string Tr(string codigo, string fallback)
+        {
+            try
+            {
+                string t = _idiomaService?.Traducir(CODIGO_FORM, codigo);
+                return string.IsNullOrEmpty(t) ? fallback : t;
+            }
+            catch { return fallback; }
+        }
+
+        private string TrEstado(EstadoUnidad e)
+        {
+            try
+            {
+                string t = _idiomaService?.Traducir(CODIGO_FORM_ESTADO, e.ToString());
+                if (!string.IsNullOrEmpty(t)) return t;
+            }
+            catch { }
+            return NombreEstado(e);
+        }
+
+        public void ActualizarIdioma(Idioma nuevoIdioma)
+        {
+            this.Text      = Tr("title",     "Flujo de estados");
+            lblTitulo.Text = Tr("lblTitulo", "Flujo de estados de la Unidad");
+            btnCerrar.Text = Tr("btnCerrar", "Cerrar");
             ArmarContenido();
         }
 
         private void ArmarContenido()
         {
+            pnlContenido.SuspendLayout();
+            // Dispose saca al control del panel, por eso se itera siempre sobre el primero.
+            while (pnlContenido.Controls.Count > 0) pnlContenido.Controls[0].Dispose();
+
             int y = 20;
             foreach (var (estado, desc) in Secuencia)
             {
@@ -46,7 +91,7 @@ namespace UI
                     Font = new Font(this.Font.FontFamily, 12F, FontStyle.Bold),
                     ForeColor = ColoresEstadoUnidad.Obtener(estado),
                     Location = new Point(20, y),
-                    Text = "► " + NombreEstado(estado)
+                    Text = "► " + TrEstado(estado)
                 };
                 pnlContenido.Controls.Add(lblEstado);
                 y += lblEstado.PreferredHeight + 4;
@@ -56,11 +101,12 @@ namespace UI
                     AutoSize = false,
                     Location = new Point(40, y),
                     Size = new Size(pnlContenido.Width - 60, 50),
-                    Text = desc
+                    Text = Tr("desc" + estado, desc)
                 };
                 pnlContenido.Controls.Add(lblDesc);
                 y += 60;
             }
+            pnlContenido.ResumeLayout();
         }
 
         private static string NombreEstado(EstadoUnidad e)
@@ -73,5 +119,11 @@ namespace UI
         }
 
         private void btnCerrar_Click(object sender, EventArgs e) => this.Close();
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (_suscrito) { try { _idiomaService.Desuscribir(this); } catch { } _suscrito = false; }
+            base.OnFormClosed(e);
+        }
     }
 }

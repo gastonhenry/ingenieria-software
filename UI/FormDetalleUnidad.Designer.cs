@@ -21,10 +21,10 @@ namespace UI
         private System.Windows.Forms.TabPage tabHistorial;
         private System.Windows.Forms.DataGridView dgvHistorial;
         private System.Windows.Forms.Panel pnlAcciones;
-        private System.Windows.Forms.Button btnMarcarImpecable;
-        private System.Windows.Forms.Button btnEnviarAutorizacion;
-        private System.Windows.Forms.Button btnAutorizarChecklist;
-        private System.Windows.Forms.Button btnRechazarChecklist;
+        private System.Windows.Forms.Button btnTomarPreparacion;
+        private System.Windows.Forms.Button btnEnviarPresupuesto;
+        private System.Windows.Forms.Button btnAprobarPresupuesto;
+        private System.Windows.Forms.Button btnRechazarPresupuesto;
         private System.Windows.Forms.Button btnFinalizarPreparacion;
         private System.Windows.Forms.Button btnAutorizarPublicacion;
         private System.Windows.Forms.Button btnRechazarPublicacion;
@@ -72,10 +72,10 @@ namespace UI
             this.tabHistorial = new System.Windows.Forms.TabPage();
             this.dgvHistorial = new System.Windows.Forms.DataGridView();
             this.pnlAcciones = new System.Windows.Forms.Panel();
-            this.btnMarcarImpecable = new System.Windows.Forms.Button();
-            this.btnEnviarAutorizacion = new System.Windows.Forms.Button();
-            this.btnAutorizarChecklist = new System.Windows.Forms.Button();
-            this.btnRechazarChecklist = new System.Windows.Forms.Button();
+            this.btnTomarPreparacion = new System.Windows.Forms.Button();
+            this.btnEnviarPresupuesto = new System.Windows.Forms.Button();
+            this.btnAprobarPresupuesto = new System.Windows.Forms.Button();
+            this.btnRechazarPresupuesto = new System.Windows.Forms.Button();
             this.btnFinalizarPreparacion = new System.Windows.Forms.Button();
             this.btnAutorizarPublicacion = new System.Windows.Forms.Button();
             this.btnRechazarPublicacion = new System.Windows.Forms.Button();
@@ -373,7 +373,7 @@ namespace UI
             //
             // colHistUsuario
             //
-            this.colHistUsuario.DataPropertyName = "UsernameUsuario";
+            this.colHistUsuario.DataPropertyName = "Usuario";
             this.colHistUsuario.HeaderText = "Usuario";
             this.colHistUsuario.Name = "colHistUsuario";
             this.colHistUsuario.Width = 120;
@@ -387,10 +387,10 @@ namespace UI
             //
             // pnlAcciones
             // 
-            this.pnlAcciones.Controls.Add(this.btnMarcarImpecable);
-            this.pnlAcciones.Controls.Add(this.btnEnviarAutorizacion);
-            this.pnlAcciones.Controls.Add(this.btnAutorizarChecklist);
-            this.pnlAcciones.Controls.Add(this.btnRechazarChecklist);
+            this.pnlAcciones.Controls.Add(this.btnTomarPreparacion);
+            this.pnlAcciones.Controls.Add(this.btnEnviarPresupuesto);
+            this.pnlAcciones.Controls.Add(this.btnAprobarPresupuesto);
+            this.pnlAcciones.Controls.Add(this.btnRechazarPresupuesto);
             this.pnlAcciones.Controls.Add(this.btnFinalizarPreparacion);
             this.pnlAcciones.Controls.Add(this.btnAutorizarPublicacion);
             this.pnlAcciones.Controls.Add(this.btnRechazarPublicacion);
@@ -406,53 +406,53 @@ namespace UI
             this.pnlAcciones.Size = new System.Drawing.Size(1054, 60);
             this.pnlAcciones.TabIndex = 3;
             // 
-            // btnMarcarImpecable
+            // btnTomarPreparacion
             // 
-            this.btnMarcarImpecable.Location = new System.Drawing.Point(13, 11);
-            this.btnMarcarImpecable.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.btnMarcarImpecable.Name = "btnMarcarImpecable";
-            this.btnMarcarImpecable.Size = new System.Drawing.Size(193, 40);
-            this.btnMarcarImpecable.TabIndex = 0;
-            this.btnMarcarImpecable.Text = "Marcar impecable";
-            this.btnMarcarImpecable.UseVisualStyleBackColor = true;
-            this.btnMarcarImpecable.Visible = false;
-            this.btnMarcarImpecable.Click += new System.EventHandler(this.btnMarcarImpecable_Click);
+            this.btnTomarPreparacion.Location = new System.Drawing.Point(13, 11);
+            this.btnTomarPreparacion.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnTomarPreparacion.Name = "btnTomarPreparacion";
+            this.btnTomarPreparacion.Size = new System.Drawing.Size(193, 40);
+            this.btnTomarPreparacion.TabIndex = 0;
+            this.btnTomarPreparacion.Text = "Preparar Unidad";
+            this.btnTomarPreparacion.UseVisualStyleBackColor = true;
+            this.btnTomarPreparacion.Visible = false;
+            this.btnTomarPreparacion.Click += new System.EventHandler(this.btnTomarPreparacion_Click);
             // 
-            // btnEnviarAutorizacion
+            // btnEnviarPresupuesto
             // 
-            this.btnEnviarAutorizacion.Location = new System.Drawing.Point(219, 11);
-            this.btnEnviarAutorizacion.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.btnEnviarAutorizacion.Name = "btnEnviarAutorizacion";
-            this.btnEnviarAutorizacion.Size = new System.Drawing.Size(193, 40);
-            this.btnEnviarAutorizacion.TabIndex = 1;
-            this.btnEnviarAutorizacion.Text = "Enviar a autorización";
-            this.btnEnviarAutorizacion.UseVisualStyleBackColor = true;
-            this.btnEnviarAutorizacion.Visible = false;
-            this.btnEnviarAutorizacion.Click += new System.EventHandler(this.btnEnviarAutorizacion_Click);
+            this.btnEnviarPresupuesto.Location = new System.Drawing.Point(219, 11);
+            this.btnEnviarPresupuesto.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnEnviarPresupuesto.Name = "btnEnviarPresupuesto";
+            this.btnEnviarPresupuesto.Size = new System.Drawing.Size(193, 40);
+            this.btnEnviarPresupuesto.TabIndex = 1;
+            this.btnEnviarPresupuesto.Text = "Enviar presupuesto";
+            this.btnEnviarPresupuesto.UseVisualStyleBackColor = true;
+            this.btnEnviarPresupuesto.Visible = false;
+            this.btnEnviarPresupuesto.Click += new System.EventHandler(this.btnEnviarPresupuesto_Click);
             // 
-            // btnAutorizarChecklist
+            // btnAprobarPresupuesto
             // 
-            this.btnAutorizarChecklist.Location = new System.Drawing.Point(424, 11);
-            this.btnAutorizarChecklist.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.btnAutorizarChecklist.Name = "btnAutorizarChecklist";
-            this.btnAutorizarChecklist.Size = new System.Drawing.Size(193, 40);
-            this.btnAutorizarChecklist.TabIndex = 2;
-            this.btnAutorizarChecklist.Text = "Autorizar checklist";
-            this.btnAutorizarChecklist.UseVisualStyleBackColor = true;
-            this.btnAutorizarChecklist.Visible = false;
-            this.btnAutorizarChecklist.Click += new System.EventHandler(this.btnAutorizarChecklist_Click);
+            this.btnAprobarPresupuesto.Location = new System.Drawing.Point(424, 11);
+            this.btnAprobarPresupuesto.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnAprobarPresupuesto.Name = "btnAprobarPresupuesto";
+            this.btnAprobarPresupuesto.Size = new System.Drawing.Size(193, 40);
+            this.btnAprobarPresupuesto.TabIndex = 2;
+            this.btnAprobarPresupuesto.Text = "Aprobar presupuesto";
+            this.btnAprobarPresupuesto.UseVisualStyleBackColor = true;
+            this.btnAprobarPresupuesto.Visible = false;
+            this.btnAprobarPresupuesto.Click += new System.EventHandler(this.btnAprobarPresupuesto_Click);
             // 
-            // btnRechazarChecklist
+            // btnRechazarPresupuesto
             // 
-            this.btnRechazarChecklist.Location = new System.Drawing.Point(630, 11);
-            this.btnRechazarChecklist.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.btnRechazarChecklist.Name = "btnRechazarChecklist";
-            this.btnRechazarChecklist.Size = new System.Drawing.Size(193, 40);
-            this.btnRechazarChecklist.TabIndex = 3;
-            this.btnRechazarChecklist.Text = "Rechazar checklist";
-            this.btnRechazarChecklist.UseVisualStyleBackColor = true;
-            this.btnRechazarChecklist.Visible = false;
-            this.btnRechazarChecklist.Click += new System.EventHandler(this.btnRechazarChecklist_Click);
+            this.btnRechazarPresupuesto.Location = new System.Drawing.Point(630, 11);
+            this.btnRechazarPresupuesto.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnRechazarPresupuesto.Name = "btnRechazarPresupuesto";
+            this.btnRechazarPresupuesto.Size = new System.Drawing.Size(193, 40);
+            this.btnRechazarPresupuesto.TabIndex = 3;
+            this.btnRechazarPresupuesto.Text = "Rechazar presupuesto";
+            this.btnRechazarPresupuesto.UseVisualStyleBackColor = true;
+            this.btnRechazarPresupuesto.Visible = false;
+            this.btnRechazarPresupuesto.Click += new System.EventHandler(this.btnRechazarPresupuesto_Click);
             // 
             // btnFinalizarPreparacion
             // 

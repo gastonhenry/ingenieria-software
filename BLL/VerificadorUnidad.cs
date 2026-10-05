@@ -36,15 +36,14 @@ namespace BLL
             return new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("Dominio",            u.Dominio     ?? string.Empty),
-                new KeyValuePair<string, string>("Marca",              u.Marca       ?? string.Empty),
-                new KeyValuePair<string, string>("Modelo",             u.Modelo      ?? string.Empty),
+                new KeyValuePair<string, string>("IdModelo",           u.Modelo.Id.ToString()),
                 new KeyValuePair<string, string>("Anio",               u.Anio.ToString()),
                 new KeyValuePair<string, string>("Kilometraje",        u.Kilometraje.ToString()),
                 new KeyValuePair<string, string>("PrecioCompra",       u.PrecioCompra.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 new KeyValuePair<string, string>("Descripcion",        u.Descripcion ?? string.Empty),
                 new KeyValuePair<string, string>("EstadoActual",       ((int)u.EstadoActual).ToString()),
-                new KeyValuePair<string, string>("IdPersona",          u.IdPersona.ToString()),
-                new KeyValuePair<string, string>("IdCompradorUsuario", u.IdCompradorUsuario.ToString()),
+                new KeyValuePair<string, string>("IdPersona",          u.Vendedor.Id.ToString()),
+                new KeyValuePair<string, string>("IdCompradorUsuario", u.Comprador.Id.ToString()),
                 new KeyValuePair<string, string>("FechaIngreso",       u.FechaIngreso.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
             };
         }

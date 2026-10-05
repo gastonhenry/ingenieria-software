@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BE.Enums;
 
 namespace BE
@@ -19,15 +20,9 @@ namespace BE
             set { dominio = value; }
         }
 
-        private string marca;
-        public string Marca
-        {
-            get { return marca; }
-            set { marca = value; }
-        }
-
-        private string modelo;
-        public string Modelo
+        // El modelo trae su marca (Modelo.Marca).
+        private Modelo modelo;
+        public Modelo Modelo
         {
             get { return modelo; }
             set { modelo = value; }
@@ -68,18 +63,20 @@ namespace BE
             set { estadoActual = value; }
         }
 
-        private int idPersona;
-        public int IdPersona
+        // Persona que le vendió la unidad a la concesionaria.
+        private Persona vendedor;
+        public Persona Vendedor
         {
-            get { return idPersona; }
-            set { idPersona = value; }
+            get { return vendedor; }
+            set { vendedor = value; }
         }
 
-        private int idCompradorUsuario;
-        public int IdCompradorUsuario
+        // Usuario (Comprador) que registró la compra.
+        private Usuario comprador;
+        public Usuario Comprador
         {
-            get { return idCompradorUsuario; }
-            set { idCompradorUsuario = value; }
+            get { return comprador; }
+            set { comprador = value; }
         }
 
         private DateTime fechaIngreso;
@@ -96,9 +93,52 @@ namespace BE
             set { dvh = value; }
         }
 
+        // Las colecciones siguientes se cargan sólo al consultar la trazabilidad completa
+        // (UnidadService.ObtenerTrazabilidad); en los listados quedan vacías.
+
+        // Null mientras la unidad no fue tomada para preparación.
+        private ChecklistPreparacion checklist;
+        public ChecklistPreparacion Checklist
+        {
+            get { return checklist; }
+            set { checklist = value; }
+        }
+
+        private List<HistorialEstadoUnidad> historial = new List<HistorialEstadoUnidad>();
+        public List<HistorialEstadoUnidad> Historial
+        {
+            get { return historial; }
+            set { historial = value; }
+        }
+
+        // Null mientras no se inició la publicación.
+        private PublicacionUnidad publicacion;
+        public PublicacionUnidad Publicacion
+        {
+            get { return publicacion; }
+            set { publicacion = value; }
+        }
+
+        private List<ImagenUnidad> imagenes = new List<ImagenUnidad>();
+        public List<ImagenUnidad> Imagenes
+        {
+            get { return imagenes; }
+            set { imagenes = value; }
+        }
+
+        // Reservas y ventas (activas y canceladas).
+        private List<VentaUnidad> ventas = new List<VentaUnidad>();
+        public List<VentaUnidad> Ventas
+        {
+            get { return ventas; }
+            set { ventas = value; }
+        }
+
         public override string ToString()
         {
-            return dominio + " — " + marca + " " + modelo + " (" + anio + ")";
+            string marca = modelo?.Marca?.Nombre ?? "";
+            string nombreModelo = modelo?.Nombre ?? "";
+            return dominio + " — " + marca + " " + nombreModelo + " (" + anio + ")";
         }
     }
 }

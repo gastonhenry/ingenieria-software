@@ -7,7 +7,6 @@ namespace BE
     public class PublicacionUnidad
     {
         public int Id { get; set; }
-        public int IdUnidad { get; set; }
         public decimal? PrecioPublicacion { get; set; }
         public string DescripcionPublicacion { get; set; }
         public DateTime FechaCreacion { get; set; }

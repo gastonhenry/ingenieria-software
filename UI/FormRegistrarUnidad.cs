@@ -116,7 +116,7 @@ namespace UI
                 }
 
                 foreach (Persona p in resultados)
-                    lstCoincidencias.Items.Add(new PersonaItem(p));
+                    lstCoincidencias.Items.Add(new PersonaItem(p, Tr));
 
                 // Selecciono la primera para que quede listo para registrar si hay una sola.
                 if (lstCoincidencias.Items.Count > 0) lstCoincidencias.SelectedIndex = 0;
@@ -153,8 +153,7 @@ namespace UI
                 var unidad = new Unidad
                 {
                     Dominio = txtDominio.Text.Trim(),
-                    Marca = marcaSel.Nombre,
-                    Modelo = modeloSel.Nombre,
+                    Modelo = modeloSel,
                     Anio = anio,
                     Kilometraje = km,
                     PrecioCompra = precio,
@@ -201,10 +200,11 @@ namespace UI
 
         private class PersonaItem
         {
+            private readonly Func<string, string, string> _tr;
             public Persona Persona { get; }
-            public PersonaItem(Persona p) { Persona = p; }
+            public PersonaItem(Persona p, Func<string, string, string> tr) { Persona = p; _tr = tr; }
             public override string ToString() =>
-                $"{Persona.Documento} — {Persona.Nombre} ({(Persona.TipoPersona == 'J' ? "Jurídica" : "Física")})";
+                $"{Persona.Documento} — {Persona.Nombre} ({(Persona.TipoPersona == 'J' ? _tr("tipoJuridica", "Jurídica") : _tr("tipoFisica", "Física"))})";
         }
     }
 }

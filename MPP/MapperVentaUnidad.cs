@@ -10,15 +10,15 @@ namespace MPP
 {
     public class MapperVentaUnidad
     {
-        public int Insertar(VentaUnidad v)
+        public int Insertar(int idUnidad, VentaUnidad v)
         {
             AccesoDB db = AccesoDB.GetInstancia();
             var parametros = new List<SqlParameter>
             {
-                db.CrearParametro("@IdUnidad",           v.IdUnidad),
+                db.CrearParametro("@IdUnidad",           idUnidad),
                 db.CrearParametro("@Tipo",               (int)v.Tipo),
-                db.CrearParametro("@IdPersonaComprador", v.IdPersonaComprador),
-                db.CrearParametro("@IdVendedorUsuario",  v.IdVendedorUsuario),
+                db.CrearParametro("@IdPersonaComprador", v.Comprador.Id),
+                db.CrearParametro("@IdVendedorUsuario",  v.Vendedor.Id),
                 db.CrearParametro("@FechaOperacion",     v.FechaOperacion),
                 db.CrearParametro("@PrecioAcordado",     v.PrecioAcordado)
             };
@@ -75,11 +75,20 @@ namespace MPP
             return new VentaUnidad
             {
                 Id                    = (int)row["Id"],
-                IdUnidad              = (int)row["IdUnidad"],
                 Tipo                  = (TipoOperacionVenta)Convert.ToInt32(row["Tipo"]),
                 Activa                = (bool)row["Activa"],
-                IdPersonaComprador    = (int)row["IdPersonaComprador"],
-                IdVendedorUsuario     = (int)row["IdVendedorUsuario"],
+                Comprador             = new Persona
+                {
+                    Id          = (int)row["IdPersonaComprador"],
+                    Nombre      = (string)row["CompradorNombre"],
+                    Documento   = (string)row["CompradorDocumento"],
+                    TipoPersona = Convert.ToChar(row["CompradorTipo"])
+                },
+                Vendedor              = new Usuario
+                {
+                    Id       = (int)row["IdVendedorUsuario"],
+                    Username = (string)row["VendedorUsername"]
+                },
                 FechaOperacion        = (DateTime)row["FechaOperacion"],
                 PrecioAcordado        = (decimal)row["PrecioAcordado"],
                 MontoSena             = row.IsNull("MontoSena")             ? (decimal?)null  : (decimal)row["MontoSena"],

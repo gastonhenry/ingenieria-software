@@ -32,6 +32,9 @@ namespace BLL
         private readonly MapperUnidad _mapperUnidad;
         private readonly MapperChecklist _mapperChecklist;
         private readonly MapperHistorialUnidad _mapperHistorial;
+        private readonly MapperPublicacion _mapperPublicacion;
+        private readonly MapperImagenUnidad _mapperImagen;
+        private readonly MapperVentaUnidad _mapperVenta;
         private readonly PersonaService _personaService;
         private readonly PermisoService _permisoService;
         private readonly BitacoraService _bitacoraService;
@@ -41,6 +44,9 @@ namespace BLL
             _mapperUnidad = new MapperUnidad();
             _mapperChecklist = new MapperChecklist();
             _mapperHistorial = new MapperHistorialUnidad();
+            _mapperPublicacion = new MapperPublicacion();
+            _mapperImagen = new MapperImagenUnidad();
+            _mapperVenta = new MapperVentaUnidad();
             _personaService = new PersonaService();
             _permisoService = new PermisoService();
             _bitacoraService = new BitacoraService();
@@ -80,8 +86,7 @@ namespace BLL
 
             if (unidad == null
                 || string.IsNullOrWhiteSpace(unidad.Dominio)
-                || string.IsNullOrWhiteSpace(unidad.Marca)
-                || string.IsNullOrWhiteSpace(unidad.Modelo)
+                || unidad.Modelo == null || unidad.Modelo.Id <= 0
                 || unidad.Anio <= 0
                 || unidad.Kilometraje < 0
                 || unidad.PrecioCompra <= 0)
@@ -101,8 +106,8 @@ namespace BLL
             if (persona == null)
                 throw new BLLException("ERR_PERSONA_NO_EXISTE", "La persona vendedora no existe.");
 
-            unidad.IdPersona = idPersona;
-            unidad.IdCompradorUsuario = UsuarioActual().Id;
+            unidad.Vendedor = persona;
+            unidad.Comprador = UsuarioActual();
             unidad.EstadoActual = EstadoUnidad.Ingresado;
 
             int nuevoId = _mapperUnidad.Insertar(unidad);
@@ -132,7 +137,9 @@ namespace BLL
 
         public List<Unidad> Listar() => _mapperUnidad.Listar();
 
-        public TrazabilidadUnidad ObtenerTrazabilidad(int unidadId)
+        // Devuelve la unidad con todo lo asociado: ficha completa del vendedor, checklist,
+        // historial de estados, publicación, imágenes y operaciones de venta/reserva.
+        public Unidad ObtenerTrazabilidad(int unidadId)
         {
             RequerirPermiso("CONSULTAR_UNIDAD", "ObtenerTrazabilidad");
 
@@ -140,13 +147,16 @@ namespace BLL
             if (unidad == null)
                 throw new BLLException("ERR_UNIDAD_NO_ENCONTRADA", "No se encontró la unidad solicitada.");
 
-            return new TrazabilidadUnidad
-            {
-                Unidad = unidad,
-                Persona = _personaService.ObtenerPorId(unidad.IdPersona),
-                Checklist = _mapperChecklist.ObtenerPorUnidad(unidadId),
-                Historial = _mapperHistorial.ListarPorUnidad(unidadId)
-            };
+            unidad.Vendedor = _personaService.ObtenerPorId(unidad.Vendedor.Id) ?? unidad.Vendedor;
+            unidad.Checklist = _mapperChecklist.ObtenerPorUnidad(unidadId);
+            unidad.Historial = _mapperHistorial.ListarPorUnidad(unidadId);
+            unidad.Publicacion = _mapperPublicacion.ObtenerPorUnidad(unidadId);
+            unidad.Imagenes = _mapperImagen.ListarPorUnidad(unidadId);
+            unidad.Ventas = _mapperVenta.ListarPorUnidad(unidadId);
+            foreach (var venta in unidad.Ventas)
+                venta.Comprador = _personaService.ObtenerPorId(venta.Comprador.Id) ?? venta.Comprador;
+
+            return unidad;
         }
 
         // ------------------------------------------------------------

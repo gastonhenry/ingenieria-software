@@ -12,13 +12,6 @@ namespace BE
             set { id = value; }
         }
 
-        private int idUnidad;
-        public int IdUnidad
-        {
-            get { return idUnidad; }
-            set { idUnidad = value; }
-        }
-
         private DateTime fechaCreacion;
         public DateTime FechaCreacion
         {
@@ -26,11 +19,12 @@ namespace BE
             set { fechaCreacion = value; }
         }
 
-        private int idCreadorUsuario;
-        public int IdCreadorUsuario
+        // Encargado de Taller que tomó la unidad para preparación.
+        private Usuario creador;
+        public Usuario Creador
         {
-            get { return idCreadorUsuario; }
-            set { idCreadorUsuario = value; }
+            get { return creador; }
+            set { creador = value; }
         }
 
         private List<ChecklistItem> items = new List<ChecklistItem>();

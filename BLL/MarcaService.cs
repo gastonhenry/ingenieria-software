@@ -64,7 +64,7 @@ namespace BLL
             if (marca == null)
                 throw new BLLException("ERR_MARCA_NO_EXISTE", "La marca no existe.");
 
-            int unidadesConLaMarca = _mapperMarca.ContarUnidadesConMarca(marca.Nombre);
+            int unidadesConLaMarca = _mapperMarca.ContarUnidadesConMarca(marca.Id);
             if (unidadesConLaMarca > 0)
                 throw new BLLException("ERR_MARCA_EN_USO",
                     "No se puede eliminar la marca '{0}' porque hay {1} unidad(es) asociada(s).",

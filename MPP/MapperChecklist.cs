@@ -32,10 +32,13 @@ namespace MPP
             DataRow row = tabla.Rows[0];
             var checklist = new ChecklistPreparacion
             {
-                Id               = (int)row["Id"],
-                IdUnidad         = (int)row["IdUnidad"],
-                FechaCreacion    = (DateTime)row["FechaCreacion"],
-                IdCreadorUsuario = (int)row["IdCreadorUsuario"]
+                Id            = (int)row["Id"],
+                FechaCreacion = (DateTime)row["FechaCreacion"],
+                Creador       = new Usuario
+                {
+                    Id       = (int)row["IdCreadorUsuario"],
+                    Username = (string)row["CreadorUsername"]
+                }
             };
             checklist.Items = ListarItems(checklist.Id);
             return checklist;
@@ -119,15 +122,24 @@ namespace MPP
             return new ChecklistItem
             {
                 Id                  = (int)row["Id"],
-                IdChecklist         = (int)row["IdChecklist"],
                 Nombre              = (string)row["Nombre"],
                 Descripcion         = row.IsNull("Descripcion")        ? null            : (string)row["Descripcion"],
                 EsDelTemplate       = (bool)row["EsDelTemplate"],
-                IdTemplateOrigen    = row.IsNull("IdTemplateOrigen")   ? (int?)null      : (int)row["IdTemplateOrigen"],
+                TemplateOrigen      = row.IsNull("IdTemplateOrigen")   ? null : new ChecklistItemTemplate
+                {
+                    Id          = (int)row["IdTemplateOrigen"],
+                    Nombre      = (string)row["TemplateNombre"],
+                    Descripcion = row.IsNull("TemplateDescripcion") ? null : (string)row["TemplateDescripcion"],
+                    Activo      = (bool)row["TemplateActivo"]
+                },
                 ResultadoRevision   = (ResultadoRevision)Convert.ToInt32(row["ResultadoRevision"]),
                 ComentarioRevision  = row.IsNull("ComentarioRevision") ? null            : (string)row["ComentarioRevision"],
                 FechaRevision       = row.IsNull("FechaRevision")      ? (DateTime?)null : (DateTime)row["FechaRevision"],
-                IdUsuarioRevisor    = row.IsNull("IdUsuarioRevisor")   ? (int?)null      : (int)row["IdUsuarioRevisor"],
+                Revisor             = row.IsNull("IdUsuarioRevisor")   ? null : new Usuario
+                {
+                    Id       = (int)row["IdUsuarioRevisor"],
+                    Username = (string)row["RevisorUsername"]
+                },
                 CostoEstimado       = row.IsNull("CostoEstimado")      ? (decimal?)null  : (decimal)row["CostoEstimado"],
                 EstadoAprobacion    = (EstadoAprobacionItem)Convert.ToInt32(row["EstadoAprobacion"])
             };

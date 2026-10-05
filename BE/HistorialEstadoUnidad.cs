@@ -12,13 +12,6 @@ namespace BE
             set { id = value; }
         }
 
-        private int idUnidad;
-        public int IdUnidad
-        {
-            get { return idUnidad; }
-            set { idUnidad = value; }
-        }
-
         // NULL en el primer registro (alta de la unidad).
         private EstadoUnidad? estadoOrigen;
         public EstadoUnidad? EstadoOrigen
@@ -34,19 +27,12 @@ namespace BE
             set { estadoDestino = value; }
         }
 
-        private int idUsuario;
-        public int IdUsuario
+        // Usuario que ejecutó la transición.
+        private Usuario usuario;
+        public Usuario Usuario
         {
-            get { return idUsuario; }
-            set { idUsuario = value; }
-        }
-
-        // Denormalizado desde el JOIN con Usuario, solo lectura.
-        private string usernameUsuario;
-        public string UsernameUsuario
-        {
-            get { return usernameUsuario; }
-            set { usernameUsuario = value; }
+            get { return usuario; }
+            set { usuario = value; }
         }
 
         private DateTime fechaHora;

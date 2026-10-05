@@ -15,7 +15,7 @@ namespace MPP
             var parametros = new List<SqlParameter>
             {
                 db.CrearParametro("@Nombre",         m.Nombre),
-                db.CrearParametro("@IdMarca",        m.IdMarca),
+                db.CrearParametro("@IdMarca",        m.Marca.Id),
                 db.CrearParametro("@TipoCarroceria", (int)m.TipoCarroceria)
             };
             return db.LeerEscalar("InsertarModelo", parametros);
@@ -28,7 +28,7 @@ namespace MPP
             {
                 db.CrearParametro("@Id",             m.Id),
                 db.CrearParametro("@Nombre",         m.Nombre),
-                db.CrearParametro("@IdMarca",        m.IdMarca),
+                db.CrearParametro("@IdMarca",        m.Marca.Id),
                 db.CrearParametro("@TipoCarroceria", (int)m.TipoCarroceria)
             };
             return db.Escribir("EditarModelo", parametros);
@@ -79,12 +79,12 @@ namespace MPP
             return MapearFila(tabla.Rows[0]);
         }
 
-        public int ContarUnidadesConModelo(string nombre)
+        public int ContarUnidadesConModelo(int idModelo)
         {
             AccesoDB db = AccesoDB.GetInstancia();
             var parametros = new List<SqlParameter>
             {
-                db.CrearParametro("@Nombre", nombre)
+                db.CrearParametro("@IdModelo", idModelo)
             };
             return db.LeerEscalar("ContarUnidadesConModelo", parametros);
         }
@@ -95,7 +95,7 @@ namespace MPP
             {
                 Id             = (int)row["Id"],
                 Nombre         = (string)row["Nombre"],
-                IdMarca        = (int)row["IdMarca"],
+                Marca          = new Marca { Id = (int)row["IdMarca"], Nombre = (string)row["MarcaNombre"] },
                 TipoCarroceria = (TipoCarroceria)(int)row["TipoCarroceria"]
             };
         }

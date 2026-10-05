@@ -25,14 +25,16 @@ namespace MPP
         {
             return new HistorialEstadoUnidad
             {
-                Id              = (int)row["Id"],
-                IdUnidad        = (int)row["IdUnidad"],
-                EstadoOrigen    = row.IsNull("EstadoOrigen") ? (EstadoUnidad?)null : (EstadoUnidad)Convert.ToInt32(row["EstadoOrigen"]),
-                EstadoDestino   = (EstadoUnidad)Convert.ToInt32(row["EstadoDestino"]),
-                IdUsuario       = (int)row["IdUsuario"],
-                UsernameUsuario = row.IsNull("Username") ? null : (string)row["Username"],
-                FechaHora       = (DateTime)row["FechaHora"],
-                Motivo          = row.IsNull("Motivo") ? null : (string)row["Motivo"]
+                Id            = (int)row["Id"],
+                EstadoOrigen  = row.IsNull("EstadoOrigen") ? (EstadoUnidad?)null : (EstadoUnidad)Convert.ToInt32(row["EstadoOrigen"]),
+                EstadoDestino = (EstadoUnidad)Convert.ToInt32(row["EstadoDestino"]),
+                Usuario       = new Usuario
+                {
+                    Id       = (int)row["IdUsuario"],
+                    Username = (string)row["Username"]
+                },
+                FechaHora     = (DateTime)row["FechaHora"],
+                Motivo        = row.IsNull("Motivo") ? null : (string)row["Motivo"]
             };
         }
     }

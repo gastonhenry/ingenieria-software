@@ -34,6 +34,7 @@ IF OBJECT_ID('dbo.FK_Checklist_Creador','F')                 IS NOT NULL ALTER T
 IF OBJECT_ID('dbo.FK_Checklist_Unidad','F')                  IS NOT NULL ALTER TABLE dbo.ChecklistPreparacion  DROP CONSTRAINT FK_Checklist_Unidad;
 IF OBJECT_ID('dbo.FK_Unidad_Comprador','F')                  IS NOT NULL ALTER TABLE dbo.Unidad                DROP CONSTRAINT FK_Unidad_Comprador;
 IF OBJECT_ID('dbo.FK_Unidad_Persona','F')                   IS NOT NULL ALTER TABLE dbo.Unidad                DROP CONSTRAINT FK_Unidad_Persona;
+IF OBJECT_ID('dbo.FK_Unidad_Modelo','F')                   IS NOT NULL ALTER TABLE dbo.Unidad                DROP CONSTRAINT FK_Unidad_Modelo;
 IF OBJECT_ID('dbo.FK_Modelo_Marca','F')                      IS NOT NULL ALTER TABLE dbo.Modelo                DROP CONSTRAINT FK_Modelo_Marca;
 IF OBJECT_ID('dbo.FK_Publicacion_Unidad','F')                IS NOT NULL ALTER TABLE dbo.PublicacionUnidad      DROP CONSTRAINT FK_Publicacion_Unidad;
 IF OBJECT_ID('dbo.FK_ImagenUnidad_Unidad','F')               IS NOT NULL ALTER TABLE dbo.ImagenUnidad           DROP CONSTRAINT FK_ImagenUnidad_Unidad;
@@ -1385,6 +1386,11 @@ INSERT INTO @ctrlErr (Codigo, Es, En, De) VALUES
     -- PublicacionService / ImagenUnidadService
     (N'ERR_PRECIO_INVALIDO',            N'El precio no puede ser negativo.',                                       N'The price cannot be negative.',                                                                                 N'Der Preis darf nicht negativ sein.'),
     (N'ERR_IMAGEN_ARCHIVO_NO_EXISTE',   N'El archivo ''{0}'' no existe.',                                          N'The file ''{0}'' does not exist.',                                                                              N'Die Datei ''{0}'' existiert nicht.'),
+    -- VentaService
+    (N'ERR_MOTIVO_CANCELACION_OBLIGATORIO', N'El motivo de la cancelación de la reserva es obligatorio.', N'The reservation cancellation reason is required.', N'Der Grund für die Stornierung der Reservierung ist erforderlich.'),
+    (N'ERR_MOTIVO_PAUSA_OBLIGATORIO',   N'El motivo de la pausa es obligatorio.',                                  N'The pause reason is required.',                                                                                 N'Der Grund für die Pause ist erforderlich.'),
+    (N'ERR_SENA_INVALIDA',              N'La seña debe ser mayor a cero y menor o igual al precio acordado.',      N'The deposit must be greater than zero and not exceed the agreed price.',                                        N'Die Anzahlung muss größer als null sein und darf den vereinbarten Preis nicht übersteigen.'),
+    (N'ERR_FECHA_FIN_INVALIDA',         N'La fecha estimada de fin no puede ser anterior a la fecha de la operación.', N'The estimated end date cannot be earlier than the operation date.',                                       N'Das voraussichtliche Enddatum darf nicht vor dem Vorgangsdatum liegen.'),
     -- MarcaService
     (N'ERR_MARCA_NOMBRE_OBLIGATORIO',   N'El nombre de la marca es obligatorio.',                                  N'Brand name is required.',                                                                                       N'Markenname ist erforderlich.'),
     (N'ERR_MARCA_NOMBRE_DUPLICADO',     N'Ya existe una marca con el nombre ''{0}''.',                             N'A brand named ''{0}'' already exists.',                                                                         N'Eine Marke mit dem Namen ''{0}'' existiert bereits.'),
@@ -1484,6 +1490,7 @@ IF OBJECT_ID('dbo.FK_Checklist_Creador','F')             IS NOT NULL ALTER TABLE
 IF OBJECT_ID('dbo.FK_Checklist_Unidad','F')              IS NOT NULL ALTER TABLE dbo.ChecklistPreparacion  DROP CONSTRAINT FK_Checklist_Unidad;
 IF OBJECT_ID('dbo.FK_Unidad_Comprador','F')              IS NOT NULL ALTER TABLE dbo.Unidad                DROP CONSTRAINT FK_Unidad_Comprador;
 IF OBJECT_ID('dbo.FK_Unidad_Persona','F')               IS NOT NULL ALTER TABLE dbo.Unidad                DROP CONSTRAINT FK_Unidad_Persona;
+IF OBJECT_ID('dbo.FK_Unidad_Modelo','F')                   IS NOT NULL ALTER TABLE dbo.Unidad                DROP CONSTRAINT FK_Unidad_Modelo;
 IF OBJECT_ID('dbo.FK_Modelo_Marca','F')                  IS NOT NULL ALTER TABLE dbo.Modelo                DROP CONSTRAINT FK_Modelo_Marca;
 GO
 
@@ -1543,8 +1550,7 @@ GO
 CREATE TABLE [dbo].[Unidad](
     [Id]                 [int]            IDENTITY(1,1) NOT NULL,
     [Dominio]            [nvarchar](10)   NOT NULL,
-    [Marca]              [nvarchar](50)   NOT NULL,
-    [Modelo]             [nvarchar](50)   NOT NULL,
+    [IdModelo]           [int]            NOT NULL,
     [Anio]               [int]            NOT NULL,
     [Kilometraje]        [int]            NOT NULL,
     [PrecioCompra]       [decimal](18,2)  NOT NULL,
@@ -1556,6 +1562,7 @@ CREATE TABLE [dbo].[Unidad](
     [DVH]                [nvarchar](64)   NULL,
     CONSTRAINT [PK_Unidad]         PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [UQ_Unidad_Dominio] UNIQUE ([Dominio]),
+    CONSTRAINT [FK_Unidad_Modelo]   FOREIGN KEY ([IdModelo])          REFERENCES [dbo].[Modelo]([Id]),
     CONSTRAINT [FK_Unidad_Persona]  FOREIGN KEY ([IdPersona])         REFERENCES [dbo].[Persona]([Id]),
     CONSTRAINT [FK_Unidad_Comprador] FOREIGN KEY ([IdCompradorUsuario]) REFERENCES [dbo].[Usuario]([Id])
 )
@@ -1716,11 +1723,14 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE [dbo].[ContarUnidadesConMarca]
-    @Nombre NVARCHAR(50)
+    @IdMarca INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT COUNT(*) FROM Unidad WHERE Marca = @Nombre;
+    SELECT COUNT(*)
+    FROM Unidad u
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    WHERE mo.IdMarca = @IdMarca;
 END
 GO
 
@@ -1769,7 +1779,10 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarModelos]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Nombre, IdMarca, TipoCarroceria FROM Modelo ORDER BY Nombre ASC;
+    SELECT mo.Id, mo.Nombre, mo.IdMarca, ma.Nombre AS MarcaNombre, mo.TipoCarroceria
+    FROM Modelo mo
+    INNER JOIN Marca ma ON ma.Id = mo.IdMarca
+    ORDER BY mo.Nombre ASC;
 END
 GO
 
@@ -1778,8 +1791,11 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarModelosPorMarca]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Nombre, IdMarca, TipoCarroceria
-    FROM Modelo WHERE IdMarca = @IdMarca ORDER BY Nombre ASC;
+    SELECT mo.Id, mo.Nombre, mo.IdMarca, ma.Nombre AS MarcaNombre, mo.TipoCarroceria
+    FROM Modelo mo
+    INNER JOIN Marca ma ON ma.Id = mo.IdMarca
+    WHERE mo.IdMarca = @IdMarca
+    ORDER BY mo.Nombre ASC;
 END
 GO
 
@@ -1789,17 +1805,19 @@ CREATE OR ALTER PROCEDURE [dbo].[ObtenerModeloPorNombreYMarca]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Nombre, IdMarca, TipoCarroceria
-    FROM Modelo WHERE Nombre = @Nombre AND IdMarca = @IdMarca;
+    SELECT mo.Id, mo.Nombre, mo.IdMarca, ma.Nombre AS MarcaNombre, mo.TipoCarroceria
+    FROM Modelo mo
+    INNER JOIN Marca ma ON ma.Id = mo.IdMarca
+    WHERE mo.Nombre = @Nombre AND mo.IdMarca = @IdMarca;
 END
 GO
 
 CREATE OR ALTER PROCEDURE [dbo].[ContarUnidadesConModelo]
-    @Nombre NVARCHAR(50)
+    @IdModelo INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT COUNT(*) FROM Unidad WHERE Modelo = @Nombre;
+    SELECT COUNT(*) FROM Unidad WHERE IdModelo = @IdModelo;
 END
 GO
 
@@ -1941,8 +1959,7 @@ GO
 
 CREATE OR ALTER PROCEDURE [dbo].[InsertarUnidad]
     @Dominio            NVARCHAR(10),
-    @Marca              NVARCHAR(50),
-    @Modelo             NVARCHAR(50),
+    @IdModelo           INT,
     @Anio               INT,
     @Kilometraje        INT,
     @PrecioCompra       DECIMAL(18,2),
@@ -1952,9 +1969,9 @@ CREATE OR ALTER PROCEDURE [dbo].[InsertarUnidad]
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO Unidad (Dominio, Marca, Modelo, Anio, Kilometraje, PrecioCompra,
+    INSERT INTO Unidad (Dominio, IdModelo, Anio, Kilometraje, PrecioCompra,
                         Descripcion, EstadoActual, IdPersona, IdCompradorUsuario)
-    VALUES (@Dominio, @Marca, @Modelo, @Anio, @Kilometraje, @PrecioCompra,
+    VALUES (@Dominio, @IdModelo, @Anio, @Kilometraje, @PrecioCompra,
             @Descripcion, 1, @IdPersona, @IdCompradorUsuario);
     DECLARE @NuevoId INT = SCOPE_IDENTITY();
 
@@ -1971,9 +1988,18 @@ CREATE OR ALTER PROCEDURE [dbo].[ObtenerUnidadPorId]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Dominio, Marca, Modelo, Anio, Kilometraje, PrecioCompra, Descripcion,
-           EstadoActual, IdPersona, IdCompradorUsuario, FechaIngreso, DVH
-    FROM Unidad WHERE Id = @UnidadId;
+    SELECT u.Id, u.Dominio,
+           u.IdModelo, mo.Nombre AS ModeloNombre, mo.TipoCarroceria, mo.IdMarca, ma.Nombre AS MarcaNombre,
+           u.Anio, u.Kilometraje, u.PrecioCompra, u.Descripcion,
+           u.EstadoActual, u.FechaIngreso, u.DVH,
+           u.IdPersona, pe.Nombre AS VendedorNombre, pe.Documento AS VendedorDocumento, pe.TipoPersona AS VendedorTipo,
+           u.IdCompradorUsuario, us.Username AS CompradorUsername
+    FROM Unidad u
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+    INNER JOIN Persona pe ON pe.Id = u.IdPersona
+    INNER JOIN Usuario us ON us.Id = u.IdCompradorUsuario
+    WHERE u.Id = @UnidadId;
 END
 GO
 
@@ -1982,9 +2008,18 @@ CREATE OR ALTER PROCEDURE [dbo].[ObtenerUnidadPorDominio]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Dominio, Marca, Modelo, Anio, Kilometraje, PrecioCompra, Descripcion,
-           EstadoActual, IdPersona, IdCompradorUsuario, FechaIngreso, DVH
-    FROM Unidad WHERE Dominio = @Dominio;
+    SELECT u.Id, u.Dominio,
+           u.IdModelo, mo.Nombre AS ModeloNombre, mo.TipoCarroceria, mo.IdMarca, ma.Nombre AS MarcaNombre,
+           u.Anio, u.Kilometraje, u.PrecioCompra, u.Descripcion,
+           u.EstadoActual, u.FechaIngreso, u.DVH,
+           u.IdPersona, pe.Nombre AS VendedorNombre, pe.Documento AS VendedorDocumento, pe.TipoPersona AS VendedorTipo,
+           u.IdCompradorUsuario, us.Username AS CompradorUsername
+    FROM Unidad u
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+    INNER JOIN Persona pe ON pe.Id = u.IdPersona
+    INNER JOIN Usuario us ON us.Id = u.IdCompradorUsuario
+    WHERE u.Dominio = @Dominio;
 END
 GO
 
@@ -1992,9 +2027,18 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarUnidades]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Dominio, Marca, Modelo, Anio, Kilometraje, PrecioCompra, Descripcion,
-           EstadoActual, IdPersona, IdCompradorUsuario, FechaIngreso, DVH
-    FROM Unidad ORDER BY FechaIngreso DESC;
+    SELECT u.Id, u.Dominio,
+           u.IdModelo, mo.Nombre AS ModeloNombre, mo.TipoCarroceria, mo.IdMarca, ma.Nombre AS MarcaNombre,
+           u.Anio, u.Kilometraje, u.PrecioCompra, u.Descripcion,
+           u.EstadoActual, u.FechaIngreso, u.DVH,
+           u.IdPersona, pe.Nombre AS VendedorNombre, pe.Documento AS VendedorDocumento, pe.TipoPersona AS VendedorTipo,
+           u.IdCompradorUsuario, us.Username AS CompradorUsername
+    FROM Unidad u
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+    INNER JOIN Persona pe ON pe.Id = u.IdPersona
+    INNER JOIN Usuario us ON us.Id = u.IdCompradorUsuario
+    ORDER BY u.FechaIngreso DESC;
 END
 GO
 
@@ -2003,11 +2047,19 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarUnidadesPorEstado]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Dominio, Marca, Modelo, Anio, Kilometraje, PrecioCompra, Descripcion,
-           EstadoActual, IdPersona, IdCompradorUsuario, FechaIngreso, DVH
-    FROM Unidad
-    WHERE EstadoActual = @Estado
-    ORDER BY FechaIngreso ASC;
+    SELECT u.Id, u.Dominio,
+           u.IdModelo, mo.Nombre AS ModeloNombre, mo.TipoCarroceria, mo.IdMarca, ma.Nombre AS MarcaNombre,
+           u.Anio, u.Kilometraje, u.PrecioCompra, u.Descripcion,
+           u.EstadoActual, u.FechaIngreso, u.DVH,
+           u.IdPersona, pe.Nombre AS VendedorNombre, pe.Documento AS VendedorDocumento, pe.TipoPersona AS VendedorTipo,
+           u.IdCompradorUsuario, us.Username AS CompradorUsername
+    FROM Unidad u
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+    INNER JOIN Persona pe ON pe.Id = u.IdPersona
+    INNER JOIN Usuario us ON us.Id = u.IdCompradorUsuario
+    WHERE u.EstadoActual = @Estado
+    ORDER BY u.FechaIngreso ASC;
 END
 GO
 
@@ -2042,10 +2094,19 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarUnidadesParaVerificacion]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, Dominio, Marca, Modelo, Anio, Kilometraje, PrecioCompra,
-           ISNULL(Descripcion, N'') AS Descripcion,
-           EstadoActual, IdPersona, IdCompradorUsuario, FechaIngreso, DVH
-    FROM Unidad ORDER BY Id ASC;
+    SELECT u.Id, u.Dominio,
+           u.IdModelo, mo.Nombre AS ModeloNombre, mo.TipoCarroceria, mo.IdMarca, ma.Nombre AS MarcaNombre,
+           u.Anio, u.Kilometraje, u.PrecioCompra,
+           ISNULL(u.Descripcion, N'') AS Descripcion,
+           u.EstadoActual, u.FechaIngreso, u.DVH,
+           u.IdPersona, pe.Nombre AS VendedorNombre, pe.Documento AS VendedorDocumento, pe.TipoPersona AS VendedorTipo,
+           u.IdCompradorUsuario, us.Username AS CompradorUsername
+    FROM Unidad u
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+    INNER JOIN Persona pe ON pe.Id = u.IdPersona
+    INNER JOIN Usuario us ON us.Id = u.IdCompradorUsuario
+    ORDER BY u.Id ASC;
 END
 GO
 
@@ -2161,8 +2222,10 @@ CREATE OR ALTER PROCEDURE [dbo].[ObtenerChecklistPorUnidad]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, IdUnidad, FechaCreacion, IdCreadorUsuario
-    FROM ChecklistPreparacion WHERE IdUnidad = @IdUnidad;
+    SELECT c.Id, c.IdUnidad, c.FechaCreacion, c.IdCreadorUsuario, us.Username AS CreadorUsername
+    FROM ChecklistPreparacion c
+    INNER JOIN Usuario us ON us.Id = c.IdCreadorUsuario
+    WHERE c.IdUnidad = @IdUnidad;
 END
 GO
 
@@ -2171,12 +2234,16 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarItemsDeChecklist]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, IdChecklist, Nombre, Descripcion, EsDelTemplate, IdTemplateOrigen,
-           ResultadoRevision, ComentarioRevision, FechaRevision, IdUsuarioRevisor,
-           CostoEstimado, EstadoAprobacion
-    FROM ChecklistItem
-    WHERE IdChecklist = @IdChecklist
-    ORDER BY EsDelTemplate DESC, Id ASC;
+    SELECT ci.Id, ci.IdChecklist, ci.Nombre, ci.Descripcion, ci.EsDelTemplate,
+           ci.IdTemplateOrigen, t.Nombre AS TemplateNombre, t.Descripcion AS TemplateDescripcion, t.Activo AS TemplateActivo,
+           ci.ResultadoRevision, ci.ComentarioRevision, ci.FechaRevision,
+           ci.IdUsuarioRevisor, us.Username AS RevisorUsername,
+           ci.CostoEstimado, ci.EstadoAprobacion
+    FROM ChecklistItem ci
+    LEFT JOIN ChecklistItemTemplate t ON t.Id  = ci.IdTemplateOrigen
+    LEFT JOIN Usuario us              ON us.Id = ci.IdUsuarioRevisor
+    WHERE ci.IdChecklist = @IdChecklist
+    ORDER BY ci.EsDelTemplate DESC, ci.Id ASC;
 END
 GO
 
@@ -2295,11 +2362,13 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarPublicaciones]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT u.Id AS IdUnidad, u.Dominio, u.Marca, u.Modelo, u.Anio, u.Kilometraje, u.EstadoActual,
+    SELECT u.Id AS IdUnidad, u.Dominio, ma.Nombre AS Marca, mo.Nombre AS Modelo, u.Anio, u.Kilometraje, u.EstadoActual,
            p.PrecioPublicacion, p.DescripcionPublicacion, p.FechaCreacion, p.FechaUltimaEdicion,
            (SELECT COUNT(*) FROM ImagenUnidad i WHERE i.IdUnidad = u.Id) AS CantidadImagenes
     FROM PublicacionUnidad p
-    INNER JOIN Unidad u ON u.Id = p.IdUnidad
+    INNER JOIN Unidad u  ON u.Id  = p.IdUnidad
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
     WHERE u.EstadoActual IN (4, 5)
     ORDER BY ISNULL(p.FechaUltimaEdicion, p.FechaCreacion) DESC;
 END
@@ -2424,10 +2493,14 @@ CREATE OR ALTER PROCEDURE [dbo].[ObtenerVentaActivaDeUnidad]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, IdUnidad, Tipo, Activa, IdPersonaComprador, IdVendedorUsuario,
-           FechaOperacion, PrecioAcordado, MontoSena, FechaEstimadaFin, Descripcion, ComentarioCancelacion
-    FROM VentaUnidad
-    WHERE IdUnidad = @IdUnidad AND Activa = 1;
+    SELECT v.Id, v.IdUnidad, v.Tipo, v.Activa,
+           v.IdPersonaComprador, pe.Nombre AS CompradorNombre, pe.Documento AS CompradorDocumento, pe.TipoPersona AS CompradorTipo,
+           v.IdVendedorUsuario, us.Username AS VendedorUsername,
+           v.FechaOperacion, v.PrecioAcordado, v.MontoSena, v.FechaEstimadaFin, v.Descripcion, v.ComentarioCancelacion
+    FROM VentaUnidad v
+    INNER JOIN Persona pe ON pe.Id = v.IdPersonaComprador
+    INNER JOIN Usuario us ON us.Id = v.IdVendedorUsuario
+    WHERE v.IdUnidad = @IdUnidad AND v.Activa = 1;
 END
 GO
 
@@ -2436,11 +2509,15 @@ CREATE OR ALTER PROCEDURE [dbo].[ListarVentasPorUnidad]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT Id, IdUnidad, Tipo, Activa, IdPersonaComprador, IdVendedorUsuario,
-           FechaOperacion, PrecioAcordado, MontoSena, FechaEstimadaFin, Descripcion, ComentarioCancelacion
-    FROM VentaUnidad
-    WHERE IdUnidad = @IdUnidad
-    ORDER BY FechaOperacion DESC, Id DESC;
+    SELECT v.Id, v.IdUnidad, v.Tipo, v.Activa,
+           v.IdPersonaComprador, pe.Nombre AS CompradorNombre, pe.Documento AS CompradorDocumento, pe.TipoPersona AS CompradorTipo,
+           v.IdVendedorUsuario, us.Username AS VendedorUsername,
+           v.FechaOperacion, v.PrecioAcordado, v.MontoSena, v.FechaEstimadaFin, v.Descripcion, v.ComentarioCancelacion
+    FROM VentaUnidad v
+    INNER JOIN Persona pe ON pe.Id = v.IdPersonaComprador
+    INNER JOIN Usuario us ON us.Id = v.IdVendedorUsuario
+    WHERE v.IdUnidad = @IdUnidad
+    ORDER BY v.FechaOperacion DESC, v.Id DESC;
 END
 GO
 
@@ -2886,10 +2963,6 @@ INSERT INTO @ctrlDetU (Codigo, Es, En, De) VALUES
     (N'colHistDestino',            N'Destino',                                            N'To',                                                  N'Bis'),
     (N'colHistUsuario',            N'Usuario',                                            N'User',                                                N'Benutzer'),
     (N'colHistMotivo',             N'Motivo / obs.',                                      N'Reason / notes',                                      N'Grund / Notiz'),
-    (N'btnMarcarImpecable',        N'Marcar impecable',                                   N'Mark as impeccable',                                  N'Als tadellos markieren'),
-    (N'btnEnviarAutorizacion',     N'Enviar a autorización',                              N'Send to authorization',                               N'Zur Autorisierung senden'),
-    (N'btnAutorizarChecklist',     N'Autorizar checklist',                                N'Authorize checklist',                                 N'Checkliste autorisieren'),
-    (N'btnRechazarChecklist',      N'Rechazar checklist',                                 N'Reject checklist',                                    N'Checkliste ablehnen'),
     (N'btnFinalizarPreparacion',   N'Finalizar preparación',                              N'Finish preparation',                                  N'Vorbereitung abschließen'),
     (N'btnAutorizarPublicacion',   N'Autorizar publicación',                              N'Authorize publication',                               N'Veröffentlichung autorisieren'),
     (N'btnRechazarPublicacion',    N'Rechazar publicación',                               N'Reject publication',                                  N'Veröffentlichung ablehnen'),
@@ -3177,32 +3250,38 @@ GO
 
 DECLARE @IdAdmin INT = (SELECT Id FROM Usuario WHERE Username = 'admin');
 
-INSERT INTO Unidad (Dominio, Marca, Modelo, Anio, Kilometraje, PrecioCompra, Descripcion, EstadoActual, IdPersona, IdCompradorUsuario) VALUES
+INSERT INTO Unidad (Dominio, IdModelo, Anio, Kilometraje, PrecioCompra, Descripcion, EstadoActual, IdPersona, IdCompradorUsuario)
+SELECT v.Dominio, mo.Id, v.Anio, v.Km, v.Precio, v.Descripcion, v.Estado, pe.Id, @IdAdmin
+FROM (VALUES
     -- 4 Ingresado
-    ('ABC123',  N'Toyota',       N'Corolla',   2020,  45000,  8500000.00, N'Único dueño, service oficial al día.',  1, (SELECT Id FROM Persona WHERE Documento = N'20123456'), @IdAdmin),
-    ('DEF456',  N'Ford',         N'Fiesta',    2018,  72000,  5200000.00, N'En buen estado general.',               1, (SELECT Id FROM Persona WHERE Documento = N'27234567'), @IdAdmin),
-    ('AB123CD', N'Volkswagen',   N'Golf',      2021,  28000, 11500000.00, N'Impecable, aún en garantía.',           1, (SELECT Id FROM Persona WHERE Documento = N'30700123456'), @IdAdmin),
-    ('GHI789',  N'Fiat',         N'Cronos',    2019,  58000,  6300000.00, N'Nafta, caja manual.',                   1, (SELECT Id FROM Persona WHERE Documento = N'30345678'), @IdAdmin),
+    ('ABC123',  N'Toyota',       N'Corolla',   2020,  45000,  8500000.00, N'Único dueño, service oficial al día.',  1, N'20123456'),
+    ('DEF456',  N'Ford',         N'Fiesta',    2018,  72000,  5200000.00, N'En buen estado general.',               1, N'27234567'),
+    ('AB123CD', N'Volkswagen',   N'Golf',      2021,  28000, 11500000.00, N'Impecable, aún en garantía.',           1, N'30700123456'),
+    ('GHI789',  N'Fiat',         N'Cronos',    2019,  58000,  6300000.00, N'Nafta, caja manual.',                   1, N'30345678'),
     -- 4 RequiereAprobacionPresupuesto (vinieron desde EnPreparacion con extras propuestos)
-    ('EF456GH', N'Chevrolet',    N'Onix',      2022,  18000,  9200000.00, N'Casi 0km.',                             2, (SELECT Id FROM Persona WHERE Documento = N'25456789'), @IdAdmin),
-    ('JKL012',  N'Honda',        N'Civic',     2017,  92000,  7100000.00, N'Service completo.',                     2, (SELECT Id FROM Persona WHERE Documento = N'30701234567'), @IdAdmin),
-    ('IJ789KL', N'Renault',      N'Duster',    2020,  61000,  8900000.00, N'4x2, caja manual.',                     2, (SELECT Id FROM Persona WHERE Documento = N'32567890'), @IdAdmin),
-    ('MNO345',  N'Peugeot',      N'208',       2021,  34000,  7800000.00, N'Full con techo panorámico.',            2, (SELECT Id FROM Persona WHERE Documento = N'30702345678'), @IdAdmin),
+    ('EF456GH', N'Chevrolet',    N'Onix',      2022,  18000,  9200000.00, N'Casi 0km.',                             2, N'25456789'),
+    ('JKL012',  N'Honda',        N'Civic',     2017,  92000,  7100000.00, N'Service completo.',                     2, N'30701234567'),
+    ('IJ789KL', N'Renault',      N'Duster',    2020,  61000,  8900000.00, N'4x2, caja manual.',                     2, N'32567890'),
+    ('MNO345',  N'Peugeot',      N'208',       2021,  34000,  7800000.00, N'Full con techo panorámico.',            2, N'30702345678'),
     -- 4 EnPreparacion
-    ('MN012OP', N'Toyota',       N'Hilux',     2019, 110000, 15200000.00, N'4x4 SRX. En preparación.',              3, (SELECT Id FROM Persona WHERE Documento = N'28678901'), @IdAdmin),
-    ('PQR678',  N'Ford',         N'Ranger',    2020, 85000,  18500000.00, N'Doble cabina.',                         3, (SELECT Id FROM Persona WHERE Documento = N'30703456789'), @IdAdmin),
-    ('QR345ST', N'Chevrolet',    N'Cruze',     2018,  87000,  6700000.00, N'LTZ automático.',                       3, (SELECT Id FROM Persona WHERE Documento = N'33789012'), @IdAdmin),
-    ('STU901',  N'Nissan',       N'Sentra',    2017, 105000,  5800000.00, N'Exclusive full.',                       3, (SELECT Id FROM Persona WHERE Documento = N'30704567890'), @IdAdmin),
+    ('MN012OP', N'Toyota',       N'Hilux',     2019, 110000, 15200000.00, N'4x4 SRX. En preparación.',              3, N'28678901'),
+    ('PQR678',  N'Ford',         N'Ranger',    2020, 85000,  18500000.00, N'Doble cabina.',                         3, N'30703456789'),
+    ('QR345ST', N'Chevrolet',    N'Cruze',     2018,  87000,  6700000.00, N'LTZ automático.',                       3, N'33789012'),
+    ('STU901',  N'Nissan',       N'Sentra',    2017, 105000,  5800000.00, N'Exclusive full.',                       3, N'30704567890'),
     -- 4 PendienteVenta
-    ('UV678WX', N'Jeep',         N'Compass',   2022,  22000, 14800000.00, N'Longitude. Lista para venta.',          4, (SELECT Id FROM Persona WHERE Documento = N'26890123'), @IdAdmin),
-    ('VWX234',  N'Hyundai',      N'Tucson',    2019,  68000, 11200000.00, N'4x2 2.0 nafta.',                        4, (SELECT Id FROM Persona WHERE Documento = N'30705678901'), @IdAdmin),
-    ('YZ901AB', N'BMW',          N'Serie 3',   2020,  40000, 22500000.00, N'320i Sport. Impecable.',                4, (SELECT Id FROM Persona WHERE Documento = N'34901234'), @IdAdmin),
-    ('XYZ567',  N'Audi',         N'A3',        2018,  73000, 13900000.00, N'Sportback. Único dueño.',               4, (SELECT Id FROM Persona WHERE Documento = N'30706789012'), @IdAdmin),
+    ('UV678WX', N'Jeep',         N'Compass',   2022,  22000, 14800000.00, N'Longitude. Lista para venta.',          4, N'26890123'),
+    ('VWX234',  N'Hyundai',      N'Tucson',    2019,  68000, 11200000.00, N'4x2 2.0 nafta.',                        4, N'30705678901'),
+    ('YZ901AB', N'BMW',          N'Serie 3',   2020,  40000, 22500000.00, N'320i Sport. Impecable.',                4, N'34901234'),
+    ('XYZ567',  N'Audi',         N'A3',        2018,  73000, 13900000.00, N'Sportback. Único dueño.',               4, N'30706789012'),
     -- 4 EnVenta
-    ('CD234EF', N'Mercedes-Benz',N'Clase A',   2021,  31000, 24000000.00, N'A200 Progressive. Publicado.',          5, (SELECT Id FROM Persona WHERE Documento = N'29012345'), @IdAdmin),
-    ('ZAB890',  N'Toyota',       N'Yaris',     2022,  12000,  8800000.00, N'XLS CVT. En venta.',                    5, (SELECT Id FROM Persona WHERE Documento = N'30707890123'), @IdAdmin),
-    ('GH567IJ', N'Kia',          N'Sportage',  2019,  65000, 12300000.00, N'LX AT. Impecable.',                     5, (SELECT Id FROM Persona WHERE Documento = N'30708901234'), @IdAdmin),
-    ('BCD123',  N'Tesla',        N'Model 3',   2022,  18000, 38500000.00, N'Long Range AWD. Publicado.',            5, (SELECT Id FROM Persona WHERE Documento = N'30709012345'), @IdAdmin)
+    ('CD234EF', N'Mercedes-Benz',N'Clase A',   2021,  31000, 24000000.00, N'A200 Progressive. Publicado.',          5, N'29012345'),
+    ('ZAB890',  N'Toyota',       N'Yaris',     2022,  12000,  8800000.00, N'XLS CVT. En venta.',                    5, N'30707890123'),
+    ('GH567IJ', N'Kia',          N'Sportage',  2019,  65000, 12300000.00, N'LX AT. Impecable.',                     5, N'30708901234'),
+    ('BCD123',  N'Tesla',        N'Model 3',   2022,  18000, 38500000.00, N'Long Range AWD. Publicado.',            5, N'30709012345')
+) AS v(Dominio, Marca, Modelo, Anio, Km, Precio, Descripcion, Estado, Documento)
+INNER JOIN Marca   ma ON ma.Nombre = v.Marca
+INNER JOIN Modelo  mo ON mo.IdMarca = ma.Id AND mo.Nombre = v.Modelo
+INNER JOIN Persona pe ON pe.Documento = v.Documento;
 GO
 
 -- Historial de estados: insertamos las transiciones correspondientes al estado actual de cada unidad.
@@ -3563,4 +3642,224 @@ INNER JOIN Control c ON c.Codigo = t.Codigo AND c.Form = @formPub
 UNION ALL
 SELECT @idDePub, c.Id, t.De FROM @ctrlPub t
 INNER JOIN Control c ON c.Codigo = t.Codigo AND c.Form = @formPub;
+GO
+
+-- ============================================================
+-- i18n — Modales de N02 (Pausar, Vender, Reservar), ayuda del flujo
+-- de estados y tipo de persona en FormRegistrarUnidad.
+-- ============================================================
+
+-- ---------------------------------------------------------
+-- FormPausar — modal de pausa de unidad
+-- ---------------------------------------------------------
+DECLARE @formPausar NVARCHAR(80) = N'FormPausar';
+DECLARE @ctrlPausar TABLE (Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @ctrlPausar (Codigo, Es, En, De) VALUES
+    (N'title',                N'Pausar unidad', N'Pause unit', N'Einheit pausieren'),
+    (N'lblTitulo',            N'Pausar unidad', N'Pause unit', N'Einheit pausieren'),
+    (N'lblMotivo',            N'Motivo (obligatorio):', N'Reason (required):', N'Grund (erforderlich):'),
+    (N'btnAceptar',           N'Pausar', N'Pause', N'Pausieren'),
+    (N'btnCancelar',          N'Cancelar', N'Cancel', N'Abbrechen'),
+    (N'msgMotivoObligatorio', N'El motivo de la pausa es obligatorio.', N'The pause reason is required.', N'Der Grund für die Pause ist erforderlich.'),
+    (N'msgAdvertencia',       N'Advertencia', N'Warning', N'Warnung');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, @formPausar
+FROM @ctrlPausar t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = @formPausar);
+
+DECLARE @idEsPausar INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnPausar INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDePausar INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsPausar, x.Id, t.Es FROM @ctrlPausar t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formPausar
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsPausar AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnPausar, x.Id, t.En FROM @ctrlPausar t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formPausar
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnPausar AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDePausar, x.Id, t.De FROM @ctrlPausar t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formPausar
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDePausar AND y.IdControl = x.Id);
+GO
+
+-- ---------------------------------------------------------
+-- FormVender — modal de registro de venta
+-- ---------------------------------------------------------
+DECLARE @formVend NVARCHAR(80) = N'FormVender';
+DECLARE @ctrlVend TABLE (Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @ctrlVend (Codigo, Es, En, De) VALUES
+    (N'title',                   N'Vender', N'Sell', N'Verkaufen'),
+    (N'lblTitulo',               N'Registrar venta', N'Register sale', N'Verkauf erfassen'),
+    (N'lblDocBusqueda',          N'Comprador (DNI/CUIT):', N'Buyer (ID/Tax ID):', N'Käufer (Ausweis/Steuer-Nr.):'),
+    (N'btnBuscar',               N'Buscar', N'Search', N'Suchen'),
+    (N'lblCoincidencias',        N'Coincidencias:', N'Matches:', N'Treffer:'),
+    (N'lblFecha',                N'Fecha:', N'Date:', N'Datum:'),
+    (N'lblPrecio',               N'Precio final ($):', N'Final price ($):', N'Endpreis ($):'),
+    (N'lblDescripcion',          N'Descripción:', N'Description:', N'Beschreibung:'),
+    (N'btnAceptar',              N'Vender', N'Sell', N'Verkaufen'),
+    (N'btnCancelar',             N'Cancelar', N'Cancel', N'Abbrechen'),
+    (N'tipoFisica',              N'Física', N'Individual', N'Natürlich'),
+    (N'tipoJuridica',            N'Jurídica', N'Company', N'Juristisch'),
+    (N'msgSinCoincidencias',     N'No se encontraron personas con ese documento.', N'No people found with that document.', N'Keine Personen mit diesem Dokument gefunden.'),
+    (N'msgSeleccionarComprador', N'Buscá y seleccioná la persona compradora.', N'Search and select the buyer.', N'Suche und wähle den Käufer aus.'),
+    (N'msgPrecioInvalido',       N'Precio final inválido.', N'Invalid final price.', N'Ungültiger Endpreis.'),
+    (N'msgInformacion',          N'Info', N'Info', N'Info'),
+    (N'msgAdvertencia',          N'Advertencia', N'Warning', N'Warnung'),
+    (N'msgError',                N'Error', N'Error', N'Fehler');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, @formVend
+FROM @ctrlVend t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = @formVend);
+
+DECLARE @idEsVend INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnVend INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDeVend INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsVend, x.Id, t.Es FROM @ctrlVend t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formVend
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsVend AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnVend, x.Id, t.En FROM @ctrlVend t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formVend
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnVend AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDeVend, x.Id, t.De FROM @ctrlVend t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formVend
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDeVend AND y.IdControl = x.Id);
+GO
+
+-- ---------------------------------------------------------
+-- FormReservar — modal de reserva de unidad
+-- ---------------------------------------------------------
+DECLARE @formRes NVARCHAR(80) = N'FormReservar';
+DECLARE @ctrlRes TABLE (Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @ctrlRes (Codigo, Es, En, De) VALUES
+    (N'title',                   N'Reservar', N'Reserve', N'Reservieren'),
+    (N'lblTitulo',               N'Reservar unidad', N'Reserve unit', N'Einheit reservieren'),
+    (N'lblDocBusqueda',          N'Comprador (DNI/CUIT):', N'Buyer (ID/Tax ID):', N'Käufer (Ausweis/Steuer-Nr.):'),
+    (N'btnBuscar',               N'Buscar', N'Search', N'Suchen'),
+    (N'lblCoincidencias',        N'Coincidencias:', N'Matches:', N'Treffer:'),
+    (N'lblFecha',                N'Fecha operación:', N'Operation date:', N'Vorgangsdatum:'),
+    (N'lblPrecio',               N'Precio acordado ($):', N'Agreed price ($):', N'Vereinbarter Preis ($):'),
+    (N'lblSena',                 N'Seña ($):', N'Deposit ($):', N'Anzahlung ($):'),
+    (N'lblFechaFin',             N'Fecha estimada fin:', N'Estimated end date:', N'Voraussichtliches Enddatum:'),
+    (N'lblDescripcion',          N'Descripción:', N'Description:', N'Beschreibung:'),
+    (N'btnAceptar',              N'Reservar', N'Reserve', N'Reservieren'),
+    (N'btnCancelar',             N'Cancelar', N'Cancel', N'Abbrechen'),
+    (N'tipoFisica',              N'Física', N'Individual', N'Natürlich'),
+    (N'tipoJuridica',            N'Jurídica', N'Company', N'Juristisch'),
+    (N'msgSinCoincidencias',     N'No se encontraron personas con ese documento.', N'No people found with that document.', N'Keine Personen mit diesem Dokument gefunden.'),
+    (N'msgSeleccionarComprador', N'Buscá y seleccioná la persona compradora.', N'Search and select the buyer.', N'Suche und wähle den Käufer aus.'),
+    (N'msgPrecioInvalido',       N'Precio acordado inválido.', N'Invalid agreed price.', N'Ungültiger vereinbarter Preis.'),
+    (N'msgSenaInvalida',         N'La seña debe ser mayor a cero y menor o igual al precio acordado.', N'The deposit must be greater than zero and not exceed the agreed price.', N'Die Anzahlung muss größer als null sein und darf den vereinbarten Preis nicht übersteigen.'),
+    (N'msgFechaFinInvalida',     N'La fecha estimada de fin no puede ser anterior a la fecha de la reserva.', N'The estimated end date cannot be earlier than the reservation date.', N'Das voraussichtliche Enddatum darf nicht vor dem Reservierungsdatum liegen.'),
+    (N'msgInformacion',          N'Info', N'Info', N'Info'),
+    (N'msgAdvertencia',          N'Advertencia', N'Warning', N'Warnung'),
+    (N'msgError',                N'Error', N'Error', N'Fehler');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, @formRes
+FROM @ctrlRes t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = @formRes);
+
+DECLARE @idEsRes INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnRes INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDeRes INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsRes, x.Id, t.Es FROM @ctrlRes t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formRes
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsRes AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnRes, x.Id, t.En FROM @ctrlRes t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formRes
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnRes AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDeRes, x.Id, t.De FROM @ctrlRes t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formRes
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDeRes AND y.IdControl = x.Id);
+GO
+
+-- ---------------------------------------------------------
+-- FormAyudaFlujoEstados — ayuda de la máquina de estados
+-- ---------------------------------------------------------
+DECLARE @formAyu NVARCHAR(80) = N'FormAyudaFlujoEstados';
+DECLARE @ctrlAyu TABLE (Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @ctrlAyu (Codigo, Es, En, De) VALUES
+    (N'title',                             N'Flujo de estados', N'State flow', N'Zustandsablauf'),
+    (N'lblTitulo',                         N'Flujo de estados de la Unidad', N'Unit state flow', N'Zustandsablauf der Einheit'),
+    (N'btnCerrar',                         N'Cerrar', N'Close', N'Schließen'),
+    (N'descIngresado',                     N'La unidad fue recién comprada e ingresada a la concesionaria. Espera que el Encargado de Taller la tome para preparación.', N'The unit was just purchased and entered the dealership. It waits for the Workshop Manager to take it for preparation.', N'Die Einheit wurde gerade gekauft und im Autohaus aufgenommen. Sie wartet darauf, dass der Werkstattleiter sie zur Vorbereitung übernimmt.'),
+    (N'descEnPreparacion',                 N'El Encargado está ejecutando el checklist de preparación. Si detecta algo fuera del template, agrega items extras con costo estimado y manda el presupuesto al Gerente. Si no, finaliza y pasa a Pendiente de venta.', N'The Workshop Manager is running the preparation checklist. If something outside the template is found, extra items with an estimated cost are added and the budget is sent to the Manager. Otherwise, preparation is finished and the unit moves to Pending sale.', N'Der Werkstattleiter führt die Vorbereitungs-Checkliste aus. Wird etwas außerhalb der Vorlage festgestellt, werden Zusatzelemente mit geschätzten Kosten hinzugefügt und der Kostenvoranschlag an den Geschäftsführer gesendet. Andernfalls wird die Vorbereitung abgeschlossen und die Einheit geht in Verkauf ausstehend über.'),
+    (N'descRequiereAprobacionPresupuesto', N'El Encargado envió uno o más items extras con costo estimado. El Gerente debe aprobarlos o rechazarlos (con un motivo). En ambos casos la unidad vuelve a En preparación.', N'The Workshop Manager sent one or more extra items with an estimated cost. The Manager must approve or reject them (with a reason). In both cases the unit returns to In preparation.', N'Der Werkstattleiter hat ein oder mehrere Zusatzelemente mit geschätzten Kosten gesendet. Der Geschäftsführer muss sie genehmigen oder (mit Begründung) ablehnen. In beiden Fällen kehrt die Einheit zu In Vorbereitung zurück.'),
+    (N'descPendienteVenta',                N'El Encargado finalizó la preparación. El Gerente debe verificar que los trabajos quedaron OK y aprobar la publicación, o devolverla a En preparación con observaciones.', N'The Workshop Manager finished the preparation. The Manager must verify that the work is OK and approve the listing, or send it back to In preparation with notes.', N'Der Werkstattleiter hat die Vorbereitung abgeschlossen. Der Geschäftsführer muss prüfen, ob die Arbeiten in Ordnung sind, und die Veröffentlichung genehmigen oder sie mit Anmerkungen an In Vorbereitung zurückgeben.'),
+    (N'descEnVenta',                       N'El Gerente aprobó la publicación. La unidad quedó publicada y está disponible para la venta. Desde acá se puede Vender, Reservar o Pausar.', N'The Manager approved the listing. The unit is published and available for sale. From here it can be Sold, Reserved or Paused.', N'Der Geschäftsführer hat die Veröffentlichung genehmigt. Die Einheit ist veröffentlicht und steht zum Verkauf. Von hier aus kann sie verkauft, reserviert oder pausiert werden.'),
+    (N'descReservado',                     N'Un comprador reservó la unidad con una seña. Mientras está Reservada no está publicada. Desde acá se puede Concretar la venta o Cancelar la reserva (vuelve a En venta).', N'A buyer reserved the unit with a deposit. While Reserved it is not published. From here the sale can be Completed or the reservation Cancelled (back to For sale).', N'Ein Käufer hat die Einheit mit einer Anzahlung reserviert. Solange sie reserviert ist, ist sie nicht veröffentlicht. Von hier aus kann der Verkauf abgeschlossen oder die Reservierung storniert werden (zurück zu Zum Verkauf).'),
+    (N'descPausado',                       N'La unidad fue retirada temporalmente del listado de venta por decisión del Gerente (motivo obligatorio). Desde acá se puede Reanudar y volver a En venta.', N'The unit was temporarily withdrawn from the sale listing by the Manager''s decision (reason required). From here it can be Resumed and go back to For sale.', N'Die Einheit wurde auf Entscheidung des Geschäftsführers vorübergehend aus dem Verkaufsangebot genommen (Grund erforderlich). Von hier aus kann sie fortgesetzt werden und kehrt zu Zum Verkauf zurück.'),
+    (N'descVendido',                       N'La unidad fue vendida. Es un estado terminal: no admite más transiciones.', N'The unit was sold. It is a terminal state: no further transitions are allowed.', N'Die Einheit wurde verkauft. Es ist ein Endzustand: Weitere Übergänge sind nicht möglich.');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, @formAyu
+FROM @ctrlAyu t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = @formAyu);
+
+DECLARE @idEsAyu INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnAyu INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDeAyu INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsAyu, x.Id, t.Es FROM @ctrlAyu t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formAyu
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsAyu AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnAyu, x.Id, t.En FROM @ctrlAyu t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formAyu
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnAyu AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDeAyu, x.Id, t.De FROM @ctrlAyu t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formAyu
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDeAyu AND y.IdControl = x.Id);
+GO
+
+-- ---------------------------------------------------------
+-- FormRegistrarUnidad — tipo de persona en las coincidencias
+-- ---------------------------------------------------------
+DECLARE @formRegUFix NVARCHAR(80) = N'FormRegistrarUnidad';
+DECLARE @ctrlRegUFix TABLE (Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @ctrlRegUFix (Codigo, Es, En, De) VALUES
+    (N'tipoFisica',   N'Física', N'Individual', N'Natürlich'),
+    (N'tipoJuridica', N'Jurídica', N'Company', N'Juristisch');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, @formRegUFix
+FROM @ctrlRegUFix t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = @formRegUFix);
+
+DECLARE @idEsRegUFix INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnRegUFix INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDeRegUFix INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsRegUFix, x.Id, t.Es FROM @ctrlRegUFix t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formRegUFix
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsRegUFix AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnRegUFix, x.Id, t.En FROM @ctrlRegUFix t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formRegUFix
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnRegUFix AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDeRegUFix, x.Id, t.De FROM @ctrlRegUFix t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formRegUFix
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDeRegUFix AND y.IdControl = x.Id);
 GO

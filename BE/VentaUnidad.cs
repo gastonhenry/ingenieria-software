@@ -9,11 +9,10 @@ namespace BE
     public class VentaUnidad
     {
         public int Id { get; set; }
-        public int IdUnidad { get; set; }
         public TipoOperacionVenta Tipo { get; set; }
         public bool Activa { get; set; }
-        public int IdPersonaComprador { get; set; }
-        public int IdVendedorUsuario { get; set; }
+        public Persona Comprador { get; set; }    // cliente que compra o reserva
+        public Usuario Vendedor { get; set; }     // usuario que registró la operación
         public DateTime FechaOperacion { get; set; }
 
         // Venta: precio final al que se concretó.

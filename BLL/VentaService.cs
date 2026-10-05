@@ -12,6 +12,7 @@ namespace BLL
         private readonly MapperVentaUnidad _mapperVenta;
         private readonly MapperUnidad _mapperUnidad;
         private readonly UnidadService _unidadService;
+        private readonly PersonaService _personaService;
         private readonly BitacoraService _bitacora;
 
         public VentaService()
@@ -19,6 +20,7 @@ namespace BLL
             _mapperVenta = new MapperVentaUnidad();
             _mapperUnidad = new MapperUnidad();
             _unidadService = new UnidadService();
+            _personaService = new PersonaService();
             _bitacora = new BitacoraService();
         }
 
@@ -38,19 +40,17 @@ namespace BLL
 
             if (precioFinal <= 0)
                 throw new BLLException("ERR_PRECIO_INVALIDO", "El precio final debe ser mayor a cero.");
-            if (idPersonaComprador <= 0)
-                throw new BLLException("ERR_PERSONA_NO_EXISTE", "Seleccioná una persona compradora.");
+            var comprador = ObtenerCompradorOFallar(idPersonaComprador);
 
             // Si venía de Reservado, cancelo la reserva activa (queda registrada como inactiva).
             if (unidad.EstadoActual == EstadoUnidad.Reservado)
                 _mapperVenta.CancelarVentaActiva(idUnidad, "Reserva concretada en venta.");
 
-            _mapperVenta.Insertar(new VentaUnidad
+            _mapperVenta.Insertar(idUnidad, new VentaUnidad
             {
-                IdUnidad = idUnidad,
                 Tipo = TipoOperacionVenta.Venta,
-                IdPersonaComprador = idPersonaComprador,
-                IdVendedorUsuario = SesionUsuario.GetInstancia().Usuario.Id,
+                Comprador = comprador,
+                Vendedor = SesionUsuario.GetInstancia().Usuario,
                 FechaOperacion = fechaOperacion,
                 PrecioAcordado = precioFinal,
                 Descripcion = descripcion
@@ -75,15 +75,13 @@ namespace BLL
                 throw new BLLException("ERR_SENA_INVALIDA", "La seña debe ser mayor a cero y menor o igual al precio acordado.");
             if (fechaEstimadaFin.Date < fechaOperacion.Date)
                 throw new BLLException("ERR_FECHA_FIN_INVALIDA", "La fecha estimada de fin no puede ser anterior a la fecha de la operación.");
-            if (idPersonaComprador <= 0)
-                throw new BLLException("ERR_PERSONA_NO_EXISTE", "Seleccioná una persona compradora.");
+            var comprador = ObtenerCompradorOFallar(idPersonaComprador);
 
-            _mapperVenta.Insertar(new VentaUnidad
+            _mapperVenta.Insertar(idUnidad, new VentaUnidad
             {
-                IdUnidad = idUnidad,
                 Tipo = TipoOperacionVenta.Reserva,
-                IdPersonaComprador = idPersonaComprador,
-                IdVendedorUsuario = SesionUsuario.GetInstancia().Usuario.Id,
+                Comprador = comprador,
+                Vendedor = SesionUsuario.GetInstancia().Usuario,
                 FechaOperacion = fechaOperacion,
                 PrecioAcordado = precioAcordado,
                 MontoSena = montoSena,
@@ -99,18 +97,19 @@ namespace BLL
         {
             RequerirAdminOPermiso("GESTIONAR_RESERVA", "CancelarReserva");
 
+            if (string.IsNullOrWhiteSpace(comentario))
+                throw new BLLException("ERR_MOTIVO_CANCELACION_OBLIGATORIO",
+                    "El motivo de la cancelación de la reserva es obligatorio.");
+
             var unidad = ObtenerOFallar(idUnidad);
             if (unidad.EstadoActual != EstadoUnidad.Reservado)
                 throw new BLLException("ERR_TRANSICION_INVALIDA",
                     "Solo se puede cancelar una reserva de una unidad en estado Reservada.");
 
-            _mapperVenta.CancelarVentaActiva(idUnidad, comentario);
+            _mapperVenta.CancelarVentaActiva(idUnidad, comentario.Trim());
 
             _unidadService.TransicionarConHistorial(idUnidad, EstadoUnidad.Reservado, EstadoUnidad.EnVenta,
-                string.IsNullOrWhiteSpace(comentario)
-                    ? "Reserva cancelada."
-                    : $"Reserva cancelada. {comentario}",
-                motivoObligatorio: false);
+                $"Reserva cancelada. {comentario.Trim()}", motivoObligatorio: true);
         }
 
         public void Pausar(int idUnidad, string motivo)
@@ -141,6 +140,14 @@ namespace BLL
 
             _unidadService.TransicionarConHistorial(idUnidad, EstadoUnidad.Pausado, EstadoUnidad.EnVenta,
                 "Unidad reanudada.", motivoObligatorio: false);
+        }
+
+        private Persona ObtenerCompradorOFallar(int idPersonaComprador)
+        {
+            var persona = idPersonaComprador > 0 ? _personaService.ObtenerPorId(idPersonaComprador) : null;
+            if (persona == null)
+                throw new BLLException("ERR_PERSONA_NO_EXISTE", "Seleccioná una persona compradora.");
+            return persona;
         }
 
         private Unidad ObtenerOFallar(int idUnidad)

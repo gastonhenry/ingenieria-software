@@ -16,14 +16,13 @@ namespace MPP
             var parametros = new List<SqlParameter>
             {
                 db.CrearParametro("@Dominio",            u.Dominio),
-                db.CrearParametro("@Marca",              u.Marca),
-                db.CrearParametro("@Modelo",             u.Modelo),
+                db.CrearParametro("@IdModelo",           u.Modelo.Id),
                 db.CrearParametro("@Anio",               u.Anio),
                 db.CrearParametro("@Kilometraje",        u.Kilometraje),
                 db.CrearParametro("@PrecioCompra",       u.PrecioCompra),
                 db.CrearParametro("@Descripcion",        u.Descripcion),
-                db.CrearParametro("@IdPersona",          u.IdPersona),
-                db.CrearParametro("@IdCompradorUsuario", u.IdCompradorUsuario)
+                db.CrearParametro("@IdPersona",          u.Vendedor.Id),
+                db.CrearParametro("@IdCompradorUsuario", u.Comprador.Id)
             };
             return db.LeerEscalar("InsertarUnidad", parametros);
         }
@@ -100,23 +99,41 @@ namespace MPP
             db.Escribir("ActualizarDVHUnidad", parametros);
         }
 
+        // Arma la unidad con su Modelo (y Marca) completos. Del vendedor y del comprador el SP trae
+        // sólo los datos de identificación; la ficha completa del vendedor la carga
+        // UnidadService.ObtenerTrazabilidad.
         private static Unidad MapearFila(DataRow row)
         {
             return new Unidad
             {
-                Id                 = (int)row["Id"],
-                Dominio            = (string)row["Dominio"],
-                Marca              = (string)row["Marca"],
-                Modelo             = (string)row["Modelo"],
-                Anio               = (int)row["Anio"],
-                Kilometraje        = (int)row["Kilometraje"],
-                PrecioCompra       = (decimal)row["PrecioCompra"],
-                Descripcion        = row.IsNull("Descripcion") ? null : (string)row["Descripcion"],
-                EstadoActual       = (EstadoUnidad)Convert.ToInt32(row["EstadoActual"]),
-                IdPersona          = (int)row["IdPersona"],
-                IdCompradorUsuario = (int)row["IdCompradorUsuario"],
-                FechaIngreso       = (DateTime)row["FechaIngreso"],
-                DVH                = row.IsNull("DVH") ? null : (string)row["DVH"]
+                Id           = (int)row["Id"],
+                Dominio      = (string)row["Dominio"],
+                Modelo       = new Modelo
+                {
+                    Id             = (int)row["IdModelo"],
+                    Nombre         = (string)row["ModeloNombre"],
+                    TipoCarroceria = (TipoCarroceria)(int)row["TipoCarroceria"],
+                    Marca          = new Marca { Id = (int)row["IdMarca"], Nombre = (string)row["MarcaNombre"] }
+                },
+                Anio         = (int)row["Anio"],
+                Kilometraje  = (int)row["Kilometraje"],
+                PrecioCompra = (decimal)row["PrecioCompra"],
+                Descripcion  = row.IsNull("Descripcion") ? null : (string)row["Descripcion"],
+                EstadoActual = (EstadoUnidad)Convert.ToInt32(row["EstadoActual"]),
+                Vendedor     = new Persona
+                {
+                    Id          = (int)row["IdPersona"],
+                    Nombre      = (string)row["VendedorNombre"],
+                    Documento   = (string)row["VendedorDocumento"],
+                    TipoPersona = Convert.ToChar(row["VendedorTipo"])
+                },
+                Comprador    = new Usuario
+                {
+                    Id       = (int)row["IdCompradorUsuario"],
+                    Username = (string)row["CompradorUsername"]
+                },
+                FechaIngreso = (DateTime)row["FechaIngreso"],
+                DVH          = row.IsNull("DVH") ? null : (string)row["DVH"]
             };
         }
     }

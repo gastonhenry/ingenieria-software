@@ -12,13 +12,6 @@ namespace BE
             set { id = value; }
         }
 
-        private int idChecklist;
-        public int IdChecklist
-        {
-            get { return idChecklist; }
-            set { idChecklist = value; }
-        }
-
         private string nombre;
         public string Nombre
         {
@@ -40,11 +33,12 @@ namespace BE
             set { esDelTemplate = value; }
         }
 
-        private int? idTemplateOrigen;
-        public int? IdTemplateOrigen
+        // Item de la plantilla del que se copió. Null en los extras.
+        private ChecklistItemTemplate templateOrigen;
+        public ChecklistItemTemplate TemplateOrigen
         {
-            get { return idTemplateOrigen; }
-            set { idTemplateOrigen = value; }
+            get { return templateOrigen; }
+            set { templateOrigen = value; }
         }
 
         // Resultado de la revisión del Encargado: Pendiente / OK / Observado.
@@ -70,11 +64,12 @@ namespace BE
             set { fechaRevision = value; }
         }
 
-        private int? idUsuarioRevisor;
-        public int? IdUsuarioRevisor
+        // Null mientras el item no fue revisado.
+        private Usuario revisor;
+        public Usuario Revisor
         {
-            get { return idUsuarioRevisor; }
-            set { idUsuarioRevisor = value; }
+            get { return revisor; }
+            set { revisor = value; }
         }
 
         // Costo estimado del item. Sólo aplica a extras; para los del template es null.

@@ -26,7 +26,6 @@ namespace MPP
             return new PublicacionUnidad
             {
                 Id                      = (int)row["Id"],
-                IdUnidad                = (int)row["IdUnidad"],
                 PrecioPublicacion       = row.IsNull("PrecioPublicacion")      ? (decimal?)null : (decimal)row["PrecioPublicacion"],
                 DescripcionPublicacion  = row.IsNull("DescripcionPublicacion") ? null           : (string)row["DescripcionPublicacion"],
                 FechaCreacion           = (DateTime)row["FechaCreacion"],

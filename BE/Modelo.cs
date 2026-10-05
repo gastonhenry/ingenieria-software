@@ -18,11 +18,11 @@ namespace BE
             set { nombre = value; }
         }
 
-        private int idMarca;
-        public int IdMarca
+        private Marca marca;
+        public Marca Marca
         {
-            get { return idMarca; }
-            set { idMarca = value; }
+            get { return marca; }
+            set { marca = value; }
         }
 
         private TipoCarroceria tipoCarroceria;
