@@ -96,7 +96,7 @@ namespace UI
             tabHistorial.Text               = Tr("tabHistorial", "Historial");
             btnAgregarItemExtra.Text        = Tr("btnAgregarItemExtra",     "Agregar item extra");
             btnQuitarItemExtra.Text         = Tr("btnQuitarItemExtra",      "Quitar item extra");
-            btnMarcarItemEjecutado.Text     = Tr("btnMarcarOK",             "Marcar OK");
+            btnMarcarOK.Text                = Tr("btnMarcarOK",             "Marcar OK");
             btnMarcarObservado.Text         = Tr("btnMarcarObservado",      "Marcar Observado");
             lblResultado.Text               = Tr("lblComentarioRevision",   "Comentario (obligatorio al Observar):");
             btnTomarPreparacion.Text        = Tr("btnTomarPreparacion",     "Preparar Unidad");
@@ -245,7 +245,7 @@ namespace UI
                 btnQuitarItemExtra.Visible = false;
                 lblResultado.Visible = false;
                 txtResultadoItem.Visible = false;
-                btnMarcarItemEjecutado.Visible = false;
+                btnMarcarOK.Visible = false;
                 btnMarcarObservado.Visible = false;
                 return;
             }
@@ -385,7 +385,7 @@ namespace UI
             btnCancelarReserva.Visible = estado == EstadoUnidad.Reservado && Tiene("GESTIONAR_RESERVA");
 
             bool puedeEjecutarItems = estado == EstadoUnidad.EnPreparacion && Tiene("EJECUTAR_PREPARACION");
-            btnMarcarItemEjecutado.Visible = puedeEjecutarItems;
+            btnMarcarOK.Visible = puedeEjecutarItems;
             btnMarcarObservado.Visible     = puedeEjecutarItems;
             txtResultadoItem.Visible       = puedeEjecutarItems;
             lblResultado.Visible           = puedeEjecutarItems;
@@ -474,7 +474,7 @@ namespace UI
             EjecutarAccion(() => _unidadService.EliminarItemExtra(_unidadId, item.Id));
         }
 
-        private void btnMarcarItemEjecutado_Click(object sender, EventArgs e)
+        private void btnMarcarOK_Click(object sender, EventArgs e)
         {
             var item = ItemChecklistSeleccionado();
             if (item == null) { MessageBox.Show(Tr("msgSeleccionarItem", "Seleccioná un ítem."), Tr("msgInformacion", "Info")); return; }
@@ -668,7 +668,7 @@ namespace UI
             System.Windows.Forms.Control[] bajoGrilla =
             {
                 btnAgregarItemExtra, btnQuitarItemExtra, lblResultado,
-                txtResultadoItem, btnMarcarItemEjecutado, btnMarcarObservado
+                txtResultadoItem, btnMarcarOK, btnMarcarObservado
             };
 
             if (_offsetsBajoChecklist == null)

@@ -16,7 +16,7 @@ namespace UI
         private System.Windows.Forms.Button btnQuitarItemExtra;
         private System.Windows.Forms.Label lblResultado;
         private System.Windows.Forms.TextBox txtResultadoItem;
-        private System.Windows.Forms.Button btnMarcarItemEjecutado;
+        private System.Windows.Forms.Button btnMarcarOK;
         private System.Windows.Forms.Button btnMarcarObservado;
         private System.Windows.Forms.TabPage tabHistorial;
         private System.Windows.Forms.DataGridView dgvHistorial;
@@ -67,7 +67,7 @@ namespace UI
             this.btnQuitarItemExtra = new System.Windows.Forms.Button();
             this.lblResultado = new System.Windows.Forms.Label();
             this.txtResultadoItem = new System.Windows.Forms.TextBox();
-            this.btnMarcarItemEjecutado = new System.Windows.Forms.Button();
+            this.btnMarcarOK = new System.Windows.Forms.Button();
             this.btnMarcarObservado = new System.Windows.Forms.Button();
             this.tabHistorial = new System.Windows.Forms.TabPage();
             this.dgvHistorial = new System.Windows.Forms.DataGridView();
@@ -172,7 +172,7 @@ namespace UI
             this.tabChecklist.Controls.Add(this.btnQuitarItemExtra);
             this.tabChecklist.Controls.Add(this.lblResultado);
             this.tabChecklist.Controls.Add(this.txtResultadoItem);
-            this.tabChecklist.Controls.Add(this.btnMarcarItemEjecutado);
+            this.tabChecklist.Controls.Add(this.btnMarcarOK);
             this.tabChecklist.Controls.Add(this.btnMarcarObservado);
             this.tabChecklist.Location = new System.Drawing.Point(4, 29);
             this.tabChecklist.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
@@ -257,16 +257,16 @@ namespace UI
             this.txtResultadoItem.Size = new System.Drawing.Size(590, 26);
             this.txtResultadoItem.TabIndex = 5;
             // 
-            // btnMarcarItemEjecutado
+            // btnMarcarOK
             // 
-            this.btnMarcarItemEjecutado.Location = new System.Drawing.Point(624, 492);
-            this.btnMarcarItemEjecutado.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.btnMarcarItemEjecutado.Name = "btnMarcarItemEjecutado";
-            this.btnMarcarItemEjecutado.Size = new System.Drawing.Size(193, 37);
-            this.btnMarcarItemEjecutado.TabIndex = 6;
-            this.btnMarcarItemEjecutado.Text = "Marcar OK";
-            this.btnMarcarItemEjecutado.UseVisualStyleBackColor = true;
-            this.btnMarcarItemEjecutado.Click += new System.EventHandler(this.btnMarcarItemEjecutado_Click);
+            this.btnMarcarOK.Location = new System.Drawing.Point(624, 492);
+            this.btnMarcarOK.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnMarcarOK.Name = "btnMarcarOK";
+            this.btnMarcarOK.Size = new System.Drawing.Size(193, 37);
+            this.btnMarcarOK.TabIndex = 6;
+            this.btnMarcarOK.Text = "Marcar OK";
+            this.btnMarcarOK.UseVisualStyleBackColor = true;
+            this.btnMarcarOK.Click += new System.EventHandler(this.btnMarcarOK_Click);
             // 
             // btnMarcarObservado
             // 

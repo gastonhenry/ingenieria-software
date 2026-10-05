@@ -2678,7 +2678,7 @@ INSERT INTO Marca (Nombre) VALUES
     (N'Maserati'), (N'Mazda'), (N'McLaren'), (N'Mercedes-Benz'), (N'Mini'),
     (N'Mitsubishi'), (N'Nissan'), (N'Opel'), (N'Peugeot'), (N'Porsche'),
     (N'Ram'), (N'Renault'), (N'Rolls-Royce'), (N'Seat'), (N'Škoda'),
-    (N'Smart'), (N'SsangYong'), (N'Subaru'), (N'Suzuki'), (N'Tesla'),
+    (N'Smart'), (N'SsangYong'), (N'Subaru'), (N'Suzuki'),
     (N'Toyota'), (N'Volkswagen'), (N'Volvo')
 GO
 
@@ -2749,9 +2749,7 @@ FROM (VALUES
     -- Hyundai
     (N'Tucson',        N'Hyundai',      3),
     -- Kia
-    (N'Sportage',      N'Kia',          3),
-    -- Tesla
-    (N'Model 3',       N'Tesla',        1)
+    (N'Sportage',      N'Kia',          3)
 ) AS v(Nombre, Marca, Tipo)
 GO
 
@@ -2957,7 +2955,6 @@ INSERT INTO @ctrlDetU (Codigo, Es, En, De) VALUES
     (N'btnAgregarItemExtra',       N'Agregar item extra',                                 N'Add extra item',                                      N'Zusatzelement hinzufügen'),
     (N'btnQuitarItemExtra',        N'Quitar item extra',                                  N'Remove extra item',                                   N'Zusatzelement entfernen'),
     (N'lblResultado',              N'Resultado del ítem seleccionado:',                   N'Result of selected item:',                            N'Ergebnis des ausgewählten Elements:'),
-    (N'btnMarcarItemEjecutado',    N'Marcar ejecutado',                                   N'Mark as executed',                                    N'Als ausgeführt markieren'),
     (N'colHistFecha',              N'Fecha/Hora',                                         N'Date/Time',                                           N'Datum/Uhrzeit'),
     (N'colHistOrigen',             N'Origen',                                             N'From',                                                N'Von'),
     (N'colHistDestino',            N'Destino',                                            N'To',                                                  N'Bis'),
@@ -3277,7 +3274,7 @@ FROM (VALUES
     ('CD234EF', N'Mercedes-Benz',N'Clase A',   2021,  31000, 24000000.00, N'A200 Progressive. Publicado.',          5, N'29012345'),
     ('ZAB890',  N'Toyota',       N'Yaris',     2022,  12000,  8800000.00, N'XLS CVT. En venta.',                    5, N'30707890123'),
     ('GH567IJ', N'Kia',          N'Sportage',  2019,  65000, 12300000.00, N'LX AT. Impecable.',                     5, N'30708901234'),
-    ('BCD123',  N'Tesla',        N'Model 3',   2022,  18000, 38500000.00, N'Long Range AWD. Publicado.',            5, N'30709012345')
+    ('BCD123',  N'Peugeot',      N'308',       2017,  98000,  9800000.00, N'Allure 1.6 HDi diésel. Publicado.',     5, N'30709012345')
 ) AS v(Dominio, Marca, Modelo, Anio, Km, Precio, Descripcion, Estado, Documento)
 INNER JOIN Marca   ma ON ma.Nombre = v.Marca
 INNER JOIN Modelo  mo ON mo.IdMarca = ma.Id AND mo.Nombre = v.Modelo
@@ -3356,10 +3353,47 @@ FROM (VALUES
     (N'CD234EF', 28900000.00, N'Mercedes-Benz Clase A200 Progressive 2021, 31.000 km. Service oficial al día, único dueño. Tapizado de cuero, pantalla dual MBUX, cámara de retroceso y sensores de estacionamiento. Lista para transferir.', 12, 3),
     (N'ZAB890',  10950000.00, N'Toyota Yaris XLS CVT 2022 con sólo 12.000 km. Garantía de fábrica vigente, Toyota Safety Sense, Apple CarPlay / Android Auto. Impecable estado general.', 10, 2),
     (N'GH567IJ', 14800000.00, N'Kia Sportage LX AT 2019, 65.000 km. Cubiertas nuevas, frenos revisados y detallado completo interior/exterior. Ideal familia.', 8, NULL),
-    (N'BCD123',  45500000.00, N'Tesla Model 3 Long Range AWD 2022, 18.000 km. Autonomía de más de 500 km, Autopilot, techo de cristal. Cargador de pared incluido.', 6, 1),
+    (N'BCD123',  12900000.00, N'Peugeot 308 Allure 1.6 HDi 2017, 98.000 km. Motor diésel de bajo consumo, service oficial al día, pantalla táctil y sensores de estacionamiento. Excelente estado general.', 6, 1),
     (N'UV678WX', 17900000.00, N'Jeep Compass Longitude 2022, 22.000 km. Preparación finalizada, pendiente de aprobación final.', 2, NULL),
     (N'YZ901AB', NULL,        NULL,                                                                                                                    1, NULL)
 ) AS v(Dominio, Precio, Descripcion, DiasCreacion, DiasEdicion)
+INNER JOIN Unidad u ON u.Dominio = v.Dominio;
+GO
+
+-- Fotos de las publicaciones del seed. Los archivos viven en Avanti Auto\ImagenesSeed y el instalador
+-- los copia a %ProgramData%\Avanti Auto\Imagenes\seed (RutaArchivo es relativa a Imagenes).
+INSERT INTO ImagenUnidad (IdUnidad, RutaArchivo, Orden)
+SELECT u.Id, v.Ruta, v.Orden
+FROM (VALUES
+    (N'CD234EF', N'seed\CD234EF\1.jpg', 0),
+    (N'CD234EF', N'seed\CD234EF\2.jpg', 1),
+    (N'CD234EF', N'seed\CD234EF\3.jpg', 2),
+    (N'CD234EF', N'seed\CD234EF\4.jpg', 3),
+    (N'ZAB890', N'seed\ZAB890\1.jpg', 0),
+    (N'ZAB890', N'seed\ZAB890\2.jpg', 1),
+    (N'ZAB890', N'seed\ZAB890\3.jpg', 2),
+    (N'ZAB890', N'seed\ZAB890\4.jpg', 3),
+    (N'GH567IJ', N'seed\GH567IJ\1.jpg', 0),
+    (N'GH567IJ', N'seed\GH567IJ\2.jpg', 1),
+    (N'GH567IJ', N'seed\GH567IJ\3.jpg', 2),
+    (N'GH567IJ', N'seed\GH567IJ\4.jpg', 3),
+    (N'BCD123', N'seed\BCD123\1.jpg', 0),
+    (N'BCD123', N'seed\BCD123\2.jpg', 1),
+    (N'BCD123', N'seed\BCD123\3.jpg', 2),
+    (N'BCD123', N'seed\BCD123\4.jpg', 3),
+    (N'BCD123', N'seed\BCD123\5.jpg', 4),
+    (N'BCD123', N'seed\BCD123\6.jpg', 5),
+    (N'UV678WX', N'seed\UV678WX\1.jpg', 0),
+    (N'UV678WX', N'seed\UV678WX\2.jpg', 1),
+    (N'UV678WX', N'seed\UV678WX\3.jpg', 2),
+    (N'UV678WX', N'seed\UV678WX\4.jpg', 3),
+    (N'YZ901AB', N'seed\YZ901AB\1.jpg', 0),
+    (N'YZ901AB', N'seed\YZ901AB\2.jpg', 1),
+    (N'YZ901AB', N'seed\YZ901AB\3.jpg', 2),
+    (N'YZ901AB', N'seed\YZ901AB\4.jpg', 3),
+    (N'YZ901AB', N'seed\YZ901AB\5.jpg', 4),
+    (N'YZ901AB', N'seed\YZ901AB\6.jpg', 5)
+) AS v(Dominio, Ruta, Orden)
 INNER JOIN Unidad u ON u.Dominio = v.Dominio;
 GO
 
