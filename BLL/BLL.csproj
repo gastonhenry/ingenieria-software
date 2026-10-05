@@ -65,6 +65,25 @@
     <Compile Include="IIdiomaService.cs" />
     <Compile Include="IdiomaService.cs" />
     <Compile Include="TraductorErrores.cs" />
+    <Compile Include="IPersonaService.cs" />
+    <Compile Include="PersonaService.cs" />
+    <Compile Include="IMarcaService.cs" />
+    <Compile Include="MarcaService.cs" />
+    <Compile Include="IModeloService.cs" />
+    <Compile Include="ModeloService.cs" />
+    <Compile Include="IPublicacionService.cs" />
+    <Compile Include="PublicacionService.cs" />
+    <Compile Include="IImagenUnidadService.cs" />
+    <Compile Include="ImagenUnidadService.cs" />
+    <Compile Include="IVentaService.cs" />
+    <Compile Include="VentaService.cs" />
+    <Compile Include="VerificadorPersona.cs" />
+    <Compile Include="VerificadorUnidad.cs" />
+    <Compile Include="VerificadorChecklistItemTemplate.cs" />
+    <Compile Include="IChecklistTemplateService.cs" />
+    <Compile Include="ChecklistTemplateService.cs" />
+    <Compile Include="IUnidadService.cs" />
+    <Compile Include="UnidadService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HELPERS\HELPERS.csproj">

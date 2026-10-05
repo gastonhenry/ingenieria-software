@@ -120,11 +120,99 @@
     <Compile Include="FormUsuarios.Designer.cs">
       <DependentUpon>FormUsuarios.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormRegistrarUnidad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRegistrarUnidad.Designer.cs">
+      <DependentUpon>FormRegistrarUnidad.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormRegistrarMarca.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRegistrarMarca.Designer.cs">
+      <DependentUpon>FormRegistrarMarca.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormRegistrarModelo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRegistrarModelo.Designer.cs">
+      <DependentUpon>FormRegistrarModelo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormRegistrarPersona.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRegistrarPersona.Designer.cs">
+      <DependentUpon>FormRegistrarPersona.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormTemplateChecklist.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormTemplateChecklist.Designer.cs">
+      <DependentUpon>FormTemplateChecklist.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormUnidades.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormUnidades.Designer.cs">
+      <DependentUpon>FormUnidades.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormDetalleUnidad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormDetalleUnidad.Designer.cs">
+      <DependentUpon>FormDetalleUnidad.cs</DependentUpon>
+    </Compile>
     <Compile Include="BotonPlano.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ColoresEstadoUnidad.cs" />
+    <Compile Include="FormAyudaFlujoEstados.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormAyudaFlujoEstados.Designer.cs">
+      <DependentUpon>FormAyudaFlujoEstados.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormPausar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormPausar.Designer.cs">
+      <DependentUpon>FormPausar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormVender.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormVender.Designer.cs">
+      <DependentUpon>FormVender.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormReservar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormReservar.Designer.cs">
+      <DependentUpon>FormReservar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormPublicacion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormPublicacion.Designer.cs">
+      <DependentUpon>FormPublicacion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormPublicaciones.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormPublicaciones.Designer.cs">
+      <DependentUpon>FormPublicaciones.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormVisorImagen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormVisorImagen.Designer.cs">
+      <DependentUpon>FormVisorImagen.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormDetalleUnidad.resx">
+      <DependentUpon>FormDetalleUnidad.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormLogin.resx">
       <DependentUpon>FormLogin.cs</DependentUpon>
     </EmbeddedResource>
@@ -148,6 +236,24 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormAsignacionPermisos.resx">
       <DependentUpon>FormAsignacionPermisos.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormRegistrarMarca.resx">
+      <DependentUpon>FormRegistrarMarca.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormRegistrarModelo.resx">
+      <DependentUpon>FormRegistrarModelo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormRegistrarPersona.resx">
+      <DependentUpon>FormRegistrarPersona.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormRegistrarUnidad.resx">
+      <DependentUpon>FormRegistrarUnidad.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormTemplateChecklist.resx">
+      <DependentUpon>FormTemplateChecklist.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormUnidades.resx">
+      <DependentUpon>FormUnidades.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

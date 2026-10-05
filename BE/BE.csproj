@@ -58,6 +58,24 @@
     <Compile Include="Usuario.cs" />
     <Compile Include="UsuarioHistorial.cs" />
     <Compile Include="Enums\AccionUsuarioHistorial.cs" />
+    <Compile Include="Enums\EstadoUnidad.cs" />
+    <Compile Include="Enums\EstadoAprobacionItem.cs" />
+    <Compile Include="Enums\ResultadoRevision.cs" />
+    <Compile Include="Enums\TipoOperacionVenta.cs" />
+    <Compile Include="PublicacionListado.cs" />
+    <Compile Include="PublicacionUnidad.cs" />
+    <Compile Include="ImagenUnidad.cs" />
+    <Compile Include="VentaUnidad.cs" />
+    <Compile Include="Persona.cs" />
+    <Compile Include="Enums\EstadoCivil.cs" />
+    <Compile Include="Marca.cs" />
+    <Compile Include="Modelo.cs" />
+    <Compile Include="Enums\TipoCarroceria.cs" />
+    <Compile Include="Unidad.cs" />
+    <Compile Include="ChecklistItemTemplate.cs" />
+    <Compile Include="ChecklistPreparacion.cs" />
+    <Compile Include="ChecklistItem.cs" />
+    <Compile Include="HistorialEstadoUnidad.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

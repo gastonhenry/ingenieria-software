@@ -48,5 +48,23 @@ namespace BE.Enums
 
         [Description("Mantenimiento")]
         Mantenimiento = 14,
+
+        [Description("Registro de unidad")]
+        RegistroUnidad = 15,
+
+        [Description("Transición de estado de unidad")]
+        TransicionUnidad = 16,
+
+        [Description("Gestión de template de checklist")]
+        GestionTemplateChecklist = 17,
+
+        [Description("Alta de marca")]
+        AltaMarca = 18,
+
+        [Description("Alta de modelo")]
+        AltaModelo = 19,
+
+        [Description("Alta de persona")]
+        AltaPersona = 20,
     }
 }

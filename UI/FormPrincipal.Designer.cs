@@ -30,6 +30,16 @@ namespace UI
             this.menuSeleccionIdioma = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMantenimiento = new System.Windows.Forms.ToolStripMenuItem();
             this.menuLogout = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuUnidades = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRegistrarUnidad = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuVerUnidades = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuTemplateChecklist = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRegistrarMarca = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRegistrarModelo = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuPublicaciones = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuVerPublicaciones = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuPersonas = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRegistrarPersona = new System.Windows.Forms.ToolStripMenuItem();
             this.lblSesion = new System.Windows.Forms.ToolStripLabel();
             this.lblEstadoSesion = new System.Windows.Forms.ToolStripLabel();
             this.menuStrip1.SuspendLayout();
@@ -42,6 +52,9 @@ namespace UI
             this.menuStrip1.ForeColor = System.Drawing.Color.White;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuInicio,
+            this.menuUnidades,
+            this.menuPublicaciones,
+            this.menuPersonas,
             this.menuUsuarios,
             this.menuPermisos,
             this.menuBitacora,
@@ -64,6 +77,72 @@ namespace UI
             this.menuInicio.Size = new System.Drawing.Size(50, 25);
             this.menuInicio.Text = "Inicio";
             this.menuInicio.Click += new System.EventHandler(this.menuInicio_Click);
+            //
+            // menuUnidades — N01
+            //
+            this.menuUnidades.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.menuRegistrarUnidad,
+                this.menuVerUnidades,
+                this.menuTemplateChecklist,
+                this.menuRegistrarMarca,
+                this.menuRegistrarModelo});
+            this.menuUnidades.ForeColor = System.Drawing.Color.White;
+            this.menuUnidades.Name = "menuUnidades";
+            this.menuUnidades.Size = new System.Drawing.Size(75, 25);
+            this.menuUnidades.Text = "Unidades";
+            //
+            this.menuRegistrarUnidad.Name = "menuRegistrarUnidad";
+            this.menuRegistrarUnidad.Size = new System.Drawing.Size(220, 22);
+            this.menuRegistrarUnidad.Text = "Registrar Unidad";
+            this.menuRegistrarUnidad.Click += new System.EventHandler(this.menuRegistrarUnidad_Click);
+            //
+            this.menuVerUnidades.Name = "menuVerUnidades";
+            this.menuVerUnidades.Size = new System.Drawing.Size(220, 22);
+            this.menuVerUnidades.Text = "Ver Unidades";
+            this.menuVerUnidades.Click += new System.EventHandler(this.menuVerUnidades_Click);
+            //
+            this.menuTemplateChecklist.Name = "menuTemplateChecklist";
+            this.menuTemplateChecklist.Size = new System.Drawing.Size(220, 22);
+            this.menuTemplateChecklist.Text = "Template de Checklist";
+            this.menuTemplateChecklist.Click += new System.EventHandler(this.menuTemplateChecklist_Click);
+            //
+            this.menuRegistrarMarca.Name = "menuRegistrarMarca";
+            this.menuRegistrarMarca.Size = new System.Drawing.Size(220, 22);
+            this.menuRegistrarMarca.Text = "Registrar Marca";
+            this.menuRegistrarMarca.Click += new System.EventHandler(this.menuRegistrarMarca_Click);
+            //
+            this.menuRegistrarModelo.Name = "menuRegistrarModelo";
+            this.menuRegistrarModelo.Size = new System.Drawing.Size(220, 22);
+            this.menuRegistrarModelo.Text = "Registrar Modelo";
+            this.menuRegistrarModelo.Click += new System.EventHandler(this.menuRegistrarModelo_Click);
+            //
+            // menuPublicaciones (top-level)
+            //
+            this.menuPublicaciones.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.menuVerPublicaciones});
+            this.menuPublicaciones.ForeColor = System.Drawing.Color.White;
+            this.menuPublicaciones.Name = "menuPublicaciones";
+            this.menuPublicaciones.Size = new System.Drawing.Size(95, 25);
+            this.menuPublicaciones.Text = "Publicaciones";
+            //
+            this.menuVerPublicaciones.Name = "menuVerPublicaciones";
+            this.menuVerPublicaciones.Size = new System.Drawing.Size(220, 22);
+            this.menuVerPublicaciones.Text = "Ver Publicaciones";
+            this.menuVerPublicaciones.Click += new System.EventHandler(this.menuVerPublicaciones_Click);
+            //
+            // menuPersonas (top-level)
+            //
+            this.menuPersonas.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.menuRegistrarPersona});
+            this.menuPersonas.ForeColor = System.Drawing.Color.White;
+            this.menuPersonas.Name = "menuPersonas";
+            this.menuPersonas.Size = new System.Drawing.Size(75, 25);
+            this.menuPersonas.Text = "Personas";
+            //
+            this.menuRegistrarPersona.Name = "menuRegistrarPersona";
+            this.menuRegistrarPersona.Size = new System.Drawing.Size(220, 22);
+            this.menuRegistrarPersona.Text = "Registrar Persona";
+            this.menuRegistrarPersona.Click += new System.EventHandler(this.menuRegistrarPersona_Click);
             // 
             // menuUsuarios
             // 
@@ -226,6 +305,16 @@ namespace UI
         private System.Windows.Forms.ToolStripMenuItem menuSeleccionIdioma;
         private System.Windows.Forms.ToolStripMenuItem menuMantenimiento;
         private System.Windows.Forms.ToolStripMenuItem menuLogout;
+        private System.Windows.Forms.ToolStripMenuItem menuUnidades;
+        private System.Windows.Forms.ToolStripMenuItem menuRegistrarUnidad;
+        private System.Windows.Forms.ToolStripMenuItem menuVerUnidades;
+        private System.Windows.Forms.ToolStripMenuItem menuTemplateChecklist;
+        private System.Windows.Forms.ToolStripMenuItem menuRegistrarMarca;
+        private System.Windows.Forms.ToolStripMenuItem menuRegistrarModelo;
+        private System.Windows.Forms.ToolStripMenuItem menuPublicaciones;
+        private System.Windows.Forms.ToolStripMenuItem menuVerPublicaciones;
+        private System.Windows.Forms.ToolStripMenuItem menuPersonas;
+        private System.Windows.Forms.ToolStripMenuItem menuRegistrarPersona;
         private System.Windows.Forms.ToolStripLabel lblSesion;
         private System.Windows.Forms.ToolStripLabel lblEstadoSesion;
     }

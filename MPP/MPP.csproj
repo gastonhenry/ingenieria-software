@@ -51,6 +51,16 @@
     <Compile Include="MapperIdioma.cs" />
     <Compile Include="MapperControl.cs" />
     <Compile Include="MapperTraduccion.cs" />
+    <Compile Include="MapperPersona.cs" />
+    <Compile Include="MapperMarca.cs" />
+    <Compile Include="MapperModelo.cs" />
+    <Compile Include="MapperUnidad.cs" />
+    <Compile Include="MapperChecklistItemTemplate.cs" />
+    <Compile Include="MapperChecklist.cs" />
+    <Compile Include="MapperHistorialUnidad.cs" />
+    <Compile Include="MapperPublicacion.cs" />
+    <Compile Include="MapperImagenUnidad.cs" />
+    <Compile Include="MapperVentaUnidad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

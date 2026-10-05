@@ -29,6 +29,8 @@ namespace UI
             this.pnlAccesosHeader = new System.Windows.Forms.Panel();
             this.lblAccesosTitulo = new System.Windows.Forms.Label();
             this.flowAccesos = new System.Windows.Forms.FlowLayoutPanel();
+            this.btnVerUnidades = new UI.BotonPlano();
+            this.btnVerPublicaciones = new UI.BotonPlano();
             this.btnAcceso1 = new UI.BotonPlano();
             this.btnAcceso2 = new UI.BotonPlano();
 
@@ -136,8 +138,48 @@ namespace UI
             this.flowAccesos.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowAccesos.WrapContents = false;
             this.flowAccesos.Padding = new System.Windows.Forms.Padding(14, 14, 14, 14);
+            this.flowAccesos.Controls.Add(this.btnVerUnidades);
+            this.flowAccesos.Controls.Add(this.btnVerPublicaciones);
             this.flowAccesos.Controls.Add(this.btnAcceso1);
             this.flowAccesos.Controls.Add(this.btnAcceso2);
+
+            //
+            // btnVerUnidades
+            //
+            this.btnVerUnidades.BackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnVerUnidades.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnVerUnidades.FlatAppearance.BorderSize = 0;
+            this.btnVerUnidades.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(215, 228, 250);
+            this.btnVerUnidades.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnVerUnidades.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnVerUnidades.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.btnVerUnidades.ForeColor = System.Drawing.Color.FromArgb(30, 90, 200);
+            this.btnVerUnidades.Margin = new System.Windows.Forms.Padding(0, 0, 0, 10);
+            this.btnVerUnidades.Name = "btnVerUnidades";
+            this.btnVerUnidades.Size = new System.Drawing.Size(280, 40);
+            this.btnVerUnidades.Text = "Ver Unidades";
+            this.btnVerUnidades.UseVisualStyleBackColor = false;
+            this.btnVerUnidades.Visible = false;
+            this.btnVerUnidades.Click += new System.EventHandler(this.btnVerUnidades_Click);
+
+            //
+            // btnVerPublicaciones
+            //
+            this.btnVerPublicaciones.BackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnVerPublicaciones.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnVerPublicaciones.FlatAppearance.BorderSize = 0;
+            this.btnVerPublicaciones.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(215, 228, 250);
+            this.btnVerPublicaciones.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnVerPublicaciones.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnVerPublicaciones.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.btnVerPublicaciones.ForeColor = System.Drawing.Color.FromArgb(30, 90, 200);
+            this.btnVerPublicaciones.Margin = new System.Windows.Forms.Padding(0, 0, 0, 10);
+            this.btnVerPublicaciones.Name = "btnVerPublicaciones";
+            this.btnVerPublicaciones.Size = new System.Drawing.Size(280, 40);
+            this.btnVerPublicaciones.Text = "Ver Publicaciones";
+            this.btnVerPublicaciones.UseVisualStyleBackColor = false;
+            this.btnVerPublicaciones.Visible = false;
+            this.btnVerPublicaciones.Click += new System.EventHandler(this.btnVerPublicaciones_Click);
 
             //
             // btnAcceso1
@@ -215,6 +257,8 @@ namespace UI
         private System.Windows.Forms.Panel pnlAccesosHeader;
         private System.Windows.Forms.Label lblAccesosTitulo;
         private System.Windows.Forms.FlowLayoutPanel flowAccesos;
+        private UI.BotonPlano btnVerUnidades;
+        private UI.BotonPlano btnVerPublicaciones;
         private UI.BotonPlano btnAcceso1;
         private UI.BotonPlano btnAcceso2;
     }

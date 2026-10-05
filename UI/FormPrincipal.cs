@@ -17,6 +17,8 @@ namespace UI
         private readonly IIdiomaService _idiomaService;
         private string _username;
         private bool _loggingOut = false;
+        private bool _puedeConsultarUnidad;
+        private bool _puedeVerPublicaciones;
 
         public FormPrincipal(string username)
         {
@@ -47,6 +49,30 @@ namespace UI
             menuBitacora.Visible = esAdmin || TienePermiso("VER_BITACORA");
             menuMantenimiento.Visible = esAdmin;
 
+            // N01 — Unidades
+            bool puedeRegistrarUnidad = esAdmin || TienePermiso("REGISTRAR_UNIDAD");
+            bool puedeConsultarUnidad = esAdmin || TienePermiso("CONSULTAR_UNIDAD")
+                                        || TienePermiso("REVISAR_UNIDAD") || TienePermiso("EJECUTAR_PREPARACION")
+                                        || TienePermiso("AUTORIZAR_CHECKLIST") || TienePermiso("AUTORIZAR_PUBLICACION");
+            bool puedeTemplate = esAdmin || TienePermiso("GESTIONAR_TEMPLATE_CHECKLIST");
+            bool puedeGestionarMarcas = esAdmin || TienePermiso("GESTIONAR_MARCAS");
+            bool puedeGestionarModelos = esAdmin || TienePermiso("GESTIONAR_MODELOS");
+            bool puedeGestionarPersonas = esAdmin || TienePermiso("GESTIONAR_PERSONAS");
+            menuRegistrarPersona.Visible = puedeGestionarPersonas;
+            menuPersonas.Visible         = puedeGestionarPersonas;
+            menuRegistrarUnidad.Visible = puedeRegistrarUnidad;
+            menuVerUnidades.Visible     = puedeConsultarUnidad;
+            _puedeConsultarUnidad       = puedeConsultarUnidad;
+            menuTemplateChecklist.Visible = puedeTemplate;
+            menuRegistrarMarca.Visible    = puedeGestionarMarcas;
+            menuRegistrarModelo.Visible   = puedeGestionarModelos;
+            menuUnidades.Visible = puedeRegistrarUnidad || puedeConsultarUnidad || puedeTemplate || puedeGestionarMarcas || puedeGestionarModelos;
+
+            // Publicaciones
+            _puedeVerPublicaciones       = esAdmin || TienePermiso("VER_PUBLICACIONES");
+            menuVerPublicaciones.Visible = _puedeVerPublicaciones;
+            menuPublicaciones.Visible    = _puedeVerPublicaciones;
+
             CargarSelectorIdiomas();
             menuSeleccionIdioma.DropDownOpening += (s, e) => CargarSelectorIdiomas();
             try
@@ -59,7 +85,18 @@ namespace UI
                 ActualizarIdioma(null);
             }
 
-            this.Shown += (s, e) => Navegar(new FormHome());
+            this.Shown += (s, e) => Navegar(CrearHome());
+        }
+
+        private FormHome CrearHome()
+        {
+            Action abrirUnidades = null;
+            if (_puedeConsultarUnidad)
+                abrirUnidades = () => Navegar(new FormUnidades());
+            Action abrirPublicaciones = null;
+            if (_puedeVerPublicaciones)
+                abrirPublicaciones = () => Navegar(new FormPublicaciones());
+            return new FormHome(abrirUnidades, abrirPublicaciones);
         }
 
         private void CargarSelectorIdiomas()
@@ -138,6 +175,18 @@ namespace UI
             menuMantenimiento.Text       = Tr("menuMantenimiento",       "Mantenimiento");
             menuLogout.Text              = Tr("menuLogout",              "Logout");
 
+            // N01 — Unidades (i18n pendiente: agregar claves menuUnidades / menuRegistrarUnidad / menuVerUnidades / menuTemplateChecklist)
+            menuUnidades.Text          = Tr("menuUnidades",          "Unidades");
+            menuRegistrarUnidad.Text   = Tr("menuRegistrarUnidad",   "Registrar Unidad");
+            menuVerUnidades.Text       = Tr("menuVerUnidades",       "Ver Unidades");
+            menuTemplateChecklist.Text = Tr("menuTemplateChecklist", "Template de Checklist");
+            menuRegistrarMarca.Text    = Tr("menuRegistrarMarca",    "Registrar Marca");
+            menuRegistrarModelo.Text   = Tr("menuRegistrarModelo",   "Registrar Modelo");
+            menuPersonas.Text          = Tr("menuPersonas",          "Personas");
+            menuRegistrarPersona.Text  = Tr("menuRegistrarPersona",  "Registrar Persona");
+            menuPublicaciones.Text     = Tr("menuPublicaciones",     "Publicaciones");
+            menuVerPublicaciones.Text  = Tr("menuVerPublicaciones",  "Ver Publicaciones");
+
             foreach (ToolStripMenuItem item in menuSeleccionIdioma.DropDownItems)
             {
                 var idi = item.Tag as Idioma;
@@ -173,7 +222,7 @@ namespace UI
 
         private void menuInicio_Click(object sender, EventArgs e)
         {
-            Navegar(new FormHome());
+            Navegar(CrearHome());
         }
 
         private void Navegar(Form destino)
@@ -204,6 +253,28 @@ namespace UI
 
         private void menuGestionIdiomas_Click(object sender, EventArgs e) =>
             Navegar(new FormIdiomas());
+
+        // N01 — Unidades
+        private void menuRegistrarUnidad_Click(object sender, EventArgs e) =>
+            Navegar(new FormRegistrarUnidad());
+
+        private void menuVerUnidades_Click(object sender, EventArgs e) =>
+            Navegar(new FormUnidades());
+
+        private void menuTemplateChecklist_Click(object sender, EventArgs e) =>
+            Navegar(new FormTemplateChecklist());
+
+        private void menuRegistrarMarca_Click(object sender, EventArgs e) =>
+            Navegar(new FormRegistrarMarca());
+
+        private void menuRegistrarModelo_Click(object sender, EventArgs e) =>
+            Navegar(new FormRegistrarModelo());
+
+        private void menuRegistrarPersona_Click(object sender, EventArgs e) =>
+            Navegar(new FormRegistrarPersona());
+
+        private void menuVerPublicaciones_Click(object sender, EventArgs e) =>
+            Navegar(new FormPublicaciones());
 
         private void menuMantenimiento_Click(object sender, EventArgs e)
         {

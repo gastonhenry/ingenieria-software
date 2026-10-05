@@ -20,7 +20,10 @@ namespace BLL
             _verificadores = new List<IVerificadorEntidad>
             {
                 new VerificadorUsuario(),
-                new VerificadorPermiso()
+                new VerificadorPermiso(),
+                new VerificadorPersona(),
+                new VerificadorUnidad(),
+                new VerificadorChecklistItemTemplate()
             };
             _mapperMantenimiento = new MapperMantenimiento();
             _bitacoraService = new BitacoraService();
