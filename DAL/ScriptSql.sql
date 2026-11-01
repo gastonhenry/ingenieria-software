@@ -4361,6 +4361,46 @@ INSERT INTO UsuarioPermiso (UsuarioId, PermisoId)
 SELECT u.Id, p.Id FROM Usuario u, Permiso p
 WHERE u.Username = 'gerente'
   AND p.Codigo IN ('REGISTRAR_ENTREVISTA', 'CONSULTAR_TABLERO_CAPTACION', 'GESTIONAR_AVISOS_CLIENTE');
+
+-- El Comprador también consulta el tablero (solo lectura: sin gestionar avisos ni parámetros).
+INSERT INTO UsuarioPermiso (UsuarioId, PermisoId)
+SELECT u.Id, p.Id FROM Usuario u, Permiso p
+WHERE u.Username = 'comprador' AND p.Codigo = 'CONSULTAR_TABLERO_CAPTACION'
+  AND NOT EXISTS (SELECT 1 FROM UsuarioPermiso x WHERE x.UsuarioId = u.Id AND x.PermisoId = p.Id);
+GO
+
+-- ---------------------------------------------------------
+-- Rol MARKETING y usuario marketing (password '123456789', mismo hash/salt que los demás).
+-- Solo consulta el tablero de captación para decidir y exporta publicaciones a PDF.
+-- Sus permisos (CONSULTAR_TABLERO_CAPTACION, VER_PUBLICACIONES) ya viven bajo otros roles o
+-- son compartidos; como IdPadre es escalar, se asignan directamente al usuario (mismo criterio
+-- que PAUSAR_UNIDAD para el vendedor).
+-- ---------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM Permiso WHERE Codigo = 'MARKETING')
+    INSERT INTO Permiso (Codigo, Descripcion, Tipo) VALUES
+        ('MARKETING', 'Rol de marketing: consulta el tablero de captación y exporta publicaciones a PDF.', 'R');
+
+IF NOT EXISTS (SELECT 1 FROM Usuario WHERE Username = 'marketing')
+BEGIN
+    INSERT INTO Usuario (Username, Hash, Salt, Nombre, Apellido, Email, Telefono, Documento, Domicilio, DVH)
+    VALUES ('marketing',
+            '6e2cdcd54b07b8de670b1583026a554abd84bb7a7fa99b92f85244205cdbeff9',
+            'VQUk8CQ1S2V3oSbMWAp4qg==',
+            'Marketing', 'Comercial', 'marketing@avanti.com', '+54 11 5555-0006', '30123460',
+            'Av. Santa Fe 1800, CABA', NULL);
+
+    INSERT INTO UsuarioHistorial
+        (UsuarioId, Accion, ModificadoPorUsuarioId,
+         Nombre, Apellido, Email, Telefono, Documento, Domicilio, Bloqueado)
+    SELECT Id, N'Alta', NULL, Nombre, Apellido, Email, Telefono, Documento, Domicilio, Bloqueado
+    FROM Usuario WHERE Username = 'marketing';
+END
+
+INSERT INTO UsuarioPermiso (UsuarioId, PermisoId)
+SELECT u.Id, p.Id FROM Usuario u, Permiso p
+WHERE u.Username = 'marketing'
+  AND p.Codigo IN ('MARKETING', 'CONSULTAR_TABLERO_CAPTACION', 'VER_PUBLICACIONES')
+  AND NOT EXISTS (SELECT 1 FROM UsuarioPermiso x WHERE x.UsuarioId = u.Id AND x.PermisoId = p.Id);
 GO
 
 -- ---------------------------------------------------------
