@@ -23,10 +23,15 @@ namespace UI
         private System.Windows.Forms.Label lblFechaNacimiento;
         private System.Windows.Forms.DateTimePicker dtpFechaNacimiento;
         private System.Windows.Forms.Button btnDarDeAlta;
+        private System.Windows.Forms.Button btnNuevo;
         private System.Windows.Forms.Button btnEditar;
         private System.Windows.Forms.Button btnEliminar;
+        private System.Windows.Forms.Button btnExportarPerfil;
+        private System.Windows.Forms.Button btnImportarPerfil;
         private System.Windows.Forms.Label lblExistentes;
+        private System.Windows.Forms.Label lblTituloLista;
         private System.Windows.Forms.ListBox lstPersonas;
+        private System.Windows.Forms.TextBox txtBuscar;
 
         protected override void Dispose(bool disposing)
         {
@@ -55,10 +60,15 @@ namespace UI
             this.lblFechaNacimiento = new System.Windows.Forms.Label();
             this.dtpFechaNacimiento = new System.Windows.Forms.DateTimePicker();
             this.btnDarDeAlta = new System.Windows.Forms.Button();
+            this.btnNuevo = new System.Windows.Forms.Button();
             this.btnEditar = new System.Windows.Forms.Button();
             this.btnEliminar = new System.Windows.Forms.Button();
+            this.btnExportarPerfil = new System.Windows.Forms.Button();
+            this.btnImportarPerfil = new System.Windows.Forms.Button();
             this.lblExistentes = new System.Windows.Forms.Label();
+            this.lblTituloLista = new System.Windows.Forms.Label();
             this.lstPersonas = new System.Windows.Forms.ListBox();
+            this.txtBuscar = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // lblTitulo
@@ -234,6 +244,16 @@ namespace UI
             this.dtpFechaNacimiento.Size = new System.Drawing.Size(354, 26);
             this.dtpFechaNacimiento.TabIndex = 17;
             // 
+            // btnNuevo — limpia la selección y los campos para cargar un alta
+            // 
+            this.btnNuevo.Location = new System.Drawing.Point(610, 81);
+            this.btnNuevo.Margin = new System.Windows.Forms.Padding(4);
+            this.btnNuevo.Name = "btnNuevo";
+            this.btnNuevo.Size = new System.Drawing.Size(141, 37);
+            this.btnNuevo.TabIndex = 17;
+            this.btnNuevo.Text = "Nuevo";
+            this.btnNuevo.Click += new System.EventHandler(this.btnNuevo_Click);
+            // 
             // btnDarDeAlta
             // 
             this.btnDarDeAlta.Location = new System.Drawing.Point(610, 127);
@@ -263,33 +283,73 @@ namespace UI
             this.btnEliminar.TabIndex = 20;
             this.btnEliminar.Text = "Eliminar";
             this.btnEliminar.Click += new System.EventHandler(this.btnEliminar_Click);
+            //
+            // btnExportarPerfil — A02 Serialización
+            //
+            this.btnExportarPerfil.Location = new System.Drawing.Point(610, 311);
+            this.btnExportarPerfil.Margin = new System.Windows.Forms.Padding(4);
+            this.btnExportarPerfil.Name = "btnExportarPerfil";
+            this.btnExportarPerfil.Size = new System.Drawing.Size(190, 37);
+            this.btnExportarPerfil.TabIndex = 23;
+            this.btnExportarPerfil.Text = "Exportar perfil...";
+            this.btnExportarPerfil.Click += new System.EventHandler(this.btnExportarPerfil_Click);
+            //
+            // btnImportarPerfil — A02 Serialización
+            //
+            this.btnImportarPerfil.Location = new System.Drawing.Point(610, 357);
+            this.btnImportarPerfil.Margin = new System.Windows.Forms.Padding(4);
+            this.btnImportarPerfil.Name = "btnImportarPerfil";
+            this.btnImportarPerfil.Size = new System.Drawing.Size(190, 37);
+            this.btnImportarPerfil.TabIndex = 24;
+            this.btnImportarPerfil.Text = "Importar perfil...";
+            this.btnImportarPerfil.Click += new System.EventHandler(this.btnImportarPerfil_Click);
             // 
+            // lblTituloLista
+            //
+            this.lblTituloLista.AutoSize = true;
+            this.lblTituloLista.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblTituloLista.Location = new System.Drawing.Point(836, 20);
+            this.lblTituloLista.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblTituloLista.Name = "lblTituloLista";
+            this.lblTituloLista.Size = new System.Drawing.Size(280, 38);
+            this.lblTituloLista.TabIndex = 26;
+            this.lblTituloLista.Text = "Personas registradas";
+            //
             // lblExistentes
-            // 
+            //
             this.lblExistentes.AutoSize = true;
-            this.lblExistentes.Location = new System.Drawing.Point(26, 465);
+            this.lblExistentes.Location = new System.Drawing.Point(840, 87);
             this.lblExistentes.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblExistentes.Name = "lblExistentes";
             this.lblExistentes.Size = new System.Drawing.Size(163, 20);
             this.lblExistentes.TabIndex = 21;
-            this.lblExistentes.Text = "Personas registradas:";
+            this.lblExistentes.Text = "Buscar por nombre o DNI/CUIT:";
             // 
             // lstPersonas
             // 
             this.lstPersonas.IntegralHeight = false;
             this.lstPersonas.ItemHeight = 20;
-            this.lstPersonas.Location = new System.Drawing.Point(26, 495);
+            this.lstPersonas.Location = new System.Drawing.Point(840, 160);
             this.lstPersonas.Margin = new System.Windows.Forms.Padding(4);
             this.lstPersonas.Name = "lstPersonas";
-            this.lstPersonas.Size = new System.Drawing.Size(725, 320);
+            this.lstPersonas.Size = new System.Drawing.Size(520, 560);
             this.lstPersonas.TabIndex = 22;
             this.lstPersonas.SelectedIndexChanged += new System.EventHandler(this.lstPersonas_SelectedIndexChanged);
+            //
+            // txtBuscar — filtra la lista por nombre o DNI/CUIT
+            //
+            this.txtBuscar.Location = new System.Drawing.Point(840, 117);
+            this.txtBuscar.Margin = new System.Windows.Forms.Padding(4);
+            this.txtBuscar.Name = "txtBuscar";
+            this.txtBuscar.Size = new System.Drawing.Size(520, 26);
+            this.txtBuscar.TabIndex = 25;
+            this.txtBuscar.TextChanged += new System.EventHandler(this.txtBuscar_TextChanged);
             // 
             // FormRegistrarPersona
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(865, 840);
+            this.ClientSize = new System.Drawing.Size(1390, 750);
             this.Controls.Add(this.lblTitulo);
             this.Controls.Add(this.lblTipoPersona);
             this.Controls.Add(this.rbFisica);
@@ -309,10 +369,15 @@ namespace UI
             this.Controls.Add(this.lblFechaNacimiento);
             this.Controls.Add(this.dtpFechaNacimiento);
             this.Controls.Add(this.btnDarDeAlta);
+            this.Controls.Add(this.btnNuevo);
             this.Controls.Add(this.btnEditar);
             this.Controls.Add(this.btnEliminar);
+            this.Controls.Add(this.btnExportarPerfil);
+            this.Controls.Add(this.btnImportarPerfil);
             this.Controls.Add(this.lblExistentes);
+            this.Controls.Add(this.lblTituloLista);
             this.Controls.Add(this.lstPersonas);
+            this.Controls.Add(this.txtBuscar);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FormRegistrarPersona";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;

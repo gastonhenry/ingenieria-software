@@ -405,6 +405,18 @@ namespace UI
             SeleccionarUnidad(u.Id, scroll);
         }
 
+        // Abre el listado con una unidad ya seleccionada (ej. "Ver unidad" desde Publicaciones)
+        // y, una vez visible la pantalla, muestra su detalle.
+        public FormUnidades(int idUnidadInicial) : this()
+        {
+            this.Load += (s, e) => SeleccionarUnidad(idUnidadInicial, -1);
+            this.Shown += (s, e) => BeginInvoke((Action)(() =>
+            {
+                if (UnidadSeleccionada()?.Id == idUnidadInicial)
+                    btnVerDetalle_Click(this, EventArgs.Empty);
+            }));
+        }
+
         // Tras recargar, vuelve a posicionar la grilla en la unidad que estaba seleccionada
         // (si sigue visible con los filtros actuales) y restaura el scroll.
         private void SeleccionarUnidad(int idUnidad, int scrollPrevio)

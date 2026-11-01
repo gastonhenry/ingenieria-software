@@ -45,6 +45,15 @@ GO
 
 -- 3) Drop tablas
 -- N01 primero (dependen de Usuario).
+-- N03 primero (referencian Persona, Unidad, Usuario, Marca y Modelo).
+IF OBJECT_ID('dbo.NotificacionEnviada','U')     IS NOT NULL DROP TABLE dbo.NotificacionEnviada;
+IF OBJECT_ID('dbo.SuspensionAvisos','U')        IS NOT NULL DROP TABLE dbo.SuspensionAvisos;
+IF OBJECT_ID('dbo.BusquedaClienteMarca','U')     IS NOT NULL DROP TABLE dbo.BusquedaClienteMarca;
+IF OBJECT_ID('dbo.BusquedaClienteModelo','U')    IS NOT NULL DROP TABLE dbo.BusquedaClienteModelo;
+IF OBJECT_ID('dbo.BusquedaClienteCarroceria','U') IS NOT NULL DROP TABLE dbo.BusquedaClienteCarroceria;
+IF OBJECT_ID('dbo.BusquedaCliente','U')         IS NOT NULL DROP TABLE dbo.BusquedaCliente;
+IF OBJECT_ID('dbo.ParametrosCaptacion','U')     IS NOT NULL DROP TABLE dbo.ParametrosCaptacion;
+IF OBJECT_ID('dbo.ConfiguracionEmail','U')      IS NOT NULL DROP TABLE dbo.ConfiguracionEmail;
 IF OBJECT_ID('dbo.VentaUnidad','U')            IS NOT NULL DROP TABLE dbo.VentaUnidad;
 IF OBJECT_ID('dbo.ImagenUnidad','U')           IS NOT NULL DROP TABLE dbo.ImagenUnidad;
 IF OBJECT_ID('dbo.PublicacionUnidad','U')      IS NOT NULL DROP TABLE dbo.PublicacionUnidad;
@@ -1494,6 +1503,15 @@ IF OBJECT_ID('dbo.FK_Unidad_Modelo','F')                   IS NOT NULL ALTER TAB
 IF OBJECT_ID('dbo.FK_Modelo_Marca','F')                  IS NOT NULL ALTER TABLE dbo.Modelo                DROP CONSTRAINT FK_Modelo_Marca;
 GO
 
+-- N03 primero (referencian Persona, Unidad, Usuario, Marca y Modelo).
+IF OBJECT_ID('dbo.NotificacionEnviada','U')     IS NOT NULL DROP TABLE dbo.NotificacionEnviada;
+IF OBJECT_ID('dbo.SuspensionAvisos','U')        IS NOT NULL DROP TABLE dbo.SuspensionAvisos;
+IF OBJECT_ID('dbo.BusquedaClienteMarca','U')     IS NOT NULL DROP TABLE dbo.BusquedaClienteMarca;
+IF OBJECT_ID('dbo.BusquedaClienteModelo','U')    IS NOT NULL DROP TABLE dbo.BusquedaClienteModelo;
+IF OBJECT_ID('dbo.BusquedaClienteCarroceria','U') IS NOT NULL DROP TABLE dbo.BusquedaClienteCarroceria;
+IF OBJECT_ID('dbo.BusquedaCliente','U')         IS NOT NULL DROP TABLE dbo.BusquedaCliente;
+IF OBJECT_ID('dbo.ParametrosCaptacion','U')     IS NOT NULL DROP TABLE dbo.ParametrosCaptacion;
+IF OBJECT_ID('dbo.ConfiguracionEmail','U')      IS NOT NULL DROP TABLE dbo.ConfiguracionEmail;
 IF OBJECT_ID('dbo.VentaUnidad','U')            IS NOT NULL DROP TABLE dbo.VentaUnidad;
 IF OBJECT_ID('dbo.ImagenUnidad','U')           IS NOT NULL DROP TABLE dbo.ImagenUnidad;
 IF OBJECT_ID('dbo.PublicacionUnidad','U')      IS NOT NULL DROP TABLE dbo.PublicacionUnidad;
@@ -1907,6 +1925,19 @@ BEGIN
     FROM Persona
     WHERE Documento LIKE N'%' + @Fragmento + N'%'
     ORDER BY Documento ASC;
+END
+GO
+
+-- N03: búsqueda de persona por documento o nombre (parcial), usada en la entrevista de captación.
+CREATE OR ALTER PROCEDURE [dbo].[BuscarPersonasPorDocumentoONombre]
+    @Texto NVARCHAR(150)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT Id, TipoPersona, Documento, Nombre, Domicilio, Telefono, Email, EstadoCivil, FechaNacimiento, DVH
+    FROM Persona
+    WHERE Documento LIKE N'%' + @Texto + N'%' OR Nombre LIKE N'%' + @Texto + N'%'
+    ORDER BY Nombre ASC;
 END
 GO
 
@@ -3179,7 +3210,9 @@ INSERT INTO @ctrlRegP (Codigo, Es, En, De) VALUES
     (N'btnDarDeAlta',        N'Dar de alta',                                         N'Add',                                                   N'Hinzufügen'),
     (N'btnEditar',           N'Editar',                                               N'Edit',                                                  N'Bearbeiten'),
     (N'btnEliminar',         N'Eliminar',                                             N'Delete',                                                N'Löschen'),
-    (N'lblExistentes',       N'Personas registradas:',                               N'Registered people:',                                    N'Registrierte Personen:'),
+    (N'btnNuevo',            N'Nuevo',                                                N'New',                                                   N'Neu'),
+    (N'lblTituloLista',      N'Personas registradas', N'Registered people', N'Registrierte Personen'),
+    (N'lblExistentes',       N'Buscar por nombre o DNI/CUIT:', N'Search by name or ID:', N'Suche nach Name oder Nummer:'),
     (N'msgSinPermiso',       N'No tenés permiso para dar de alta personas.',         N'You do not have permission to add people.',             N'Du hast keine Berechtigung, Personen anzulegen.'),
     (N'msgAccesoDenegado',   N'Acceso denegado',                                     N'Access denied',                                         N'Zugriff verweigert'),
     (N'msgCamposVacios',     N'Completá nombre, documento y domicilio.',             N'Fill in name, document and address.',                   N'Fülle Name, Dokument und Adresse aus.'),
@@ -3730,9 +3763,10 @@ DECLARE @ctrlVend TABLE (Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(100
 INSERT INTO @ctrlVend (Codigo, Es, En, De) VALUES
     (N'title',                   N'Vender', N'Sell', N'Verkaufen'),
     (N'lblTitulo',               N'Registrar venta', N'Register sale', N'Verkauf erfassen'),
-    (N'lblDocBusqueda',          N'Comprador (DNI/CUIT):', N'Buyer (ID/Tax ID):', N'Käufer (Ausweis/Steuer-Nr.):'),
+    (N'lblDocBusqueda',          N'Nombre o DNI/CUIT:', N'Name or ID:', N'Name oder Nummer:'),
     (N'btnBuscar',               N'Buscar', N'Search', N'Suchen'),
     (N'lblCoincidencias',        N'Coincidencias:', N'Matches:', N'Treffer:'),
+    (N'lblReservadaPor',         N'Unidad reservada por (solo se le puede vender a esta persona):', N'Unit reserved by (it can only be sold to this person):', N'Einheit reserviert von (kann nur an diese Person verkauft werden):'),
     (N'lblFecha',                N'Fecha:', N'Date:', N'Datum:'),
     (N'lblPrecio',               N'Precio final ($):', N'Final price ($):', N'Endpreis ($):'),
     (N'lblDescripcion',          N'Descripción:', N'Description:', N'Beschreibung:'),
@@ -3740,7 +3774,7 @@ INSERT INTO @ctrlVend (Codigo, Es, En, De) VALUES
     (N'btnCancelar',             N'Cancelar', N'Cancel', N'Abbrechen'),
     (N'tipoFisica',              N'Física', N'Individual', N'Natürlich'),
     (N'tipoJuridica',            N'Jurídica', N'Company', N'Juristisch'),
-    (N'msgSinCoincidencias',     N'No se encontraron personas con ese documento.', N'No people found with that document.', N'Keine Personen mit diesem Dokument gefunden.'),
+    (N'msgSinCoincidencias',     N'No se encontraron personas con ese nombre o DNI/CUIT.', N'No people found with that name or ID.', N'Keine Personen mit diesem Namen oder dieser Nummer gefunden.'),
     (N'msgSeleccionarComprador', N'Buscá y seleccioná la persona compradora.', N'Search and select the buyer.', N'Suche und wähle den Käufer aus.'),
     (N'msgPrecioInvalido',       N'Precio final inválido.', N'Invalid final price.', N'Ungültiger Endpreis.'),
     (N'msgInformacion',          N'Info', N'Info', N'Info'),
@@ -3779,7 +3813,7 @@ DECLARE @ctrlRes TABLE (Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000
 INSERT INTO @ctrlRes (Codigo, Es, En, De) VALUES
     (N'title',                   N'Reservar', N'Reserve', N'Reservieren'),
     (N'lblTitulo',               N'Reservar unidad', N'Reserve unit', N'Einheit reservieren'),
-    (N'lblDocBusqueda',          N'Comprador (DNI/CUIT):', N'Buyer (ID/Tax ID):', N'Käufer (Ausweis/Steuer-Nr.):'),
+    (N'lblDocBusqueda',          N'Nombre o DNI/CUIT:', N'Name or ID:', N'Name oder Nummer:'),
     (N'btnBuscar',               N'Buscar', N'Search', N'Suchen'),
     (N'lblCoincidencias',        N'Coincidencias:', N'Matches:', N'Treffer:'),
     (N'lblFecha',                N'Fecha operación:', N'Operation date:', N'Vorgangsdatum:'),
@@ -3791,7 +3825,7 @@ INSERT INTO @ctrlRes (Codigo, Es, En, De) VALUES
     (N'btnCancelar',             N'Cancelar', N'Cancel', N'Abbrechen'),
     (N'tipoFisica',              N'Física', N'Individual', N'Natürlich'),
     (N'tipoJuridica',            N'Jurídica', N'Company', N'Juristisch'),
-    (N'msgSinCoincidencias',     N'No se encontraron personas con ese documento.', N'No people found with that document.', N'Keine Personen mit diesem Dokument gefunden.'),
+    (N'msgSinCoincidencias',     N'No se encontraron personas con ese nombre o DNI/CUIT.', N'No people found with that name or ID.', N'Keine Personen mit diesem Namen oder dieser Nummer gefunden.'),
     (N'msgSeleccionarComprador', N'Buscá y seleccioná la persona compradora.', N'Search and select the buyer.', N'Suche und wähle den Käufer aus.'),
     (N'msgPrecioInvalido',       N'Precio acordado inválido.', N'Invalid agreed price.', N'Ungültiger vereinbarter Preis.'),
     (N'msgSenaInvalida',         N'La seña debe ser mayor a cero y menor o igual al precio acordado.', N'The deposit must be greater than zero and not exceed the agreed price.', N'Die Anzahlung muss größer als null sein und darf den vereinbarten Preis nicht übersteigen.'),
@@ -3896,4 +3930,1624 @@ UNION ALL
 SELECT @idDeRegUFix, x.Id, t.De FROM @ctrlRegUFix t
 INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = @formRegUFix
 WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDeRegUFix AND y.IdControl = x.Id);
+GO
+
+-- =========================================================
+-- N03 — Gestión de captación de clientes potenciales
+-- Tablas + SPs + permisos + seed. Los drops están al principio del script.
+-- =========================================================
+
+CREATE TABLE [dbo].[ParametrosCaptacion](
+    [Id]                        [int] NOT NULL DEFAULT 1,
+    [NotificacionesActivas]     [bit] NOT NULL DEFAULT 1,   -- interruptor global del envío de avisos
+    [DiasVigenciaBusqueda]      [int] NOT NULL DEFAULT 90,
+    [DiasAlertaSinInteresados]  [int] NOT NULL DEFAULT 30,
+    CONSTRAINT [PK_ParametrosCaptacion]    PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [CK_ParametrosCaptacion_Id] CHECK ([Id] = 1)     -- registro único
+)
+GO
+
+CREATE TABLE [dbo].[BusquedaCliente](
+    [Id]                  [int]            IDENTITY(1,1) NOT NULL,
+    [IdPersona]           [int]            NOT NULL,
+    [IdUsuarioEntrevista] [int]            NOT NULL,
+    [FechaRegistro]       [datetime]       NOT NULL DEFAULT GETDATE(),
+    [FechaVencimiento]    [datetime]       NOT NULL,
+    [AnioDesde]           [int]            NULL,
+    [AnioHasta]           [int]            NULL,
+    [PrecioMaximo]        [decimal](18,2)  NULL,
+    [Observaciones]       [nvarchar](1000) NULL,
+    [AceptaAvisos]        [bit]            NOT NULL DEFAULT 0,
+    [Estado]              [int]            NOT NULL DEFAULT 1,   -- 1=Activa, 2=Cerrada, 3=Vencida
+    [FechaCierre]         [datetime]       NULL,
+    [MotivoCierre]        [nvarchar](500)  NULL,
+    CONSTRAINT [PK_BusquedaCliente]          PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_BusquedaCliente_Persona]  FOREIGN KEY ([IdPersona])           REFERENCES [dbo].[Persona]([Id]),
+    CONSTRAINT [FK_BusquedaCliente_Usuario]  FOREIGN KEY ([IdUsuarioEntrevista]) REFERENCES [dbo].[Usuario]([Id])
+)
+GO
+
+-- Criterios multiselección de la búsqueda (sin filas = "cualquiera").
+CREATE TABLE [dbo].[BusquedaClienteMarca](
+    [IdBusqueda] [int] NOT NULL,
+    [IdMarca]    [int] NOT NULL,
+    CONSTRAINT [PK_BusquedaClienteMarca]          PRIMARY KEY CLUSTERED ([IdBusqueda], [IdMarca]),
+    CONSTRAINT [FK_BusquedaClienteMarca_Busqueda] FOREIGN KEY ([IdBusqueda]) REFERENCES [dbo].[BusquedaCliente]([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_BusquedaClienteMarca_Marca]    FOREIGN KEY ([IdMarca])    REFERENCES [dbo].[Marca]([Id])
+)
+GO
+
+-- Los modelos elegidos restringen su marca a esos modelos (las demás marcas elegidas aceptan cualquier modelo).
+CREATE TABLE [dbo].[BusquedaClienteModelo](
+    [IdBusqueda] [int] NOT NULL,
+    [IdModelo]   [int] NOT NULL,
+    CONSTRAINT [PK_BusquedaClienteModelo]          PRIMARY KEY CLUSTERED ([IdBusqueda], [IdModelo]),
+    CONSTRAINT [FK_BusquedaClienteModelo_Busqueda] FOREIGN KEY ([IdBusqueda]) REFERENCES [dbo].[BusquedaCliente]([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_BusquedaClienteModelo_Modelo]   FOREIGN KEY ([IdModelo])   REFERENCES [dbo].[Modelo]([Id])
+)
+GO
+
+CREATE TABLE [dbo].[BusquedaClienteCarroceria](
+    [IdBusqueda]     [int] NOT NULL,
+    [TipoCarroceria] [int] NOT NULL,          -- ver enum BE.Enums.TipoCarroceria
+    CONSTRAINT [PK_BusquedaClienteCarroceria]          PRIMARY KEY CLUSTERED ([IdBusqueda], [TipoCarroceria]),
+    CONSTRAINT [FK_BusquedaClienteCarroceria_Busqueda] FOREIGN KEY ([IdBusqueda]) REFERENCES [dbo].[BusquedaCliente]([Id]) ON DELETE CASCADE
+)
+GO
+
+CREATE TABLE [dbo].[SuspensionAvisos](
+    [IdPersona]       [int]           NOT NULL,
+    [FechaSuspension] [datetime]      NOT NULL DEFAULT GETDATE(),
+    [IdUsuario]       [int]           NOT NULL,
+    [Motivo]          [nvarchar](500) NULL,
+    CONSTRAINT [PK_SuspensionAvisos]         PRIMARY KEY CLUSTERED ([IdPersona] ASC),
+    CONSTRAINT [FK_SuspensionAvisos_Persona] FOREIGN KEY ([IdPersona]) REFERENCES [dbo].[Persona]([Id]),
+    CONSTRAINT [FK_SuspensionAvisos_Usuario] FOREIGN KEY ([IdUsuario]) REFERENCES [dbo].[Usuario]([Id])
+)
+GO
+
+CREATE TABLE [dbo].[NotificacionEnviada](
+    [Id]          [int]            IDENTITY(1,1) NOT NULL,
+    [IdBusqueda]  [int]            NOT NULL,
+    [IdPersona]   [int]            NOT NULL,
+    [IdUnidad]    [int]            NOT NULL,
+    [FechaEnvio]  [datetime]       NOT NULL DEFAULT GETDATE(),
+    [Exitoso]     [bit]            NOT NULL,
+    [Error]       [nvarchar](1000) NULL,
+    CONSTRAINT [PK_NotificacionEnviada]          PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_NotificacionEnviada_Busqueda] FOREIGN KEY ([IdBusqueda]) REFERENCES [dbo].[BusquedaCliente]([Id]),
+    CONSTRAINT [FK_NotificacionEnviada_Persona]  FOREIGN KEY ([IdPersona])  REFERENCES [dbo].[Persona]([Id]),
+    CONSTRAINT [FK_NotificacionEnviada_Unidad]   FOREIGN KEY ([IdUnidad])   REFERENCES [dbo].[Unidad]([Id]) ON DELETE CASCADE
+)
+GO
+
+-- ---------------------------------------------------------
+-- SPs — ParametrosCaptacion
+-- ---------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE [dbo].[ObtenerParametrosCaptacion]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM ParametrosCaptacion) INSERT INTO ParametrosCaptacion (Id) VALUES (1);
+    SELECT NotificacionesActivas, DiasVigenciaBusqueda, DiasAlertaSinInteresados FROM ParametrosCaptacion WHERE Id = 1;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[ActualizarParametrosCaptacion]
+    @NotificacionesActivas    BIT,
+    @DiasVigenciaBusqueda     INT,
+    @DiasAlertaSinInteresados INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM ParametrosCaptacion) INSERT INTO ParametrosCaptacion (Id) VALUES (1);
+    UPDATE ParametrosCaptacion
+       SET NotificacionesActivas    = @NotificacionesActivas,
+           DiasVigenciaBusqueda     = @DiasVigenciaBusqueda,
+           DiasAlertaSinInteresados = @DiasAlertaSinInteresados
+     WHERE Id = 1;
+END
+GO
+
+-- ---------------------------------------------------------
+-- SPs — BusquedaCliente
+-- ---------------------------------------------------------
+
+-- Marcas, modelos y carrocerías llegan como listas separadas por coma ('3,7,12'); vacío/NULL = cualquiera.
+CREATE OR ALTER PROCEDURE [dbo].[InsertarBusquedaCliente]
+    @IdPersona           INT,
+    @IdUsuarioEntrevista INT,
+    @FechaVencimiento    DATETIME,
+    @Marcas              NVARCHAR(MAX)  = NULL,
+    @Modelos             NVARCHAR(MAX)  = NULL,
+    @Carrocerias         NVARCHAR(MAX)  = NULL,
+    @AnioDesde           INT            = NULL,
+    @AnioHasta           INT            = NULL,
+    @PrecioMaximo        DECIMAL(18,2)  = NULL,
+    @Observaciones       NVARCHAR(1000) = NULL,
+    @AceptaAvisos        BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+
+    INSERT INTO BusquedaCliente (IdPersona, IdUsuarioEntrevista, FechaVencimiento,
+                                 AnioDesde, AnioHasta, PrecioMaximo, Observaciones, AceptaAvisos, Estado)
+    VALUES (@IdPersona, @IdUsuarioEntrevista, @FechaVencimiento,
+            @AnioDesde, @AnioHasta, @PrecioMaximo, @Observaciones, @AceptaAvisos, 1);
+    DECLARE @Id INT = CAST(SCOPE_IDENTITY() AS INT);
+
+    INSERT INTO BusquedaClienteMarca (IdBusqueda, IdMarca)
+    SELECT DISTINCT @Id, CAST(value AS INT) FROM STRING_SPLIT(ISNULL(@Marcas, N''), ',') WHERE LTRIM(value) <> N'';
+    INSERT INTO BusquedaClienteModelo (IdBusqueda, IdModelo)
+    SELECT DISTINCT @Id, CAST(value AS INT) FROM STRING_SPLIT(ISNULL(@Modelos, N''), ',') WHERE LTRIM(value) <> N'';
+    INSERT INTO BusquedaClienteCarroceria (IdBusqueda, TipoCarroceria)
+    SELECT DISTINCT @Id, CAST(value AS INT) FROM STRING_SPLIT(ISNULL(@Carrocerias, N''), ',') WHERE LTRIM(value) <> N'';
+
+    COMMIT TRANSACTION;
+    SELECT @Id;
+END
+GO
+
+-- Listado de búsquedas con datos de la persona, entrevistador y suspensión de avisos.
+-- Los criterios multiselección se leen con ListarCriteriosBusquedaCliente (mismos filtros).
+CREATE OR ALTER PROCEDURE [dbo].[ListarBusquedasCliente]
+    @Estado    INT = NULL,     -- NULL = todas
+    @IdPersona INT = NULL      -- NULL = todas las personas
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT b.Id, b.IdPersona, pe.Nombre AS ClienteNombre, pe.Documento AS ClienteDocumento, pe.TipoPersona AS ClienteTipo,
+           pe.Telefono AS ClienteTelefono, pe.Email AS ClienteEmail,
+           b.IdUsuarioEntrevista, us.Username AS EntrevistadorUsername,
+           b.FechaRegistro, b.FechaVencimiento,
+           b.AnioDesde, b.AnioHasta, b.PrecioMaximo, b.Observaciones,
+           b.AceptaAvisos, b.Estado, b.FechaCierre, b.MotivoCierre,
+           CAST(CASE WHEN sa.IdPersona IS NULL THEN 0 ELSE 1 END AS BIT) AS AvisosSuspendidos
+    FROM BusquedaCliente b
+    INNER JOIN Persona pe ON pe.Id = b.IdPersona
+    INNER JOIN Usuario us ON us.Id = b.IdUsuarioEntrevista
+    LEFT  JOIN SuspensionAvisos sa ON sa.IdPersona = b.IdPersona
+    WHERE (@Estado IS NULL OR b.Estado = @Estado)
+      AND (@IdPersona IS NULL OR b.IdPersona = @IdPersona)
+    ORDER BY b.FechaRegistro DESC;
+END
+GO
+
+-- Criterios de las búsquedas: Criterio 'MA' (marca), 'MO' (modelo, con su marca) o 'CA' (carrocería).
+CREATE OR ALTER PROCEDURE [dbo].[ListarCriteriosBusquedaCliente]
+    @Estado    INT = NULL,
+    @IdPersona INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT bm.IdBusqueda, N'MA' AS Criterio, ma.Id AS Valor, ma.Nombre AS Nombre, ma.Id AS IdMarca, ma.Nombre AS MarcaNombre
+    FROM BusquedaClienteMarca bm
+    INNER JOIN BusquedaCliente b ON b.Id = bm.IdBusqueda
+    INNER JOIN Marca ma ON ma.Id = bm.IdMarca
+    WHERE (@Estado IS NULL OR b.Estado = @Estado) AND (@IdPersona IS NULL OR b.IdPersona = @IdPersona)
+    UNION ALL
+    SELECT bo.IdBusqueda, N'MO', mo.Id, mo.Nombre, ma.Id, ma.Nombre
+    FROM BusquedaClienteModelo bo
+    INNER JOIN BusquedaCliente b ON b.Id = bo.IdBusqueda
+    INNER JOIN Modelo mo ON mo.Id = bo.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+    WHERE (@Estado IS NULL OR b.Estado = @Estado) AND (@IdPersona IS NULL OR b.IdPersona = @IdPersona)
+    UNION ALL
+    SELECT bc.IdBusqueda, N'CA', bc.TipoCarroceria, NULL, NULL, NULL
+    FROM BusquedaClienteCarroceria bc
+    INNER JOIN BusquedaCliente b ON b.Id = bc.IdBusqueda
+    WHERE (@Estado IS NULL OR b.Estado = @Estado) AND (@IdPersona IS NULL OR b.IdPersona = @IdPersona)
+    ORDER BY 1, 2, 4;
+END
+GO
+
+-- Personas que tienen al menos una búsqueda registrada, filtradas por documento o nombre (parcial).
+CREATE OR ALTER PROCEDURE [dbo].[BuscarPersonasConBusquedas]
+    @Texto NVARCHAR(150)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT DISTINCT pe.Id, pe.TipoPersona, pe.Documento, pe.Nombre, pe.Telefono, pe.Email
+    FROM Persona pe
+    INNER JOIN BusquedaCliente b ON b.IdPersona = pe.Id
+    WHERE pe.Documento LIKE N'%' + @Texto + N'%' OR pe.Nombre LIKE N'%' + @Texto + N'%'
+    ORDER BY pe.Nombre;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[CerrarBusquedaCliente]
+    @Id     INT,
+    @Motivo NVARCHAR(500) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE BusquedaCliente SET Estado = 2, FechaCierre = GETDATE(), MotivoCierre = @Motivo
+     WHERE Id = @Id AND Estado = 1;
+END
+GO
+
+-- RN-N03-08: las búsquedas activas cuyo plazo se cumplió pasan a Vencida.
+CREATE OR ALTER PROCEDURE [dbo].[VencerBusquedasCliente]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE BusquedaCliente SET Estado = 3, FechaCierre = GETDATE(), MotivoCierre = N'Vencimiento automático.'
+     WHERE Estado = 1 AND FechaVencimiento < GETDATE();
+    SELECT @@ROWCOUNT;
+END
+GO
+
+-- ---------------------------------------------------------
+-- SPs — SuspensionAvisos
+-- ---------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE [dbo].[SuspenderAvisosCliente]
+    @IdPersona INT,
+    @IdUsuario INT,
+    @Motivo    NVARCHAR(500) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM SuspensionAvisos WHERE IdPersona = @IdPersona)
+        INSERT INTO SuspensionAvisos (IdPersona, IdUsuario, Motivo) VALUES (@IdPersona, @IdUsuario, @Motivo);
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[ReanudarAvisosCliente]
+    @IdPersona INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DELETE FROM SuspensionAvisos WHERE IdPersona = @IdPersona;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[ObtenerSuspensionAvisos]
+    @IdPersona INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT sa.IdPersona, sa.FechaSuspension, sa.IdUsuario, us.Username, sa.Motivo
+    FROM SuspensionAvisos sa
+    INNER JOIN Usuario us ON us.Id = sa.IdUsuario
+    WHERE sa.IdPersona = @IdPersona;
+END
+GO
+
+-- ---------------------------------------------------------
+-- SPs — NotificacionEnviada
+-- ---------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE [dbo].[InsertarNotificacionEnviada]
+    @IdBusqueda INT,
+    @IdPersona  INT,
+    @IdUnidad   INT,
+    @Exitoso    BIT,
+    @Error      NVARCHAR(1000) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO NotificacionEnviada (IdBusqueda, IdPersona, IdUnidad, Exitoso, Error)
+    VALUES (@IdBusqueda, @IdPersona, @IdUnidad, @Exitoso, @Error);
+    SELECT CAST(SCOPE_IDENTITY() AS INT);
+END
+GO
+
+-- RN-N03-05: un cliente no recibe más de un aviso exitoso por la misma unidad.
+CREATE OR ALTER PROCEDURE [dbo].[ExisteNotificacionExitosa]
+    @IdPersona INT,
+    @IdUnidad  INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT CASE WHEN EXISTS (SELECT 1 FROM NotificacionEnviada
+                             WHERE IdPersona = @IdPersona AND IdUnidad = @IdUnidad AND Exitoso = 1)
+                THEN 1 ELSE 0 END;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[ListarNotificaciones]
+    @Desde     DATETIME = NULL,
+    @Hasta     DATETIME = NULL,
+    @IdPersona INT      = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT n.Id, n.IdBusqueda, n.IdPersona, n.IdUnidad, n.FechaEnvio, n.Exitoso, n.Error,
+           pe.Nombre AS ClienteNombre, pe.Documento AS ClienteDocumento, pe.Email AS ClienteEmail,
+           ma.Nombre + N' ' + mo.Nombre + N' ' + CAST(u.Anio AS NVARCHAR(4)) + N' (' + u.Dominio + N')' AS Unidad
+    FROM NotificacionEnviada n
+    INNER JOIN Persona pe ON pe.Id = n.IdPersona
+    INNER JOIN Unidad  u  ON u.Id  = n.IdUnidad
+    INNER JOIN Modelo  mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca   ma ON ma.Id = mo.IdMarca
+    WHERE (@Desde IS NULL OR n.FechaEnvio >= @Desde)
+      AND (@Hasta IS NULL OR n.FechaEnvio <  @Hasta)
+      AND (@IdPersona IS NULL OR n.IdPersona = @IdPersona)
+    ORDER BY n.FechaEnvio DESC;
+END
+GO
+
+-- ---------------------------------------------------------
+-- SPs — Tablero de captación
+-- ---------------------------------------------------------
+
+-- Unidades En venta (5) con los datos de matching y la fecha en que pasaron a En venta.
+-- @IdUnidad opcional: si se informa, devuelve esa unidad sin filtrar por estado.
+CREATE OR ALTER PROCEDURE [dbo].[ListarUnidadesEnVentaCaptacion]
+    @IdUnidad INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT u.Id AS IdUnidad, u.Dominio, ma.Id AS IdMarca, ma.Nombre AS Marca, mo.Id AS IdModelo, mo.Nombre AS Modelo,
+           mo.TipoCarroceria, u.Anio, u.Kilometraje, p.PrecioPublicacion,
+           ISNULL((SELECT MAX(h.FechaHora) FROM HistorialEstadoUnidad h
+                   WHERE h.IdUnidad = u.Id AND h.EstadoDestino = 5), u.FechaIngreso) AS FechaEnVenta
+    FROM Unidad u
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+    LEFT  JOIN PublicacionUnidad p ON p.IdUnidad = u.Id
+    WHERE (@IdUnidad IS NULL AND u.EstadoActual = 5)
+       OR (u.Id = @IdUnidad);
+END
+GO
+
+-- Conversión: clientes avisados con éxito en el período que después registraron una compra.
+CREATE OR ALTER PROCEDURE [dbo].[ListarConversionesCaptacion]
+    @Desde DATETIME,
+    @Hasta DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+    WITH Avisados AS (
+        SELECT IdPersona, MIN(FechaEnvio) AS PrimerAviso
+        FROM NotificacionEnviada
+        WHERE Exitoso = 1 AND FechaEnvio >= @Desde AND FechaEnvio < @Hasta
+        GROUP BY IdPersona
+    )
+    SELECT a.IdPersona, pe.Nombre AS ClienteNombre,
+           ma.Nombre + N' ' + mo.Nombre + N' ' + CAST(u.Anio AS NVARCHAR(4)) + N' (' + u.Dominio + N')' AS UnidadComprada,
+           v.FechaOperacion AS FechaVenta, v.PrecioAcordado AS Precio,
+           -- Último aviso exitoso del período anterior a la compra.
+           (SELECT MAX(n.FechaEnvio) FROM NotificacionEnviada n
+             WHERE n.IdPersona = a.IdPersona AND n.Exitoso = 1
+               AND n.FechaEnvio >= @Desde AND n.FechaEnvio <= v.FechaOperacion) AS FechaAviso
+    FROM Avisados a
+    INNER JOIN Persona pe ON pe.Id = a.IdPersona
+    CROSS APPLY (SELECT TOP 1 vu.IdUnidad, vu.FechaOperacion, vu.PrecioAcordado FROM VentaUnidad vu
+                 WHERE vu.IdPersonaComprador = a.IdPersona AND vu.Tipo = 1 AND vu.FechaOperacion >= a.PrimerAviso
+                 ORDER BY vu.FechaOperacion) v
+    INNER JOIN Unidad u  ON u.Id  = v.IdUnidad
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+    ORDER BY v.FechaOperacion DESC;
+END
+GO
+
+-- Cantidad de clientes distintos avisados con éxito en el período (denominador de la conversión).
+CREATE OR ALTER PROCEDURE [dbo].[ContarClientesAvisados]
+    @Desde DATETIME,
+    @Hasta DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT COUNT(DISTINCT IdPersona) FROM NotificacionEnviada
+    WHERE Exitoso = 1 AND FechaEnvio >= @Desde AND FechaEnvio < @Hasta;
+END
+GO
+
+-- ---------------------------------------------------------
+-- Seed — Permisos N03
+-- ---------------------------------------------------------
+
+INSERT INTO Permiso (Codigo, Descripcion, Tipo) VALUES
+    ('REGISTRAR_ENTREVISTA',           'Habilita registrar entrevistas de clientes potenciales.',             'I'),
+    ('CONSULTAR_TABLERO_CAPTACION',    'Habilita consultar el tablero de captación de clientes.',             'I'),
+    ('GESTIONAR_AVISOS_CLIENTE',       'Habilita suspender/reanudar avisos a un cliente y cerrar búsquedas.', 'I'),
+    ('GESTIONAR_PARAMETROS_CAPTACION', 'Habilita configurar los parámetros de captación (envío de avisos).',  'I')
+GO
+
+-- VENDEDOR: entrevista, tablero y avisos. GERENTE: parámetros.
+UPDATE Permiso SET IdPadre = (SELECT Id FROM Permiso WHERE Codigo = 'VENDEDOR')
+    WHERE Codigo IN ('REGISTRAR_ENTREVISTA', 'CONSULTAR_TABLERO_CAPTACION', 'GESTIONAR_AVISOS_CLIENTE');
+UPDATE Permiso SET IdPadre = (SELECT Id FROM Permiso WHERE Codigo = 'GERENTE')
+    WHERE Codigo = 'GESTIONAR_PARAMETROS_CAPTACION';
+
+-- El Gerente además puede hacer todo lo del Vendedor (mismo criterio que en N02).
+INSERT INTO UsuarioPermiso (UsuarioId, PermisoId)
+SELECT u.Id, p.Id FROM Usuario u, Permiso p
+WHERE u.Username = 'gerente'
+  AND p.Codigo IN ('REGISTRAR_ENTREVISTA', 'CONSULTAR_TABLERO_CAPTACION', 'GESTIONAR_AVISOS_CLIENTE');
+GO
+
+-- ---------------------------------------------------------
+-- Seed — Parámetros y búsquedas de ejemplo
+-- La cuenta de email saliente se configura en Mantenimiento → Configurar cuenta email
+-- (tabla ConfiguracionEmail).
+-- ---------------------------------------------------------
+
+INSERT INTO ParametrosCaptacion (Id, NotificacionesActivas, DiasVigenciaBusqueda, DiasAlertaSinInteresados)
+VALUES (1, 1, 90, 30);
+GO
+
+DECLARE @IdVendedorN03 INT = (SELECT Id FROM Usuario WHERE Username = 'vendedor');
+
+-- Una búsqueda por persona en el seed (los criterios se cargan abajo, por documento).
+INSERT INTO BusquedaCliente (IdPersona, IdUsuarioEntrevista, FechaRegistro, FechaVencimiento,
+                             AnioDesde, AnioHasta, PrecioMaximo, Observaciones, AceptaAvisos, Estado, FechaCierre, MotivoCierre)
+SELECT pe.Id, @IdVendedorN03,
+       DATEADD(DAY, -v.DiasRegistro, GETDATE()), DATEADD(DAY, 90 - v.DiasRegistro, GETDATE()),
+       v.AnioDesde, v.AnioHasta, v.PrecioMax, v.Obs, v.Acepta, v.Estado,
+       CASE WHEN v.Estado = 1 THEN NULL ELSE DATEADD(DAY, -2, GETDATE()) END,
+       CASE v.Estado WHEN 2 THEN N'El cliente indicó que ya no busca.' WHEN 3 THEN N'Vencimiento automático.' ELSE NULL END
+FROM (VALUES
+    -- SUV: coincide hoy con la Kia Sportage y, al publicarse, con el Jeep Compass.
+    (N'20123456', 2018, NULL, 18000000.00, N'Busca SUV familiar, automática si es posible.', 1, 1, 12),
+    -- Toyota o Volkswagen: coincide con el Toyota Yaris.
+    (N'27234567', 2019, NULL, 12000000.00, N'Prefiere Toyota o VW por la reventa.',          1, 1, 20),
+    -- Toyota Hilux o Ford Ranger: hoy no hay ninguna en venta (están en preparación).
+    (N'30345678', 2018, NULL, NULL,        N'Pickup para trabajo, 4x4.',                     1, 1, 5),
+    -- Hatchback o Sedán: coincide con el Peugeot 308 y el Yaris.
+    (N'25456789', NULL, NULL, 13000000.00, NULL,                                             1, 1, 30),
+    -- Mercedes-Benz Clase A: coincide pero no aceptó avisos.
+    (N'28678901', 2020, NULL, NULL,        N'Solo quiere que lo llamen, sin mails.',         0, 1, 7),
+    -- SUV con avisos suspendidos (ver SuspensionAvisos más abajo).
+    (N'32567890', NULL, NULL, 20000000.00, NULL,                                             1, 1, 40),
+    -- Sedán o Coupe: coincide con el BMW Serie 3 cuando se publique.
+    (N'34901234', 2019, NULL, NULL,        N'Sedán premium.',                                1, 1, 3),
+    -- Vencida y cerrada, para mostrar los otros estados.
+    (N'33789012', NULL, NULL, NULL,        NULL,                                             1, 3, 120),
+    (N'29012345', NULL, NULL, 9000000.00,  NULL,                                             1, 2, 15)
+) AS v(Documento, AnioDesde, AnioHasta, PrecioMax, Obs, Acepta, Estado, DiasRegistro)
+INNER JOIN Persona pe ON pe.Documento = v.Documento;
+
+INSERT INTO BusquedaClienteMarca (IdBusqueda, IdMarca)
+SELECT b.Id, ma.Id
+FROM (VALUES (N'27234567', N'Toyota'), (N'27234567', N'Volkswagen'),
+             (N'30345678', N'Toyota'), (N'30345678', N'Ford'),
+             (N'28678901', N'Mercedes-Benz'),
+             (N'33789012', N'Ford')) AS v(Documento, Marca)
+INNER JOIN Persona pe ON pe.Documento = v.Documento
+INNER JOIN BusquedaCliente b ON b.IdPersona = pe.Id
+INNER JOIN Marca ma ON ma.Nombre = v.Marca;
+
+INSERT INTO BusquedaClienteModelo (IdBusqueda, IdModelo)
+SELECT b.Id, mo.Id
+FROM (VALUES (N'30345678', N'Toyota', N'Hilux'), (N'30345678', N'Ford', N'Ranger'),
+             (N'28678901', N'Mercedes-Benz', N'Clase A')) AS v(Documento, Marca, Modelo)
+INNER JOIN Persona pe ON pe.Documento = v.Documento
+INNER JOIN BusquedaCliente b ON b.IdPersona = pe.Id
+INNER JOIN Marca ma ON ma.Nombre = v.Marca
+INNER JOIN Modelo mo ON mo.Nombre = v.Modelo AND mo.IdMarca = ma.Id;
+
+-- TipoCarroceria: 1=Sedán, 2=Hatchback, 3=SUV, 4=Pickup, 5=Coupe.
+INSERT INTO BusquedaClienteCarroceria (IdBusqueda, TipoCarroceria)
+SELECT b.Id, v.Tipo
+FROM (VALUES (N'20123456', 3),
+             (N'25456789', 2), (N'25456789', 1),
+             (N'32567890', 3),
+             (N'34901234', 1), (N'34901234', 5),
+             (N'29012345', 1)) AS v(Documento, Tipo)
+INNER JOIN Persona pe ON pe.Documento = v.Documento
+INNER JOIN BusquedaCliente b ON b.IdPersona = pe.Id;
+
+INSERT INTO SuspensionAvisos (IdPersona, FechaSuspension, IdUsuario, Motivo)
+SELECT pe.Id, DATEADD(DAY, -10, GETDATE()), @IdVendedorN03, N'Pidió no recibir más correos por ahora.'
+FROM Persona pe WHERE pe.Documento = N'32567890';
+
+-- Avisos ya enviados (así el tablero arranca con datos y no se repiten al re-publicar).
+INSERT INTO NotificacionEnviada (IdBusqueda, IdPersona, IdUnidad, FechaEnvio, Exitoso, Error)
+SELECT b.Id, b.IdPersona, u.Id, DATEADD(DAY, -v.Dias, GETDATE()), v.Exitoso, v.Error
+FROM (VALUES
+    (N'20123456', N'GH567IJ', 8, 1, NULL),
+    (N'27234567', N'ZAB890',  9, 1, NULL),
+    (N'25456789', N'BCD123',  6, 0, N'No se pudo conectar con el servidor de correo.')
+) AS v(Documento, Dominio, Dias, Exitoso, Error)
+INNER JOIN Persona pe ON pe.Documento = v.Documento
+INNER JOIN BusquedaCliente b ON b.IdPersona = pe.Id AND b.Estado = 1
+INNER JOIN Unidad u ON u.Dominio = v.Dominio;
+GO
+
+-- ---------------------------------------------------------
+-- N03 — Traducciones ES/EN/DE (forms nuevos, claves nuevas en forms existentes,
+-- errores BLL, TipoBitacora y enum EstadoBusqueda). Idempotente.
+-- ---------------------------------------------------------
+DECLARE @trN03 TABLE (Form NVARCHAR(80), Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @trN03 (Form, Codigo, Es, En, De) VALUES
+    -- FormPrincipal: menú Captación
+    (N'FormPrincipal', N'menuCaptacion',           N'Captación',                N'Prospecting',              N'Kundengewinnung'),
+    (N'FormPrincipal', N'menuRegistrarEntrevista', N'Registrar entrevista',     N'Register interview',       N'Gespräch erfassen'),
+    (N'FormPrincipal', N'menuTableroCaptacion',    N'Tablero de captación',     N'Prospecting dashboard',    N'Dashboard Kundengewinnung'),
+    (N'FormPrincipal', N'menuAvisosClientes',      N'Avisos a clientes',        N'Customer notifications',   N'Kundenbenachrichtigungen'),
+    (N'FormPrincipal', N'menuParametrosCaptacion', N'Parámetros de captación',  N'Prospecting settings',     N'Einstellungen Kundengewinnung'),
+
+    -- FormPublicaciones / FormDetalleUnidad: claves nuevas
+    (N'FormPublicaciones', N'btnExportarPdf',      N'Exportar PDF',             N'Export PDF',               N'PDF exportieren'),
+    (N'FormPublicaciones', N'btnVerUnidad',        N'Ver unidad',               N'View unit',                N'Einheit anzeigen'),
+    (N'FormDetalleUnidad', N'msgAvisosDesactivados', N'La unidad quedó En venta. El envío automático de avisos está desactivado.', N'The unit is now For sale. Automatic notifications are disabled.', N'Die Einheit steht jetzt zum Verkauf. Automatische Benachrichtigungen sind deaktiviert.'),
+    (N'FormDetalleUnidad', N'msgAvisosError',      N'La unidad quedó En venta, pero no se pudieron enviar los avisos. Revisá la bitácora.', N'The unit is now For sale, but the notifications could not be sent. Check the log.', N'Die Einheit steht jetzt zum Verkauf, aber die Benachrichtigungen konnten nicht gesendet werden. Prüfe das Protokoll.'),
+    (N'FormDetalleUnidad', N'msgAvisosNinguno',    N'La unidad quedó En venta. No hay clientes con búsquedas que coincidan para avisar.', N'The unit is now For sale. There are no customers with matching searches to notify.', N'Die Einheit steht jetzt zum Verkauf. Es gibt keine Kunden mit passenden Suchen.'),
+    (N'FormDetalleUnidad', N'msgAvisosResultado',  N'La unidad quedó En venta. Avisos enviados: {0}. Fallidos: {1}.', N'The unit is now For sale. Notifications sent: {0}. Failed: {1}.', N'Die Einheit steht jetzt zum Verkauf. Gesendet: {0}. Fehlgeschlagen: {1}.'),
+    (N'FormDetalleUnidad', N'msgInformacion',      N'Información',              N'Information',              N'Information'),
+    (N'FormDetalleUnidad', N'tituloBusquedaComprador', N'Búsqueda activa del comprador ({0} de {1})', N'Buyer''s active search ({0} of {1})', N'Aktive Suche des Käufers ({0} von {1})'),
+    (N'FormDetalleUnidad', N'msgCerrarBusquedaPorVenta', N'{0} tiene una búsqueda activa:
+
+{1}
+Entrevista del {2:d}.
+
+¿Cerrarla ahora que compró {3}?', N'{0} has an active search:
+
+{1}
+Interview on {2:d}.
+
+Close it now that they bought {3}?', N'{0} hat eine aktive Suche:
+
+{1}
+Gespräch vom {2:d}.
+
+Jetzt schließen, da {3} gekauft wurde?'),
+    (N'FormDetalleUnidad', N'btnCerrarBusquedaVenta', N'Cerrar búsqueda',          N'Close search',             N'Suche schließen'),
+    (N'FormDetalleUnidad', N'btnMantenerBusqueda',    N'Mantener activa',          N'Keep active',              N'Aktiv lassen'),
+    (N'FormDetalleUnidad', N'motivoCompra',           N'El cliente compró {0}.',   N'The customer bought {0}.', N'Der Kunde hat {0} gekauft.'),
+    (N'FormDetalleUnidad', N'busquedaAnioDesde',      N'desde {0}',                N'from {0}',                 N'ab {0}'),
+    (N'FormDetalleUnidad', N'busquedaAnioHasta',      N'hasta {0}',                N'up to {0}',                N'bis {0}'),
+    (N'FormDetalleUnidad', N'busquedaPrecioMax',      N'hasta {0}',                N'up to {0}',                N'bis {0}'),
+
+    -- ExportarPdf (helper usado por varias pantallas)
+    (N'ExportarPdf', N'title',          N'Exportar publicación a PDF', N'Export listing to PDF',      N'Inserat als PDF exportieren'),
+    (N'ExportarPdf', N'filtro',         N'Documento PDF',              N'PDF document',               N'PDF-Dokument'),
+    (N'ExportarPdf', N'msgGuardado',    N'Se guardó el PDF en:
+{0}',  N'The PDF was saved to:
+{0}',  N'Das PDF wurde gespeichert unter:
+{0}'),
+    (N'ExportarPdf', N'msgInformacion', N'Información',                N'Information',                N'Information'),
+    (N'ExportarPdf', N'msgError',       N'Error',                      N'Error',                      N'Fehler'),
+
+    -- FormEntrevistaCliente (CU-CAP-01)
+    (N'FormEntrevistaCliente', N'title',                   N'Registrar entrevista',                       N'Register interview',                       N'Gespräch erfassen'),
+    (N'FormEntrevistaCliente', N'lblTitulo',               N'Registrar entrevista de cliente potencial',  N'Register prospective customer interview',  N'Gespräch mit Interessent erfassen'),
+    (N'FormEntrevistaCliente', N'grpCliente',              N'Cliente',                                    N'Customer',                                 N'Kunde'),
+    (N'FormEntrevistaCliente', N'lblDocBusqueda',          N'Cliente (DNI/CUIT o nombre):',               N'Customer (ID or name):',                   N'Kunde (Nummer oder Name):'),
+    (N'FormEntrevistaCliente', N'btnBuscar',               N'Buscar',                                     N'Search',                                   N'Suchen'),
+    (N'FormEntrevistaCliente', N'btnPersonas',             N'Personas...',                                N'People...',                                N'Personen...'),
+    (N'FormEntrevistaCliente', N'lblCoincidencias',        N'Coincidencias:',                             N'Matches:',                                 N'Treffer:'),
+    (N'FormEntrevistaCliente', N'grpBusqueda',             N'Qué busca',                                  N'What they are looking for',                N'Was gesucht wird'),
+    (N'FormEntrevistaCliente', N'lblMarca',                N'Marcas:',                                    N'Brands:',                                  N'Marken:'),
+    (N'FormEntrevistaCliente', N'lblModelo',               N'Modelos:',                                   N'Models:',                                  N'Modelle:'),
+    (N'FormEntrevistaCliente', N'lblCarroceria',           N'Carrocerías:',                               N'Body types:',                              N'Karosserien:'),
+    (N'FormEntrevistaCliente', N'lblAnioDesde',            N'Año desde:',                                 N'Year from:',                               N'Baujahr ab:'),
+    (N'FormEntrevistaCliente', N'lblAnioHasta',            N'Año hasta:',                                 N'Year to:',                                 N'Baujahr bis:'),
+    (N'FormEntrevistaCliente', N'lblPrecioMax',            N'Precio máximo ($):',                         N'Maximum price ($):',                       N'Höchstpreis ($):'),
+    (N'FormEntrevistaCliente', N'lblObservaciones',        N'Observaciones:',                             N'Notes:',                                   N'Bemerkungen:'),
+    (N'FormEntrevistaCliente', N'chkAceptaAvisos',         N'El cliente acepta recibir avisos por correo electrónico', N'The customer agrees to receive email notifications', N'Der Kunde stimmt E-Mail-Benachrichtigungen zu'),
+    (N'FormEntrevistaCliente', N'btnRegistrar',            N'Registrar',                                  N'Register',                                 N'Erfassen'),
+    (N'FormEntrevistaCliente', N'btnLimpiar',              N'Limpiar',                                    N'Clear',                                    N'Leeren'),
+    (N'FormEntrevistaCliente', N'lblUnidadesCoincidentes', N'Unidades en venta que coinciden con la búsqueda', N'Units for sale matching the search',  N'Passende Einheiten im Verkauf'),
+    (N'FormEntrevistaCliente', N'colUnidad',               N'Unidad',                                     N'Unit',                                     N'Einheit'),
+    (N'FormEntrevistaCliente', N'colCarroceria',           N'Carrocería',                                 N'Body type',                                N'Karosserie'),
+    (N'FormEntrevistaCliente', N'colKm',                   N'Km',                                         N'Km',                                       N'Km'),
+    (N'FormEntrevistaCliente', N'colPrecio',               N'Precio',                                     N'Price',                                    N'Preis'),
+    (N'FormEntrevistaCliente', N'btnExportarPdf',          N'Exportar PDF',                               N'Export PDF',                               N'PDF exportieren'),
+    (N'FormEntrevistaCliente', N'lblAyudaCriterios',       N'Sin tildar = cualquiera. Los modelos tildados limitan su marca a esos modelos.', N'Nothing checked = any. Checked models limit their brand to those models.', N'Nichts ausgewählt = beliebig. Ausgewählte Modelle beschränken ihre Marke auf diese Modelle.'),
+    (N'FormEntrevistaCliente', N'lblEmail',                N'Correo: {0}',                                N'Email: {0}',                               N'E-Mail: {0}'),
+    (N'FormEntrevistaCliente', N'lblSinEmail',             N'Sin correo electrónico registrado: no podrá recibir avisos.', N'No email registered: cannot receive notifications.', N'Keine E-Mail hinterlegt: kann keine Benachrichtigungen erhalten.'),
+    (N'FormEntrevistaCliente', N'msgSinCoincidencias',     N'No se encontraron personas con ese DNI/CUIT o nombre. Podés darla de alta desde "Personas...".', N'No people found with that ID or name. You can register them from "People...".', N'Keine Personen mit dieser Nummer oder diesem Namen gefunden. Du kannst sie unter "Personen..." anlegen.'),
+    (N'FormEntrevistaCliente', N'msgSeleccionarCliente',   N'Buscá y seleccioná el cliente.',             N'Search for and select the customer.',      N'Suche und wähle den Kunden aus.'),
+    (N'FormEntrevistaCliente', N'msgAnioInvalido',         N'El año debe ser un número de 4 dígitos.',    N'The year must be a 4-digit number.',       N'Das Jahr muss eine vierstellige Zahl sein.'),
+    (N'FormEntrevistaCliente', N'msgPrecioInvalido',       N'El precio máximo no es válido.',             N'The maximum price is not valid.',          N'Der Höchstpreis ist ungültig.'),
+    (N'FormEntrevistaCliente', N'msgEntrevistaRegistrada', N'Entrevista registrada.',                     N'Interview registered.',                    N'Gespräch erfasst.'),
+    (N'FormEntrevistaCliente', N'msgSinUnidadesCoincidentes', N'Por el momento no hay unidades en venta que coincidan.', N'There are currently no matching units for sale.', N'Derzeit gibt es keine passenden Einheiten im Verkauf.'),
+    (N'FormEntrevistaCliente', N'msgUnidadesCoincidentes', N'Hay {0} unidad(es) en venta que coinciden: se muestran abajo.', N'There are {0} matching unit(s) for sale, shown below.', N'Es gibt {0} passende Einheit(en) im Verkauf, siehe unten.'),
+    (N'FormEntrevistaCliente', N'precioAConsultar',        N'Precio a consultar',                         N'Price on request',                         N'Preis auf Anfrage'),
+    (N'FormEntrevistaCliente', N'tipoFisica',              N'Física',                                     N'Individual',                               N'Natürlich'),
+    (N'FormEntrevistaCliente', N'tipoJuridica',            N'Jurídica',                                   N'Company',                                  N'Juristisch'),
+    (N'FormEntrevistaCliente', N'msgAdvertencia',          N'Advertencia',                                N'Warning',                                  N'Warnung'),
+    (N'FormEntrevistaCliente', N'msgError',                N'Error',                                      N'Error',                                    N'Fehler'),
+    (N'FormEntrevistaCliente', N'msgExito',                N'Éxito',                                      N'Success',                                  N'Erfolg'),
+    (N'FormEntrevistaCliente', N'msgInformacion',          N'Información',                                N'Information',                              N'Information'),
+
+    -- FormTableroCaptacion (CU-CAP-02)
+    (N'FormTableroCaptacion', N'title',                   N'Tablero de captación',          N'Prospecting dashboard',          N'Dashboard Kundengewinnung'),
+    (N'FormTableroCaptacion', N'lblTitulo',               N'Tablero de captación',          N'Prospecting dashboard',          N'Dashboard Kundengewinnung'),
+    (N'FormTableroCaptacion', N'cardEnVenta',             N'Vehículos en venta',            N'Vehicles for sale',              N'Fahrzeuge im Verkauf'),
+    (N'FormTableroCaptacion', N'cardPosiblesCompradores', N'Posibles compradores',          N'Potential buyers',               N'Mögliche Käufer'),
+    (N'FormTableroCaptacion', N'cardSinInteresados',      N'Unidades sin interesados',      N'Units without interest',         N'Einheiten ohne Interessenten'),
+    (N'FormTableroCaptacion', N'cardInteresadosSinUnidades', N'Interesados sin unidades',   N'Interested without units',       N'Interessenten ohne Einheiten'),
+    (N'FormTableroCaptacion', N'detalleEsperandoStock',   N'esperando stock',               N'waiting for stock',              N'warten auf Bestand'),
+    (N'FormTableroCaptacion', N'lnkVer',                  N'Ver ▸',                         N'View ▸',                         N'Anzeigen ▸'),
+    (N'FormTableroCaptacion', N'detalleBusquedasActivas', N'con búsqueda activa',           N'with an active search',          N'mit aktiver Suche'),
+    (N'FormTableroCaptacion', N'detalleAlertas',          N'{0} en alerta',                 N'{0} flagged',                    N'{0} mit Warnung'),
+    (N'FormTableroCaptacion', N'lblAvisosActivos',        N'● Envío automático de avisos: activado',    N'● Automatic notifications: on',  N'● Automatische Benachrichtigungen: an'),
+    (N'FormTableroCaptacion', N'lblAvisosInactivos',      N'● Envío automático de avisos: desactivado', N'● Automatic notifications: off', N'● Automatische Benachrichtigungen: aus'),
+    (N'FormTableroCaptacion', N'lblUnidades',             N'Unidades en venta',             N'Units for sale',                 N'Einheiten im Verkauf'),
+    (N'FormTableroCaptacion', N'colUnidad',               N'Unidad',                        N'Unit',                           N'Einheit'),
+    (N'FormTableroCaptacion', N'colPrecio',               N'Precio',                        N'Price',                          N'Preis'),
+    (N'FormTableroCaptacion', N'colDias',                 N'Días publicada',                N'Days listed',                    N'Tage inseriert'),
+    (N'FormTableroCaptacion', N'colInteresados',          N'Interesados',                   N'Interested',                     N'Interessenten'),
+    (N'FormTableroCaptacion', N'btnExportarPdf',          N'Exportar PDF',                  N'Export PDF',                     N'PDF exportieren'),
+    (N'FormTableroCaptacion', N'lblInteresadosEn',        N'Interesados en: {0}',           N'Interested in: {0}',             N'Interessenten für: {0}'),
+    (N'FormTableroCaptacion', N'lblSeleccioneUnidad',     N'Elegí una unidad para ver sus interesados', N'Choose a unit to see who is interested', N'Wähle eine Einheit, um die Interessenten zu sehen'),
+    (N'FormTableroCaptacion', N'lblSinInteresadosUnidad', N'ninguna búsqueda activa coincide', N'no active search matches',       N'keine aktive Suche passt'),
+    (N'FormTableroCaptacion', N'lblResumenAvisos',        N'Últimos {0} días: {1} aviso(s) enviado(s){2}.', N'Last {0} days: {1} notification(s) sent{2}.', N'Letzte {0} Tage: {1} Benachrichtigung(en) gesendet{2}.'),
+    (N'FormTableroCaptacion', N'cardConversion',          N'Conversión de avisos',          N'Notification conversion',        N'Konversion der Benachrichtigungen'),
+    (N'FormTableroCaptacion', N'detalleConversion',       N'{0} de {1} avisados compraron', N'{0} of {1} notified bought',     N'{0} von {1} Benachrichtigten kauften'),
+    (N'FormHome', N'btnTableroCaptacion',                 N'Tablero de captación',          N'Prospecting dashboard',          N'Dashboard Kundengewinnung'),
+    (N'FormHome', N'btnRegistrarEntrevista',              N'Registrar entrevista',          N'Register interview',             N'Gespräch erfassen'),
+    (N'FormTableroCaptacion', N'colCliente',              N'Cliente',                       N'Customer',                       N'Kunde'),
+    (N'FormTableroCaptacion', N'colTelefono',             N'Teléfono',                      N'Phone',                          N'Telefon'),
+    (N'FormTableroCaptacion', N'colBusca',                N'Busca',                         N'Looking for',                    N'Sucht'),
+    (N'FormTableroCaptacion', N'colEntrevista',           N'Entrevista',                    N'Interview',                      N'Gespräch'),
+    (N'FormTableroCaptacion', N'btnGestionarAvisos',      N'Avisos del cliente...',         N'Customer notifications...',      N'Benachrichtigungen des Kunden...'),
+    (N'FormTableroCaptacion', N'colAvisado',              N'Avisado',                       N'Notified',                       N'Benachrichtigt'),
+    (N'FormTableroCaptacion', N'avisadoSi',               N'Sí · {0:d}',                    N'Yes · {0:d}',                    N'Ja · {0:d}'),
+    (N'FormTableroCaptacion', N'avisadoFallo',            N'Falló',                         N'Failed',                         N'Fehlgeschlagen'),
+    (N'FormTableroCaptacion', N'avisadoSuspendido',       N'No (avisos suspendidos)',       N'No (notifications suspended)',   N'Nein (ausgesetzt)'),
+    (N'FormTableroCaptacion', N'avisadoNoAcepta',         N'No (no acepta avisos)',         N'No (does not accept)',           N'Nein (nicht gewünscht)'),
+    (N'FormTableroCaptacion', N'avisadoNo',               N'No',                            N'No',                             N'Nein'),
+    (N'FormTableroCaptacion', N'avisadoNoDetalle',        N'No recibió aviso de esta unidad (por ejemplo, la entrevista fue posterior a la publicación). Conviene contactarlo.', N'Did not receive a notification for this unit (e.g. the interview was after the listing). Consider contacting them.', N'Hat keine Benachrichtigung zu dieser Einheit erhalten (z. B. Gespräch nach der Veröffentlichung). Kontaktieren empfohlen.'),
+    (N'FormTableroCaptacion', N'resumenFallidos',         N' ({0} falló/fallaron)',            N' ({0} failed)',                    N' ({0} fehlgeschlagen)'),
+    (N'FormTableroCaptacion', N'tooltipAlerta',           N'Sin interesados y publicada hace muchos días: evaluar promoción o precio.', N'No interest and listed for many days: consider a promotion or a price change.', N'Keine Interessenten und seit vielen Tagen inseriert: Aktion oder Preis prüfen.'),
+    (N'FormTableroCaptacion', N'marcaSuspendido',         N'(avisos suspendidos)',          N'(notifications suspended)',      N'(Benachrichtigungen ausgesetzt)'),
+    (N'FormTableroCaptacion', N'busquedaAnioDesde',       N'desde {0}',                     N'from {0}',                       N'ab {0}'),
+    (N'FormTableroCaptacion', N'busquedaAnioHasta',       N'hasta {0}',                     N'up to {0}',                      N'bis {0}'),
+    (N'FormTableroCaptacion', N'busquedaPrecioMax',       N'hasta {0}',                     N'up to {0}',                      N'bis {0}'),
+    (N'FormTableroCaptacion', N'precioAConsultar',        N'Precio a consultar',            N'Price on request',               N'Preis auf Anfrage'),
+    (N'FormTableroCaptacion', N'msgError',                N'Error',                         N'Error',                          N'Fehler'),
+
+    -- FormDetalleCaptacion (modal de detalle del tablero)
+    (N'FormDetalleCaptacion', N'btnCerrar',                 N'Cerrar',                      N'Close',                          N'Schließen'),
+    (N'FormDetalleCaptacion', N'btnAvisosCliente',          N'Avisos del cliente...',       N'Customer notifications...',      N'Benachrichtigungen des Kunden...'),
+    (N'FormDetalleCaptacion', N'btnExportarPdf',            N'Exportar PDF',                N'Export PDF',                     N'PDF exportieren'),
+    (N'FormDetalleCaptacion', N'lblPeriodo',                N'Período: {0:d} al {1:d}',     N'Period: {0:d} to {1:d}',         N'Zeitraum: {0:d} bis {1:d}'),
+    (N'FormDetalleCaptacion', N'tituloPosiblesCompradores', N'Posibles compradores',        N'Potential buyers',               N'Mögliche Käufer'),
+    (N'FormDetalleCaptacion', N'subPosiblesCompradores',    N'Clientes con búsqueda activa que coincide con al menos una unidad en venta.', N'Customers with an active search matching at least one unit for sale.', N'Kunden mit aktiver Suche, die zu mindestens einer Einheit im Verkauf passt.'),
+    (N'FormDetalleCaptacion', N'tituloInteresadosUnidad',   N'Posibles compradores — {0}',  N'Potential buyers — {0}',         N'Mögliche Käufer — {0}'),
+    (N'FormDetalleCaptacion', N'subInteresadosUnidad',      N'Clientes con búsqueda activa que coincide con esta unidad ({0}).', N'Customers with an active search matching this unit ({0}).', N'Kunden mit aktiver Suche, die zu dieser Einheit passt ({0}).'),
+    (N'FormDetalleCaptacion', N'tituloSinInteresados',      N'Unidades en venta sin interesados', N'Units for sale without interest', N'Einheiten im Verkauf ohne Interessenten'),
+    (N'FormDetalleCaptacion', N'tituloInteresadosSinUnidades', N'Interesados sin unidades', N'Interested without units',    N'Interessenten ohne Einheiten'),
+    (N'FormDetalleCaptacion', N'subInteresadosSinUnidades', N'Clientes con búsqueda activa que hoy no coincide con ninguna unidad en venta. Se les avisa cuando ingrese una.', N'Customers with an active search that matches no unit for sale today. They are notified when one arrives.', N'Kunden mit aktiver Suche, die heute zu keiner Einheit im Verkauf passt. Sie werden benachrichtigt, sobald eine eintrifft.'),
+    (N'FormDetalleCaptacion', N'colVence',                  N'Vence',                       N'Expires',                        N'Läuft ab'),
+    (N'FormDetalleCaptacion', N'subSinInteresados',         N'Unidades que no coinciden con ninguna búsqueda activa. Las marcadas superan los días de alerta.', N'Units that match no active search. Highlighted ones exceed the alert days.', N'Einheiten ohne passende aktive Suche. Markierte überschreiten die Warnfrist.'),
+    (N'FormDetalleCaptacion', N'alertaPromocionar',         N'Evaluar promoción o precio',  N'Consider promotion or price',    N'Aktion oder Preis prüfen'),
+    (N'FormDetalleCaptacion', N'tituloConversiones',        N'Clientes avisados que compraron', N'Notified customers who bought', N'Benachrichtigte Kunden, die gekauft haben'),
+    (N'FormDetalleCaptacion', N'subConversion',             N'{0} de {1} clientes avisados ({2}%)', N'{0} of {1} notified customers ({2}%)', N'{0} von {1} benachrichtigten Kunden ({2}%)'),
+    (N'FormDetalleCaptacion', N'marcaSuspendido',           N'(avisos suspendidos)',        N'(notifications suspended)',      N'(Benachrichtigungen ausgesetzt)'),
+    (N'FormDetalleCaptacion', N'marcaSinAvisos',            N'(no acepta avisos)',          N'(no notifications accepted)',    N'(keine Benachrichtigungen gewünscht)'),
+    (N'FormDetalleCaptacion', N'colUnidad',                 N'Unidad',                      N'Unit',                           N'Einheit'),
+    (N'FormDetalleCaptacion', N'colPrecio',                 N'Precio',                      N'Price',                          N'Preis'),
+    (N'FormDetalleCaptacion', N'colDias',                   N'Días publicada',              N'Days listed',                    N'Tage inseriert'),
+    (N'FormDetalleCaptacion', N'colAlerta',                 N'Alerta',                      N'Alert',                          N'Warnung'),
+    (N'FormDetalleCaptacion', N'colCliente',                N'Cliente',                     N'Customer',                       N'Kunde'),
+    (N'FormDetalleCaptacion', N'colEmail',                  N'Correo',                      N'Email',                          N'E-Mail'),
+    (N'FormDetalleCaptacion', N'colUnidadComprada',         N'Unidad comprada',             N'Unit bought',                    N'Gekaufte Einheit'),
+    (N'FormDetalleCaptacion', N'colFechaAviso',             N'Fecha de aviso',              N'Notification date',              N'Benachrichtigungsdatum'),
+    (N'FormDetalleCaptacion', N'colFechaVenta',             N'Fecha de venta',              N'Sale date',                      N'Verkaufsdatum'),
+    (N'FormDetalleCaptacion', N'colPrecioVenta',            N'Precio',                      N'Price',                          N'Preis'),
+    (N'FormDetalleCaptacion', N'colTelefono',               N'Teléfono',                    N'Phone',                          N'Telefon'),
+    (N'FormDetalleCaptacion', N'colBusca',                  N'Busca',                       N'Looking for',                    N'Sucht'),
+    (N'FormDetalleCaptacion', N'colEntrevista',             N'Entrevista',                  N'Interview',                      N'Gespräch'),
+    (N'FormDetalleCaptacion', N'colUnidades',               N'Unidades que coinciden',      N'Matching units',                 N'Passende Einheiten'),
+    (N'FormDetalleCaptacion', N'busquedaAnioDesde',         N'desde {0}',                   N'from {0}',                       N'ab {0}'),
+    (N'FormDetalleCaptacion', N'busquedaAnioHasta',         N'hasta {0}',                   N'up to {0}',                      N'bis {0}'),
+    (N'FormDetalleCaptacion', N'busquedaPrecioMax',         N'hasta {0}',                   N'up to {0}',                      N'bis {0}'),
+    (N'FormDetalleCaptacion', N'precioAConsultar',          N'Precio a consultar',          N'Price on request',               N'Preis auf Anfrage'),
+
+    -- FormAvisosCliente (CU-CAP-05)
+    (N'FormAvisosCliente', N'title',                      N'Avisos a clientes',             N'Customer notifications',         N'Kundenbenachrichtigungen'),
+    (N'FormAvisosCliente', N'lblTitulo',                  N'Avisos a clientes',             N'Customer notifications',         N'Kundenbenachrichtigungen'),
+    (N'FormAvisosCliente', N'lblDocBusqueda',             N'Cliente (DNI/CUIT o nombre):',  N'Customer (ID or name):',        N'Kunde (Nummer oder Name):'),
+    (N'FormAvisosCliente', N'btnBuscar',                  N'Buscar',                        N'Search',                         N'Suchen'),
+    (N'FormConfirmarMotivo', N'lblMotivo',                N'Motivo (opcional):',            N'Reason (optional):',             N'Grund (optional):'),
+    (N'FormConfirmarMotivo', N'btnAceptar',               N'Aceptar',                       N'OK',                             N'OK'),
+    (N'FormConfirmarMotivo', N'btnCancelar',              N'Cancelar',                      N'Cancel',                         N'Abbrechen'),
+    (N'FormAvisosCliente', N'btnSuspender',               N'Suspender avisos',              N'Suspend notifications',          N'Benachrichtigungen aussetzen'),
+    (N'FormAvisosCliente', N'btnReanudar',                N'Reanudar avisos',               N'Resume notifications',           N'Benachrichtigungen fortsetzen'),
+    (N'FormAvisosCliente', N'lblBusquedas',               N'Búsquedas del cliente',         N'Customer searches',              N'Suchen des Kunden'),
+    (N'FormAvisosCliente', N'colFecha',                   N'Entrevista',                    N'Interview',                      N'Gespräch'),
+    (N'FormAvisosCliente', N'colBusca',                   N'Busca',                         N'Looking for',                    N'Sucht'),
+    (N'FormAvisosCliente', N'colAceptaAvisos',            N'Acepta avisos',                 N'Accepts notifications',          N'Akzeptiert Benachrichtigungen'),
+    (N'FormAvisosCliente', N'colEstado',                  N'Estado',                        N'Status',                         N'Status'),
+    (N'FormAvisosCliente', N'colVence',                   N'Vence',                         N'Expires',                        N'Läuft ab'),
+    (N'FormAvisosCliente', N'btnCerrarBusqueda',          N'Cerrar búsqueda seleccionada',  N'Close selected search',          N'Ausgewählte Suche schließen'),
+    (N'FormAvisosCliente', N'lblAvisos',                  N'Avisos enviados',               N'Notifications sent',             N'Gesendete Benachrichtigungen'),
+    (N'FormAvisosCliente', N'colAvisoFecha',              N'Fecha',                         N'Date',                           N'Datum'),
+    (N'FormAvisosCliente', N'colAvisoUnidad',             N'Unidad',                        N'Unit',                           N'Einheit'),
+    (N'FormAvisosCliente', N'colAvisoResultado',          N'Resultado',                     N'Result',                         N'Ergebnis'),
+    (N'FormAvisosCliente', N'lblSinCliente',              N'Buscá un cliente por documento.', N'Search for a customer by ID number.', N'Suche einen Kunden nach Ausweisnummer.'),
+    (N'FormAvisosCliente', N'lblContacto',                N'Correo: {0}   ·   Teléfono: {1}', N'Email: {0}   ·   Phone: {1}', N'E-Mail: {0}   ·   Telefon: {1}'),
+    (N'FormAvisosCliente', N'lblAvisosActivos',           N'Avisos activos: recibe un correo cuando ingresa una unidad que coincide.', N'Notifications on: receives an email when a matching unit arrives.', N'Benachrichtigungen aktiv: erhält eine E-Mail, wenn eine passende Einheit eintrifft.'),
+    (N'FormAvisosCliente', N'lblAvisosSuspendidos',       N'Avisos suspendidos desde el {0:d} por {1}.{2}', N'Notifications suspended since {0:d} by {1}.{2}', N'Benachrichtigungen ausgesetzt seit {0:d} durch {1}.{2}'),
+    (N'FormAvisosCliente', N'lblMotivoSuspension',        N'Motivo: {0}',                   N'Reason: {0}',                    N'Grund: {0}'),
+    (N'FormAvisosCliente', N'si',                         N'Sí',                            N'Yes',                            N'Ja'),
+    (N'FormAvisosCliente', N'no',                         N'No',                            N'No',                             N'Nein'),
+    (N'FormAvisosCliente', N'resultadoOk',                N'Enviado',                       N'Sent',                           N'Gesendet'),
+    (N'FormAvisosCliente', N'resultadoError',             N'Falló',                         N'Failed',                         N'Fehlgeschlagen'),
+    (N'FormAvisosCliente', N'busquedaAnioDesde',          N'desde {0}',                     N'from {0}',                       N'ab {0}'),
+    (N'FormAvisosCliente', N'busquedaAnioHasta',          N'hasta {0}',                     N'up to {0}',                      N'bis {0}'),
+    (N'FormAvisosCliente', N'busquedaPrecioMax',          N'hasta {0}',                     N'up to {0}',                      N'bis {0}'),
+    (N'FormAvisosCliente', N'msgSinCoincidencias',        N'No hay clientes con búsquedas registradas que coincidan con ese DNI/CUIT o nombre.', N'No customers with registered searches match that ID or name.', N'Keine Kunden mit erfassten Suchen passen zu dieser Nummer oder diesem Namen.'),
+    (N'FormAvisosCliente', N'msgConfirmarSuspender',      N'¿Suspender los avisos por correo a {0}?
+
+Sus búsquedas siguen activas, pero no recibe más correos hasta que se reanuden.', N'Suspend email notifications to {0}?
+
+Their searches stay active, but they will not receive more emails until notifications are resumed.', N'E-Mail-Benachrichtigungen an {0} aussetzen?
+
+Die Suchen bleiben aktiv, aber es werden keine E-Mails mehr gesendet, bis sie fortgesetzt werden.'),
+    (N'FormAvisosCliente', N'msgConfirmarCerrarBusqueda', N'¿Cerrar la búsqueda seleccionada?
+
+El cliente deja de figurar como interesado por esa búsqueda y no recibe más avisos por ella.', N'Close the selected search?
+
+The customer will no longer appear as interested through this search and will not receive more notifications for it.', N'Ausgewählte Suche schließen?
+
+Der Kunde erscheint für diese Suche nicht mehr als Interessent und erhält dafür keine Benachrichtigungen mehr.'),
+    (N'FormAvisosCliente', N'msgAvisosSuspendidos',       N'Avisos suspendidos.',           N'Notifications suspended.',       N'Benachrichtigungen ausgesetzt.'),
+    (N'FormAvisosCliente', N'msgAvisosReanudados',        N'Avisos reanudados.',            N'Notifications resumed.',         N'Benachrichtigungen fortgesetzt.'),
+    (N'FormAvisosCliente', N'msgBusquedaCerrada',         N'Búsqueda cerrada.',             N'Search closed.',                 N'Suche geschlossen.'),
+    (N'FormAvisosCliente', N'msgConfirmar',               N'Confirmar',                     N'Confirm',                        N'Bestätigen'),
+    (N'FormAvisosCliente', N'msgError',                   N'Error',                         N'Error',                          N'Fehler'),
+    (N'FormAvisosCliente', N'msgExito',                   N'Éxito',                         N'Success',                        N'Erfolg'),
+    (N'FormAvisosCliente', N'msgInformacion',             N'Información',                   N'Information',                    N'Information'),
+
+    -- FormParametrosCaptacion
+    (N'FormParametrosCaptacion', N'title',                    N'Parámetros de captación',  N'Prospecting settings',    N'Einstellungen Kundengewinnung'),
+    (N'FormParametrosCaptacion', N'lblTitulo',                N'Parámetros de captación',  N'Prospecting settings',    N'Einstellungen Kundengewinnung'),
+    (N'FormParametrosCaptacion', N'chkNotificacionesActivas', N'Envío automático de avisos por correo activado', N'Automatic email notifications enabled', N'Automatische E-Mail-Benachrichtigungen aktiviert'),
+    (N'FormParametrosCaptacion', N'lblAyudaNotificaciones',   N'Si está desactivado, al publicar una unidad no se envía ningún aviso. El tablero sigue mostrando a los interesados.', N'When disabled, no notification is sent when a unit is published. The dashboard still shows interested customers.', N'Wenn deaktiviert, wird beim Veröffentlichen keine Benachrichtigung gesendet. Das Dashboard zeigt die Interessenten weiterhin an.'),
+    (N'FormParametrosCaptacion', N'lblVigencia',              N'Vigencia de una búsqueda (días):', N'Search validity (days):', N'Gültigkeit einer Suche (Tage):'),
+    (N'FormParametrosCaptacion', N'lblAlerta',                N'Alerta de unidad sin interesados (días):', N'Alert for unit without interest (days):', N'Warnung bei Einheit ohne Interessenten (Tage):'),
+    (N'FormParametrosCaptacion', N'btnGuardar',               N'Guardar',                  N'Save',                    N'Speichern'),
+    (N'FormParametrosCaptacion', N'btnCancelar',              N'Cancelar',                 N'Cancel',                  N'Abbrechen'),
+    (N'FormParametrosCaptacion', N'msgGuardado',              N'Parámetros guardados.',    N'Settings saved.',         N'Einstellungen gespeichert.'),
+    (N'FormParametrosCaptacion', N'msgError',                 N'Error',                    N'Error',                   N'Fehler'),
+    (N'FormParametrosCaptacion', N'msgExito',                 N'Éxito',                    N'Success',                 N'Erfolg'),
+
+    -- Errores BLL nuevos
+    (N'Errores', N'ERR_BUSQUEDA_SIN_CRITERIO',          N'Tildá al menos una marca o un tipo de carrocería que busque el cliente.', N'Check at least one brand or body type the customer is looking for.', N'Wähle mindestens eine Marke oder eine Karosserieform aus, die der Kunde sucht.'),
+    (N'Errores', N'ERR_BUSQUEDA_RANGO_ANIOS',           N'El rango de años no es válido (entre {0} y {1}, y el año desde no puede ser mayor al año hasta).', N'The year range is not valid (between {0} and {1}, and the start year cannot be greater than the end year).', N'Der Jahresbereich ist ungültig (zwischen {0} und {1}, und das Startjahr darf nicht größer als das Endjahr sein).'),
+    (N'Errores', N'ERR_CLIENTE_SIN_EMAIL',              N'El cliente no tiene un correo electrónico registrado. Cargalo en la ficha de la persona o registrá la búsqueda sin avisos.', N'The customer has no email registered. Add it to the person record or register the search without notifications.', N'Der Kunde hat keine E-Mail hinterlegt. Ergänze sie in den Personendaten oder erfasse die Suche ohne Benachrichtigungen.'),
+    (N'Errores', N'ERR_AVISOS_YA_SUSPENDIDOS',          N'Los avisos de este cliente ya están suspendidos.', N'This customer''s notifications are already suspended.', N'Die Benachrichtigungen dieses Kunden sind bereits ausgesetzt.'),
+    (N'Errores', N'ERR_AVISOS_NO_SUSPENDIDOS',          N'Los avisos de este cliente no están suspendidos.', N'This customer''s notifications are not suspended.',     N'Die Benachrichtigungen dieses Kunden sind nicht ausgesetzt.'),
+    (N'Errores', N'ERR_BUSQUEDA_NO_ENCONTRADA',         N'No se encontró la búsqueda.',                   N'The search was not found.',                          N'Die Suche wurde nicht gefunden.'),
+    (N'Errores', N'ERR_BUSQUEDA_NO_ACTIVA',             N'Solo se puede cerrar una búsqueda activa.',     N'Only an active search can be closed.',               N'Nur eine aktive Suche kann geschlossen werden.'),
+    (N'Errores', N'ERR_PARAMETROS_CAPTACION_INVALIDOS', N'Los días de vigencia y de alerta deben estar entre 1 y 3650.', N'Validity and alert days must be between 1 and 3650.', N'Gültigkeits- und Warntage müssen zwischen 1 und 3650 liegen.'),
+    (N'Errores', N'ERR_RUTA_PDF_INVALIDA',              N'Elegí dónde guardar el archivo.',               N'Choose where to save the file.',                     N'Wähle aus, wo die Datei gespeichert werden soll.'),
+    (N'Errores', N'ERR_GUARDAR_PDF',                    N'No se pudo guardar el archivo PDF: {0}',        N'The PDF file could not be saved: {0}',               N'Die PDF-Datei konnte nicht gespeichert werden: {0}'),
+    (N'Errores', N'ERR_UNIDAD_SIN_PUBLICACION',         N'La unidad no tiene una publicación creada.',    N'The unit has no listing created.',                   N'Für die Einheit wurde kein Inserat erstellt.'),
+    (N'Errores', N'ERR_VENTA_OTRO_COMPRADOR',           N'La unidad está reservada por {0}: solo se le puede vender a esa persona. Para vendérsela a otra, primero cancelá la reserva.', N'The unit is reserved by {0}: it can only be sold to that person. To sell it to someone else, cancel the reservation first.', N'Die Einheit ist von {0} reserviert: sie kann nur an diese Person verkauft werden. Um sie an jemand anderen zu verkaufen, storniere zuerst die Reservierung.'),
+
+    -- Enum TipoBitacora (valores nuevos)
+    (N'TipoBitacora', N'EntrevistaCliente',    N'Entrevista de cliente',        N'Customer interview',            N'Kundengespräch'),
+    (N'TipoBitacora', N'AvisoCliente',         N'Aviso a cliente',              N'Customer notification',         N'Kundenbenachrichtigung'),
+    (N'TipoBitacora', N'GestionAvisosCliente', N'Gestión de avisos de cliente', N'Customer notification management', N'Verwaltung der Kundenbenachrichtigungen'),
+    (N'TipoBitacora', N'ParametrosCaptacion',  N'Parámetros de captación',      N'Prospecting settings',          N'Einstellungen Kundengewinnung'),
+
+    -- Enum EstadoBusqueda
+    (N'EstadoBusqueda', N'Activa',  N'Activa',  N'Active',  N'Aktiv'),
+    (N'EstadoBusqueda', N'Cerrada', N'Cerrada', N'Closed',  N'Geschlossen'),
+    (N'EstadoBusqueda', N'Vencida', N'Vencida', N'Expired', N'Abgelaufen');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, t.Form
+FROM @trN03 t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = t.Form);
+
+DECLARE @idEsN03 INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnN03 INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDeN03 INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsN03, x.Id, t.Es FROM @trN03 t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsN03 AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnN03, x.Id, t.En FROM @trN03 t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnN03 AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDeN03, x.Id, t.De FROM @trN03 t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDeN03 AND y.IdControl = x.Id);
+GO
+
+-- ---------------------------------------------------------
+-- A02 — Serialización: exportar / importar perfil de cliente (XML). Traducciones ES/EN/DE.
+-- ---------------------------------------------------------
+DECLARE @trPerfil TABLE (Form NVARCHAR(80), Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @trPerfil (Form, Codigo, Es, En, De) VALUES
+    (N'FormRegistrarPersona', N'btnExportarPerfil',          N'Exportar perfil...',            N'Export profile...',              N'Profil exportieren...'),
+    (N'FormRegistrarPersona', N'btnImportarPerfil',          N'Importar perfil...',            N'Import profile...',              N'Profil importieren...'),
+    (N'FormRegistrarPersona', N'dlgExportarPerfil',          N'Exportar perfil de cliente',    N'Export customer profile',        N'Kundenprofil exportieren'),
+    (N'FormRegistrarPersona', N'dlgImportarPerfil',          N'Importar perfil de cliente',    N'Import customer profile',        N'Kundenprofil importieren'),
+    (N'FormRegistrarPersona', N'filtroPerfil',               N'Perfil de cliente',             N'Customer profile',               N'Kundenprofil'),
+    (N'FormRegistrarPersona', N'msgPerfilExportado',         N'Perfil exportado en:
+{0}', N'Profile exported to:
+{0}', N'Profil exportiert nach:
+{0}'),
+    (N'FormRegistrarPersona', N'msgPersonaImportada',        N'Persona importada: {0}.',       N'Person imported: {0}.',          N'Person importiert: {0}.'),
+    (N'FormRegistrarPersona', N'msgPersonaActualizada',      N'{0} ya existía: se actualizaron sus datos con los del archivo.', N'{0} already existed: their data was updated from the file.', N'{0} existierte bereits: die Daten wurden aus der Datei aktualisiert.'),
+    (N'FormRegistrarPersona', N'msgPersonaSinCambios',       N'{0} ya existía con los mismos datos: no hubo cambios.', N'{0} already existed with the same data: nothing changed.', N'{0} existierte bereits mit denselben Daten: keine Änderungen.'),
+
+    (N'Errores', N'ERR_ARCHIVO_PERFIL',  N'No se pudo acceder al archivo del perfil: {0}', N'The profile file could not be accessed: {0}', N'Auf die Profildatei konnte nicht zugegriffen werden: {0}'),
+    (N'Errores', N'ERR_PERFIL_INVALIDO', N'El archivo no es un perfil de cliente válido.', N'The file is not a valid customer profile.',   N'Die Datei ist kein gültiges Kundenprofil.'),
+    (N'Errores', N'ERR_PERFIL_VERSION',  N'El perfil fue generado con otra versión del formato ({0}); se esperaba {1}.', N'The profile was created with another format version ({0}); {1} was expected.', N'Das Profil wurde mit einer anderen Formatversion erstellt ({0}); erwartet wurde {1}.'),
+
+    (N'TipoBitacora', N'PerfilCliente', N'Exportación/importación de perfil de cliente', N'Customer profile export/import', N'Export/Import von Kundenprofilen');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, t.Form
+FROM @trPerfil t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = t.Form);
+
+DECLARE @idEsPerfil INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnPerfil INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDePerfil INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsPerfil, x.Id, t.Es FROM @trPerfil t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsPerfil AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnPerfil, x.Id, t.En FROM @trPerfil t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnPerfil AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDePerfil, x.Id, t.De FROM @trPerfil t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDePerfil AND y.IdControl = x.Id);
+GO
+
+-- =========================================================
+-- Cuenta de email saliente (Mantenimiento → Configurar cuenta email)
+-- Registro único; la contraseña se guarda tal cual (sin cifrar) y se carga desde la pantalla.
+-- =========================================================
+
+IF OBJECT_ID('dbo.ConfiguracionEmail','U') IS NULL
+CREATE TABLE [dbo].[ConfiguracionEmail](
+    [Id]              [int]            NOT NULL DEFAULT 1,
+    [Host]            [nvarchar](200)  NOT NULL DEFAULT N'smtp.gmail.com',
+    [Puerto]          [int]            NOT NULL DEFAULT 587,
+    [Ssl]             [bit]            NOT NULL DEFAULT 1,
+    [Usuario]         [nvarchar](200)  NULL DEFAULT N'avantiautoconcesionaria@gmail.com',
+    [Password]        [nvarchar](200)  NULL,
+    [TimeoutMs]       [int]            NOT NULL DEFAULT 10000,
+    [Remitente]       [nvarchar](200)  NOT NULL DEFAULT N'avantiautoconcesionaria@gmail.com',
+    CONSTRAINT [PK_ConfiguracionEmail]    PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [CK_ConfiguracionEmail_Id] CHECK ([Id] = 1)     -- registro único
+)
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[ObtenerConfiguracionEmail]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM ConfiguracionEmail) INSERT INTO ConfiguracionEmail (Id) VALUES (1);
+    SELECT Host, Puerto, Ssl, Usuario, [Password], TimeoutMs, Remitente FROM ConfiguracionEmail WHERE Id = 1;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[ActualizarConfiguracionEmail]
+    @Host            NVARCHAR(200),
+    @Puerto          INT,
+    @Ssl             BIT,
+    @Usuario         NVARCHAR(200),
+    @Password        NVARCHAR(200),
+    @TimeoutMs       INT,
+    @Remitente       NVARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM ConfiguracionEmail) INSERT INTO ConfiguracionEmail (Id) VALUES (1);
+    UPDATE ConfiguracionEmail
+       SET Host = @Host, Puerto = @Puerto, Ssl = @Ssl, Usuario = @Usuario,
+           [Password] = @Password, TimeoutMs = @TimeoutMs, Remitente = @Remitente
+     WHERE Id = 1;
+END
+GO
+
+-- Seed: cuenta de Gmail de la concesionaria con su contraseña de aplicación (se puede cambiar desde la pantalla).
+IF NOT EXISTS (SELECT 1 FROM ConfiguracionEmail)
+    INSERT INTO ConfiguracionEmail (Id, Host, Puerto, Ssl, Usuario, [Password], TimeoutMs, Remitente)
+    VALUES (1, N'smtp.gmail.com', 587, 1, N'avantiautoconcesionaria@gmail.com', N'lecs mufs srgm bnxj', 10000, N'avantiautoconcesionaria@gmail.com');
+GO
+
+-- Permiso: lo tienen el Gerente (por el rol) y el admin (por ser admin).
+IF NOT EXISTS (SELECT 1 FROM Permiso WHERE Codigo = 'CONFIGURAR_CUENTA_EMAIL')
+    INSERT INTO Permiso (Codigo, Descripcion, Tipo) VALUES
+        ('CONFIGURAR_CUENTA_EMAIL', 'Habilita configurar la cuenta de email desde la que salen los avisos.', 'I');
+UPDATE Permiso SET IdPadre = (SELECT Id FROM Permiso WHERE Codigo = 'GERENTE')
+    WHERE Codigo = 'CONFIGURAR_CUENTA_EMAIL';
+GO
+
+DECLARE @trEmail TABLE (Form NVARCHAR(80), Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @trEmail (Form, Codigo, Es, En, De) VALUES
+    (N'FormPrincipal', N'menuIntegridadBackup', N'Integridad y backup',     N'Integrity and backup',   N'Integrität und Sicherung'),
+    (N'FormPrincipal', N'menuConfigurarEmail',  N'Configurar cuenta email', N'Configure email account', N'E-Mail-Konto konfigurieren'),
+
+    (N'FormConfiguracionEmail', N'title',              N'Configurar cuenta email',  N'Configure email account',  N'E-Mail-Konto konfigurieren'),
+    (N'FormConfiguracionEmail', N'lblTitulo',          N'Configurar cuenta email',  N'Configure email account',  N'E-Mail-Konto konfigurieren'),
+    (N'FormConfiguracionEmail', N'lblHost',            N'Servidor SMTP:',           N'SMTP server:',             N'SMTP-Server:'),
+    (N'FormConfiguracionEmail', N'lblPuerto',          N'Puerto:',                  N'Port:',                    N'Port:'),
+    (N'FormConfiguracionEmail', N'chkSsl',             N'Usar conexión segura (SSL/TLS)', N'Use secure connection (SSL/TLS)', N'Sichere Verbindung verwenden (SSL/TLS)'),
+    (N'FormConfiguracionEmail', N'lblUsuario',         N'Usuario:',                 N'User:',                    N'Benutzer:'),
+    (N'FormConfiguracionEmail', N'lblPassword',        N'Contraseña:',              N'Password:',                N'Passwort:'),
+    (N'FormConfiguracionEmail', N'chkMostrarPassword', N'Mostrar',                  N'Show',                     N'Anzeigen'),
+    (N'FormConfiguracionEmail', N'lblRemitente',       N'Email remitente:',         N'Sender email:',            N'Absender-E-Mail:'),
+    (N'FormConfiguracionEmail', N'lblTimeout',         N'Tiempo de espera (ms):',   N'Timeout (ms):',            N'Zeitlimit (ms):'),
+    (N'FormConfiguracionEmail', N'lblAyuda',           N'Para Gmail: servidor smtp.gmail.com, puerto 587, conexión segura y una contraseña de aplicación.', N'For Gmail: server smtp.gmail.com, port 587, secure connection and an app password.', N'Für Gmail: Server smtp.gmail.com, Port 587, sichere Verbindung und ein App-Passwort.'),
+    (N'FormConfiguracionEmail', N'lblDestinoPrueba',   N'Enviar prueba a:',         N'Send test to:',            N'Test senden an:'),
+    (N'FormConfiguracionEmail', N'btnEnviarPrueba',    N'Enviar correo de prueba',  N'Send test email',          N'Test-E-Mail senden'),
+    (N'FormConfiguracionEmail', N'btnGuardar',         N'Guardar',                  N'Save',                     N'Speichern'),
+    (N'FormConfiguracionEmail', N'btnCancelar',        N'Cancelar',                 N'Cancel',                   N'Abbrechen'),
+    (N'FormConfiguracionEmail', N'msgGuardado',        N'Cuenta de email guardada.', N'Email account saved.',    N'E-Mail-Konto gespeichert.'),
+    (N'FormConfiguracionEmail', N'msgPruebaEnviada',   N'Correo de prueba enviado a {0}.', N'Test email sent to {0}.', N'Test-E-Mail an {0} gesendet.'),
+    (N'FormConfiguracionEmail', N'msgError',           N'Error',                    N'Error',                    N'Fehler'),
+    (N'FormConfiguracionEmail', N'msgExito',           N'Éxito',                    N'Success',                  N'Erfolg'),
+
+    (N'Errores', N'ERR_EMAIL_HOST_REQUERIDO',     N'Ingresá el servidor SMTP.',                    N'Enter the SMTP server.',                       N'Gib den SMTP-Server ein.'),
+    (N'Errores', N'ERR_EMAIL_PUERTO_INVALIDO',    N'El puerto debe estar entre 1 y 65535.',        N'The port must be between 1 and 65535.',        N'Der Port muss zwischen 1 und 65535 liegen.'),
+    (N'Errores', N'ERR_EMAIL_TIMEOUT_INVALIDO',   N'El tiempo de espera debe estar entre 1000 y 120000 ms.', N'The timeout must be between 1000 and 120000 ms.', N'Das Zeitlimit muss zwischen 1000 und 120000 ms liegen.'),
+    (N'Errores', N'ERR_EMAIL_REMITENTE_INVALIDO', N'Ingresá un email remitente válido.',           N'Enter a valid sender email.',                  N'Gib eine gültige Absender-E-Mail ein.'),
+    (N'Errores', N'ERR_EMAIL_DESTINO_INVALIDO',   N'Ingresá un email de destino válido para la prueba.', N'Enter a valid recipient email for the test.', N'Gib eine gültige Empfänger-E-Mail für den Test ein.'),
+    (N'Errores', N'ERR_EMAIL_PRUEBA',             N'No se pudo enviar el correo de prueba: {0}',   N'The test email could not be sent: {0}',        N'Die Test-E-Mail konnte nicht gesendet werden: {0}'),
+
+    (N'TipoBitacora', N'ConfiguracionEmail', N'Configuración de cuenta de email', N'Email account settings', N'E-Mail-Kontoeinstellungen');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, t.Form
+FROM @trEmail t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = t.Form);
+
+DECLARE @idEsEmail INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnEmail INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDeEmail INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsEmail, x.Id, t.Es FROM @trEmail t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsEmail AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnEmail, x.Id, t.En FROM @trEmail t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnEmail AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDeEmail, x.Id, t.De FROM @trEmail t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDeEmail AND y.IdControl = x.Id);
+GO
+
+-- ---------------------------------------------------------
+-- Validación de documento de Persona (DNI / CUIT numéricos). Traducciones ES/EN/DE.
+-- ---------------------------------------------------------
+DECLARE @trDoc TABLE (Form NVARCHAR(80), Codigo NVARCHAR(80), Es NVARCHAR(1000), En NVARCHAR(1000), De NVARCHAR(1000));
+
+INSERT INTO @trDoc (Form, Codigo, Es, En, De) VALUES
+    (N'Errores', N'ERR_PERSONA_DNI_INVALIDO',
+        N'El documento debe ser un DNI de 7 u 8 dígitos o un CUIT de 11 dígitos, solo números (sin puntos ni guiones).',
+        N'The ID must be a 7 or 8 digit DNI or an 11 digit CUIT, numbers only (no dots or dashes).',
+        N'Die Nummer muss eine DNI mit 7 oder 8 Ziffern oder eine CUIT mit 11 Ziffern sein, nur Ziffern (ohne Punkte oder Bindestriche).'),
+    (N'Errores', N'ERR_PERSONA_CUIT_INVALIDO',
+        N'El CUIT debe tener 11 dígitos, solo números (sin puntos ni guiones).',
+        N'The CUIT must have 11 digits, numbers only (no dots or dashes).',
+        N'Die CUIT muss 11 Ziffern haben, nur Ziffern (ohne Punkte oder Bindestriche).');
+
+INSERT INTO Control (Codigo, Form)
+SELECT t.Codigo, t.Form
+FROM @trDoc t
+WHERE NOT EXISTS (SELECT 1 FROM Control x WHERE x.Codigo = t.Codigo AND x.Form = t.Form);
+
+DECLARE @idEsDoc INT = (SELECT Id FROM Idioma WHERE Nombre = N'Español');
+DECLARE @idEnDoc INT = (SELECT Id FROM Idioma WHERE Nombre = N'English');
+DECLARE @idDeDoc INT = (SELECT Id FROM Idioma WHERE Nombre = N'Deutsch');
+
+INSERT INTO Traduccion (IdIdioma, IdControl, Texto)
+SELECT @idEsDoc, x.Id, t.Es FROM @trDoc t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEsDoc AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idEnDoc, x.Id, t.En FROM @trDoc t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idEnDoc AND y.IdControl = x.Id)
+UNION ALL
+SELECT @idDeDoc, x.Id, t.De FROM @trDoc t
+INNER JOIN Control x ON x.Codigo = t.Codigo AND x.Form = t.Form
+WHERE NOT EXISTS (SELECT 1 FROM Traduccion y WHERE y.IdIdioma = @idDeDoc AND y.IdControl = x.Id);
+GO
+
+-- =========================================================
+-- Seed masivo de demo: ~200 personas, ~200 unidades en todos los estados
+-- (con historial, checklist, publicación, reservas y ventas) y ~200 captaciones
+-- con sus avisos. Determinístico (sin RAND) para que cada corrida dé lo mismo.
+-- Los DVH quedan en NULL: la app los inicializa en el primer arranque.
+-- Los mails son @example.com (dominio reservado, no llega a nadie real).
+-- =========================================================
+
+-- ---------------------------------------------------------
+-- Personas (170 físicas + 30 jurídicas)
+-- ---------------------------------------------------------
+;WITH N AS (
+    SELECT TOP 200 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+    FROM sys.all_objects a CROSS JOIN sys.all_objects b
+),
+Nombres AS (
+    SELECT * FROM (VALUES
+        (0, N'Agustina'), (1, N'Matías'), (2, N'Florencia'), (3, N'Santiago'), (4, N'Lucía'), (5, N'Facundo'),
+        (6, N'Micaela'), (7, N'Gonzalo'), (8, N'Pilar'), (9, N'Federico'), (10, N'Julieta'), (11, N'Tomás'),
+        (12, N'Rocío'), (13, N'Joaquín'), (14, N'Valeria'), (15, N'Lucas'), (16, N'Paula'), (17, N'Leandro'),
+        (18, N'Carolina'), (19, N'Ignacio'), (20, N'Natalia'), (21, N'Pablo'), (22, N'Romina'), (23, N'Ezequiel'),
+        (24, N'Daniela'), (25, N'Sebastián'), (26, N'Victoria'), (27, N'Franco'), (28, N'Mariana'), (29, N'Lautaro'),
+        (30, N'Belén'), (31, N'Hernán'), (32, N'Gabriela'), (33, N'Bruno'), (34, N'Antonella'), (35, N'Alejandro'),
+        (36, N'Milagros'), (37, N'Rodrigo'), (38, N'Abril'), (39, N'Emiliano')
+    ) v(i, Nombre)
+),
+Apellidos AS (
+    SELECT * FROM (VALUES
+        (0, N'García'), (1, N'Rodríguez'), (2, N'Fernández'), (3, N'López'), (4, N'Martínez'), (5, N'González'),
+        (6, N'Pérez'), (7, N'Sánchez'), (8, N'Romero'), (9, N'Díaz'), (10, N'Álvarez'), (11, N'Torres'),
+        (12, N'Ruiz'), (13, N'Ramírez'), (14, N'Flores'), (15, N'Acosta'), (16, N'Benítez'), (17, N'Medina'),
+        (18, N'Herrera'), (19, N'Suárez'), (20, N'Aguirre'), (21, N'Giménez'), (22, N'Gutiérrez'), (23, N'Pereyra'),
+        (24, N'Rojas'), (25, N'Molina'), (26, N'Castro'), (27, N'Ortiz'), (28, N'Silva'), (29, N'Núñez'),
+        (30, N'Luna'), (31, N'Juárez'), (32, N'Cabrera'), (33, N'Ríos'), (34, N'Morales'), (35, N'Godoy'),
+        (36, N'Ferreyra'), (37, N'Vera'), (38, N'Sosa'), (39, N'Peralta')
+    ) v(i, Apellido)
+),
+Empresas AS (
+    SELECT * FROM (VALUES
+        (0, N'Transportes'), (1, N'Logística'), (2, N'Distribuidora'), (3, N'Agropecuaria'), (4, N'Constructora'),
+        (5, N'Servicios'), (6, N'Comercial'), (7, N'Inversiones'), (8, N'Remises'), (9, N'Fletes')
+    ) v(i, Rubro)
+),
+Lugares AS (
+    SELECT * FROM (VALUES
+        (0, N'CABA', N'11'), (1, N'La Plata', N'221'), (2, N'Córdoba', N'351'), (3, N'Rosario', N'341'),
+        (4, N'Mendoza', N'261'), (5, N'Mar del Plata', N'223'), (6, N'San Isidro', N'11'), (7, N'Quilmes', N'11'),
+        (8, N'Tucumán', N'381'), (9, N'Neuquén', N'299')
+    ) v(i, Ciudad, Area)
+),
+Calles AS (
+    SELECT * FROM (VALUES
+        (0, N'Av. Rivadavia'), (1, N'Av. Corrientes'), (2, N'San Martín'), (3, N'Belgrano'), (4, N'Mitre'),
+        (5, N'Sarmiento'), (6, N'Av. Libertador'), (7, N'Moreno'), (8, N'Alem'), (9, N'Urquiza'),
+        (10, N'Pueyrredón'), (11, N'Lavalle')
+    ) v(i, Calle)
+)
+INSERT INTO Persona (TipoPersona, Documento, Nombre, Domicilio, Telefono, Email, EstadoCivil, FechaNacimiento)
+SELECT CASE WHEN N.n <= 170 THEN 'F' ELSE 'J' END,
+       CASE WHEN N.n <= 170 THEN CAST(40000000 + N.n * 1013 AS NVARCHAR(30))
+            ELSE N'33' + RIGHT(N'000000000' + CAST(700000000 + N.n * 97 AS NVARCHAR(9)), 9) END,
+       CASE WHEN N.n <= 170 THEN no.Nombre + N' ' + ap.Apellido
+            ELSE em.Rubro + N' ' + ap.Apellido + CASE WHEN N.n % 2 = 0 THEN N' S.A.' ELSE N' S.R.L.' END END,
+       ca.Calle + N' ' + CAST(100 + (N.n * 37) % 4800 AS NVARCHAR(10)) + N', ' + lu.Ciudad,
+       N'+54 ' + lu.Area + N' ' + CAST(4000 + (N.n * 71) % 6000 AS NVARCHAR(10)) + N'-' + RIGHT(N'0000' + CAST((N.n * 389) % 10000 AS NVARCHAR(10)), 4),
+       N'cliente' + CAST(N.n AS NVARCHAR(10)) + N'@example.com',
+       CASE WHEN N.n <= 170 THEN 1 + (N.n * 3) % 5 ELSE 1 END,
+       CASE WHEN N.n <= 170 THEN DATEADD(DAY, -((N.n * 211) % 14600), '2004-12-31')
+            ELSE DATEADD(DAY, -((N.n * 97) % 9000), '2020-12-31') END
+FROM N
+-- Combinación nombre+apellido única: el nombre recorre los 40 y el apellido se corre 11 lugares por cada vuelta.
+INNER JOIN Nombres   no ON no.i = N.n % 40
+INNER JOIN Apellidos ap ON ap.i = CASE WHEN N.n <= 170 THEN ((N.n % 40) * 3 + (N.n / 40) * 11) % 40 ELSE (N.n * 13) % 40 END
+INNER JOIN Empresas  em ON em.i = N.n % 10
+INNER JOIN Lugares   lu ON lu.i = (N.n * 3)  % 10
+INNER JOIN Calles    ca ON ca.i = (N.n * 5)  % 12;
+GO
+
+-- ---------------------------------------------------------
+-- Unidades (200) repartidas en los 8 estados
+--   1-20 Ingresado · 21-35 Requiere aprobación de presupuesto · 36-60 En preparación
+--   61-80 Pendiente de venta · 81-130 En venta · 131-145 Reservado · 146-155 Pausado · 156-200 Vendido
+-- Dominios provisorios con Z (identifican las unidades masivas); al final se reasignan todas las patentes por año.
+-- ---------------------------------------------------------
+DECLARE @idComprador INT = (SELECT Id FROM Usuario WHERE Username = 'comprador');
+DECLARE @cantModelos INT = (SELECT COUNT(*) FROM Modelo);
+
+;WITH N AS (
+    SELECT TOP 200 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+    FROM sys.all_objects a CROSS JOIN sys.all_objects b
+),
+Modelos AS (
+    SELECT mo.Id, ROW_NUMBER() OVER (ORDER BY mo.Id) - 1 AS i FROM Modelo mo
+),
+Vendedores AS (
+    SELECT pe.Id, ROW_NUMBER() OVER (ORDER BY pe.Id) AS i
+    FROM Persona pe WHERE pe.Email LIKE N'cliente%@example.com'
+),
+Base AS (
+    SELECT N.n,
+           2016 + (N.n * 7) % 11 AS Anio,          -- 2016..2026 (patentes Mercosur)
+           CASE WHEN N.n BETWEEN 1   AND 20  THEN 1
+                WHEN N.n BETWEEN 21  AND 35  THEN 2
+                WHEN N.n BETWEEN 36  AND 60  THEN 3
+                WHEN N.n BETWEEN 61  AND 80  THEN 4
+                WHEN N.n BETWEEN 81  AND 130 THEN 5
+                WHEN N.n BETWEEN 131 AND 145 THEN 7
+                WHEN N.n BETWEEN 146 AND 155 THEN 8
+                ELSE 6 END AS Estado
+    FROM N
+)
+INSERT INTO Unidad (Dominio, IdModelo, Anio, Kilometraje, PrecioCompra, Descripcion, EstadoActual, IdPersona, IdCompradorUsuario, FechaIngreso)
+SELECT N'Z' + CHAR(65 + b.n % 26) + RIGHT(N'000' + CAST(b.n AS NVARCHAR(3)), 3) + CHAR(65 + (b.n * 7) % 26) + CHAR(65 + (b.n * 3) % 26),
+       mo.Id,
+       b.Anio,
+       (2026 - b.Anio) * 12000 + (b.n * 523) % 9000,
+       CAST(ROUND((6000000 + (b.Anio - 2016) * 1300000 + (b.n * 104729) % 6000000) / 10000.0, 0) * 10000 AS DECIMAL(18,2)),
+       CASE b.n % 5
+            WHEN 0 THEN N'Único dueño, service al día.'
+            WHEN 1 THEN N'Buen estado general, cubiertas al 70%.'
+            WHEN 2 THEN N'Detalles de chapa menores.'
+            WHEN 3 THEN N'Llega con VTV vigente.'
+            ELSE        N'Recibido como parte de pago.' END,
+       b.Estado,
+       ve.Id,
+       @idComprador,
+       -- Las que avanzaron más ingresaron hace más tiempo (así todas las fechas quedan en el pasado).
+       DATEADD(DAY, -(CASE WHEN b.Estado = 1 THEN 2 + b.n % 10
+                           WHEN b.Estado IN (2, 3) THEN 15 + b.n % 15
+                           WHEN b.Estado = 4 THEN 25 + b.n % 15
+                           WHEN b.Estado = 5 THEN 12 + b.n % 60
+                           ELSE 40 + b.n % 120 END), GETDATE())
+FROM Base b
+INNER JOIN Modelos mo ON mo.i = (b.n * 11) % @cantModelos
+INNER JOIN Vendedores ve ON ve.i = 1 + (b.n * 17) % 200;
+GO
+
+-- Historial de estados de las unidades masivas (mismo camino que el flujo real).
+DECLARE @idCompradorH INT = (SELECT Id FROM Usuario WHERE Username = 'comprador');
+DECLARE @idTallerH    INT = (SELECT Id FROM Usuario WHERE Username = 'taller');
+DECLARE @idGerenteH   INT = (SELECT Id FROM Usuario WHERE Username = 'gerente');
+DECLARE @idVendedorH  INT = (SELECT Id FROM Usuario WHERE Username = 'vendedor');
+
+;WITH U AS (SELECT Id, EstadoActual AS E, FechaIngreso AS F FROM Unidad WHERE Dominio LIKE N'Z[A-Z][0-9][0-9][0-9][A-Z][A-Z]')
+INSERT INTO HistorialEstadoUnidad (IdUnidad, EstadoOrigen, EstadoDestino, IdUsuario, FechaHora, Motivo)
+SELECT Id, NULL, 1, @idCompradorH, F, NULL FROM U
+UNION ALL SELECT Id, 1, 3, @idTallerH,   DATEADD(DAY, 2,  F), N'Encargado toma la unidad para preparación.' FROM U WHERE E <> 1
+UNION ALL SELECT Id, 3, 2, @idTallerH,   DATEADD(DAY, 5,  F), N'Se detectan trabajos adicionales; presupuesto enviado al Gerente.' FROM U WHERE E = 2
+UNION ALL SELECT Id, 3, 4, @idTallerH,   DATEADD(DAY, 8,  F), N'Preparación finalizada.' FROM U WHERE E IN (4, 5, 6, 7, 8)
+UNION ALL SELECT Id, 4, 5, @idGerenteH,  DATEADD(DAY, 10, F), N'Publicación aprobada.' FROM U WHERE E IN (5, 6, 7, 8)
+UNION ALL SELECT Id, 5, 7, @idVendedorH, DATEADD(DAY, 15, F), N'Reserva registrada.' FROM U WHERE E = 7 OR (E = 6 AND Id % 2 = 0)
+UNION ALL SELECT Id, 5, 8, @idVendedorH, DATEADD(DAY, 12, F), N'Pausada por revisión de documentación.' FROM U WHERE E = 8
+UNION ALL SELECT Id, 7, 6, @idVendedorH, DATEADD(DAY, 20, F), N'Venta registrada (reserva concretada).' FROM U WHERE E = 6 AND Id % 2 = 0
+UNION ALL SELECT Id, 5, 6, @idVendedorH, DATEADD(DAY, 18, F), N'Venta registrada.' FROM U WHERE E = 6 AND Id % 2 = 1;
+GO
+
+-- Checklist de las unidades masivas que ya salieron de Ingresado (snapshot del template).
+DECLARE @idTallerC INT = (SELECT Id FROM Usuario WHERE Username = 'taller');
+
+INSERT INTO ChecklistPreparacion (IdUnidad, IdCreadorUsuario, FechaCreacion)
+SELECT u.Id, @idTallerC, DATEADD(DAY, 2, u.FechaIngreso)
+FROM Unidad u
+WHERE u.Dominio LIKE N'Z[A-Z][0-9][0-9][0-9][A-Z][A-Z]' AND u.EstadoActual <> 1;
+
+INSERT INTO ChecklistItem (IdChecklist, Nombre, Descripcion, EsDelTemplate, IdTemplateOrigen, EstadoAprobacion)
+SELECT cp.Id, t.Nombre, t.Descripcion, 1, t.Id, 1
+FROM ChecklistPreparacion cp
+INNER JOIN Unidad u ON u.Id = cp.IdUnidad AND u.Dominio LIKE N'Z[A-Z][0-9][0-9][0-9][A-Z][A-Z]'
+CROSS JOIN ChecklistItemTemplate t
+WHERE t.Activo = 1;
+
+-- Requiere aprobación de presupuesto: un extra propuesto con costo.
+INSERT INTO ChecklistItem (IdChecklist, Nombre, Descripcion, EsDelTemplate, IdTemplateOrigen, CostoEstimado, EstadoAprobacion)
+SELECT cp.Id,
+       CASE u.Id % 3 WHEN 0 THEN N'Cambio de embrague' WHEN 1 THEN N'Pintura de puerta trasera' ELSE N'Reemplazo de amortiguadores' END,
+       N'Trabajo adicional detectado en la revisión.', 0, NULL,
+       CAST(80000 + (u.Id * 7919) % 400000 AS DECIMAL(18,2)), 2
+FROM ChecklistPreparacion cp
+INNER JOIN Unidad u ON u.Id = cp.IdUnidad AND u.Dominio LIKE N'Z[A-Z][0-9][0-9][0-9][A-Z][A-Z]'
+WHERE u.EstadoActual = 2;
+
+-- Preparación finalizada (Pendiente de venta en adelante): todos los ítems revisados OK.
+UPDATE ci
+   SET ResultadoRevision = 2,
+       FechaRevision     = DATEADD(DAY, 7, u.FechaIngreso),
+       IdUsuarioRevisor  = @idTallerC
+FROM ChecklistItem ci
+INNER JOIN ChecklistPreparacion cp ON cp.Id = ci.IdChecklist
+INNER JOIN Unidad u               ON u.Id  = cp.IdUnidad
+WHERE u.Dominio LIKE N'Z[A-Z][0-9][0-9][0-9][A-Z][A-Z]' AND u.EstadoActual IN (4, 5, 6, 7, 8);
+GO
+
+-- Publicaciones: todas las que llegaron a En venta (y sus estados posteriores) y 2 de cada 3 Pendiente de venta.
+INSERT INTO PublicacionUnidad (IdUnidad, PrecioPublicacion, DescripcionPublicacion, FechaCreacion, FechaUltimaEdicion)
+SELECT u.Id,
+       CAST(ROUND(u.PrecioCompra * 1.22 / 10000.0, 0) * 10000 AS DECIMAL(18,2)),
+       ma.Nombre + N' ' + mo.Nombre + N' ' + CAST(u.Anio AS NVARCHAR(4)) + N', '
+           + REPLACE(REPLACE(CONVERT(NVARCHAR(20), CAST(u.Kilometraje AS MONEY), 1), N'.00', N''), N',', N'.') + N' km. '
+           + CASE u.Id % 4
+                WHEN 0 THEN N'Service oficial al día, listo para transferir.'
+                WHEN 1 THEN N'Muy buen estado general, cubiertas nuevas.'
+                WHEN 2 THEN N'Ideal primer auto, económico y confiable.'
+                ELSE        N'Revisado por nuestro taller, con garantía de 3 meses.' END,
+       DATEADD(DAY, 9, u.FechaIngreso),
+       CASE WHEN u.Id % 3 = 0 THEN DATEADD(DAY, 11, u.FechaIngreso) ELSE NULL END
+FROM Unidad u
+INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+WHERE u.Dominio LIKE N'Z[A-Z][0-9][0-9][0-9][A-Z][A-Z]'
+  AND (u.EstadoActual IN (5, 6, 7, 8) OR (u.EstadoActual = 4 AND u.Id % 3 <> 0));
+GO
+
+-- ---------------------------------------------------------
+-- Captaciones (200 búsquedas, una por persona del seed masivo)
+-- Patrones de criterios: carrocerías · marcas · marca+modelo · carrocería+marca.
+-- ---------------------------------------------------------
+DECLARE @idVendedorB INT = (SELECT Id FROM Usuario WHERE Username = 'vendedor');
+
+;WITH P AS (
+    SELECT pe.Id, ROW_NUMBER() OVER (ORDER BY pe.Id) AS n
+    FROM Persona pe WHERE pe.Email LIKE N'cliente%@example.com'
+)
+INSERT INTO BusquedaCliente (IdPersona, IdUsuarioEntrevista, FechaRegistro, FechaVencimiento,
+                             AnioDesde, AnioHasta, PrecioMaximo, Observaciones, AceptaAvisos, Estado, FechaCierre, MotivoCierre)
+SELECT P.Id, @idVendedorB,
+       DATEADD(DAY, -d.Dias, GETDATE()),
+       CASE WHEN P.n % 15 = 0 THEN DATEADD(DAY, 90 - d.Dias, GETDATE())      -- vencida
+            ELSE DATEADD(DAY, 30 + P.n % 60, GETDATE()) END,                 -- activa: vence dentro de 30 a 90 días
+       CASE WHEN P.n % 3 = 0 THEN NULL ELSE 2014 + P.n % 7 END,
+       CASE WHEN P.n % 5 = 0 THEN 2024 ELSE NULL END,
+       CASE WHEN P.n % 4 = 0 THEN NULL ELSE CAST(9000000 + (P.n % 16) * 1000000 AS DECIMAL(18,2)) END,
+       CASE P.n % 6
+            WHEN 0 THEN N'Prefiere automático.'
+            WHEN 1 THEN N'Para uso familiar.'
+            WHEN 2 THEN N'Entrega su auto como parte de pago.'
+            WHEN 3 THEN N'Necesita financiación.'
+            ELSE NULL END,
+       CASE WHEN P.n % 9 = 0 THEN 0 ELSE 1 END,
+       CASE WHEN P.n % 15 = 0 THEN 3 WHEN P.n % 15 = 7 THEN 2 ELSE 1 END,
+       CASE WHEN P.n % 15 IN (0, 7) THEN DATEADD(DAY, -3, GETDATE()) ELSE NULL END,
+       CASE WHEN P.n % 15 = 0 THEN N'Vencimiento automático.' WHEN P.n % 15 = 7 THEN N'El cliente indicó que ya no busca.' ELSE NULL END
+FROM P
+CROSS APPLY (SELECT CASE WHEN P.n % 15 = 0 THEN 100 + P.n % 40      -- vencidas: registradas hace más de 90 días
+                         ELSE 60 + (P.n * 7) % 110 END AS Dias) d;   -- el resto, entre 60 y 170 días atrás (antes de que se publicaran las unidades)
+GO
+
+-- Criterios de las captaciones masivas.
+;WITH B AS (
+    SELECT b.Id, ROW_NUMBER() OVER (ORDER BY b.Id) AS n
+    FROM BusquedaCliente b
+    INNER JOIN Persona pe ON pe.Id = b.IdPersona
+    WHERE pe.Email LIKE N'cliente%@example.com'
+),
+Marcas AS (
+    SELECT ma.Id, ROW_NUMBER() OVER (ORDER BY ma.Nombre) - 1 AS i
+    FROM Marca ma
+    WHERE ma.Nombre IN (N'Toyota', N'Ford', N'Volkswagen', N'Chevrolet', N'Fiat', N'Renault',
+                        N'Peugeot', N'Honda', N'Jeep', N'Nissan', N'Kia', N'Hyundai')
+),
+Modelos AS (
+    SELECT mo.Id, mo.IdMarca, ROW_NUMBER() OVER (ORDER BY mo.Id) - 1 AS i FROM Modelo mo
+)
+INSERT INTO BusquedaClienteMarca (IdBusqueda, IdMarca)
+SELECT DISTINCT x.IdBusqueda, x.IdMarca FROM (
+    -- patrón 1: una o dos marcas
+    SELECT B.Id AS IdBusqueda, m.Id AS IdMarca FROM B INNER JOIN Marcas m ON m.i = B.n % 12 WHERE B.n % 4 = 1
+    UNION ALL
+    SELECT B.Id, m.Id FROM B INNER JOIN Marcas m ON m.i = (B.n * 5) % 12 WHERE B.n % 4 = 1 AND B.n % 8 = 1
+    UNION ALL
+    -- patrón 2: la marca del modelo elegido
+    SELECT B.Id, mo.IdMarca FROM B INNER JOIN Modelos mo ON mo.i = (B.n * 7) % (SELECT COUNT(*) FROM Modelo) WHERE B.n % 4 = 2
+    UNION ALL
+    -- patrón 3: carrocería + una marca
+    SELECT B.Id, m.Id FROM B INNER JOIN Marcas m ON m.i = (B.n * 3) % 12 WHERE B.n % 4 = 3
+) x;
+
+;WITH B AS (
+    SELECT b.Id, ROW_NUMBER() OVER (ORDER BY b.Id) AS n
+    FROM BusquedaCliente b
+    INNER JOIN Persona pe ON pe.Id = b.IdPersona
+    WHERE pe.Email LIKE N'cliente%@example.com'
+),
+Modelos AS (
+    SELECT mo.Id, ROW_NUMBER() OVER (ORDER BY mo.Id) - 1 AS i FROM Modelo mo
+)
+INSERT INTO BusquedaClienteModelo (IdBusqueda, IdModelo)
+SELECT B.Id, mo.Id FROM B INNER JOIN Modelos mo ON mo.i = (B.n * 7) % (SELECT COUNT(*) FROM Modelo) WHERE B.n % 4 = 2;
+
+;WITH B AS (
+    SELECT b.Id, ROW_NUMBER() OVER (ORDER BY b.Id) AS n
+    FROM BusquedaCliente b
+    INNER JOIN Persona pe ON pe.Id = b.IdPersona
+    WHERE pe.Email LIKE N'cliente%@example.com'
+)
+INSERT INTO BusquedaClienteCarroceria (IdBusqueda, TipoCarroceria)
+SELECT DISTINCT x.IdBusqueda, x.Tipo FROM (
+    -- patrón 0: una o dos carrocerías
+    SELECT B.Id AS IdBusqueda, 1 + B.n % 5 AS Tipo FROM B WHERE B.n % 4 = 0
+    UNION ALL
+    SELECT B.Id, 1 + (B.n + 2) % 5 FROM B WHERE B.n % 4 = 0 AND B.n % 8 = 0
+    UNION ALL
+    -- patrón 3: carrocería + marca
+    SELECT B.Id, 1 + (B.n * 3) % 5 FROM B WHERE B.n % 4 = 3
+) x;
+GO
+
+-- Clientes que buscan UN modelo puntual y nada más (sin carrocería ni precio):
+-- p. ej. "un Peugeot 208". Es una segunda búsqueda para algunos clientes del seed masivo.
+DECLARE @idVendedorM INT = (SELECT Id FROM Usuario WHERE Username = 'vendedor');
+
+DECLARE @soloModelo TABLE (k INT, Marca NVARCHAR(100), Modelo NVARCHAR(100));
+INSERT INTO @soloModelo (k, Marca, Modelo) VALUES
+    (1,  N'Peugeot',    N'208'),     (2,  N'Toyota',     N'Hilux'),   (3,  N'Volkswagen', N'Golf'),
+    (4,  N'Ford',       N'Ranger'),  (5,  N'Fiat',       N'Cronos'),  (6,  N'Chevrolet',  N'Onix'),
+    (7,  N'Toyota',     N'Corolla'), (8,  N'Jeep',       N'Compass'), (9,  N'Renault',    N'Duster'),
+    (10, N'Honda',      N'Civic'),   (11, N'Kia',        N'Sportage'),(12, N'Toyota',     N'Yaris'),
+    (13, N'Peugeot',    N'208'),     (14, N'Toyota',     N'Hilux'),   (15, N'Volkswagen', N'Golf'),
+    (16, N'Ford',       N'Ranger'),  (17, N'Fiat',       N'Cronos'),  (18, N'Chevrolet',  N'Onix'),
+    (19, N'Toyota',     N'Corolla'), (20, N'Jeep',       N'Compass'), (21, N'Renault',    N'Duster'),
+    (22, N'Peugeot',    N'208'),     (23, N'Kia',        N'Sportage'),(24, N'Toyota',     N'Hilux'),
+    (25, N'Volkswagen', N'Golf');
+
+;WITH P AS (
+    SELECT pe.Id, ROW_NUMBER() OVER (ORDER BY pe.Id) AS i
+    FROM Persona pe WHERE pe.Email LIKE N'cliente%@example.com'
+)
+INSERT INTO BusquedaCliente (IdPersona, IdUsuarioEntrevista, FechaRegistro, FechaVencimiento,
+                             AnioDesde, AnioHasta, PrecioMaximo, Observaciones, AceptaAvisos, Estado)
+SELECT P.Id, @idVendedorM,
+       DATEADD(DAY, -(60 + s.k * 4), GETDATE()), DATEADD(DAY, 30 + s.k * 2, GETDATE()),
+       NULL, NULL, NULL,
+       N'Busca específicamente un ' + s.Marca + N' ' + s.Modelo + N'.',
+       CASE WHEN s.k % 10 = 0 THEN 0 ELSE 1 END, 1
+FROM @soloModelo s
+INNER JOIN P ON P.i = 3 + s.k * 7;      -- clientes distintos (10, 17, 24, ...)
+
+INSERT INTO BusquedaClienteMarca (IdBusqueda, IdMarca)
+SELECT DISTINCT b.Id, ma.Id
+FROM @soloModelo s
+INNER JOIN BusquedaCliente b ON b.Observaciones = N'Busca específicamente un ' + s.Marca + N' ' + s.Modelo + N'.'
+INNER JOIN Marca ma ON ma.Nombre = s.Marca
+WHERE NOT EXISTS (SELECT 1 FROM BusquedaClienteMarca x WHERE x.IdBusqueda = b.Id AND x.IdMarca = ma.Id);
+
+INSERT INTO BusquedaClienteModelo (IdBusqueda, IdModelo)
+SELECT DISTINCT b.Id, mo.Id
+FROM @soloModelo s
+INNER JOIN BusquedaCliente b ON b.Observaciones = N'Busca específicamente un ' + s.Marca + N' ' + s.Modelo + N'.'
+INNER JOIN Marca  ma ON ma.Nombre = s.Marca
+INNER JOIN Modelo mo ON mo.Nombre = s.Modelo AND mo.IdMarca = ma.Id
+WHERE NOT EXISTS (SELECT 1 FROM BusquedaClienteModelo x WHERE x.IdBusqueda = b.Id AND x.IdModelo = mo.Id);
+GO
+
+-- Algunos clientes pidieron no recibir más avisos.
+DECLARE @idVendedorS INT = (SELECT Id FROM Usuario WHERE Username = 'vendedor');
+INSERT INTO SuspensionAvisos (IdPersona, FechaSuspension, IdUsuario, Motivo)
+SELECT pe.Id, DATEADD(DAY, -(pe.Id % 20), GETDATE()), @idVendedorS, N'Pidió no recibir más correos.'
+FROM Persona pe
+WHERE pe.Email LIKE N'cliente%@example.com' AND pe.Id % 23 = 0
+  AND NOT EXISTS (SELECT 1 FROM SuspensionAvisos s WHERE s.IdPersona = pe.Id);
+GO
+
+-- ---------------------------------------------------------
+-- Rango de años de las captaciones: ningún cliente busca modelos 2016 ni 0 km 2026.
+-- Así el tablero muestra unidades sin interesados (las 2016 y 2026 en venta).
+-- ---------------------------------------------------------
+UPDATE BusquedaCliente SET AnioDesde = 2017 WHERE AnioDesde IS NULL OR AnioDesde < 2017;
+UPDATE BusquedaCliente SET AnioHasta = 2025 WHERE AnioHasta IS NULL OR AnioHasta > 2025;
+
+-- Avisos que ya no corresponden con el nuevo rango (por si se re-ejecuta sobre una base con datos).
+DELETE n FROM NotificacionEnviada n
+INNER JOIN BusquedaCliente b ON b.Id = n.IdBusqueda
+INNER JOIN Unidad u ON u.Id = n.IdUnidad
+WHERE u.Anio < b.AnioDesde OR u.Anio > b.AnioHasta;
+GO
+
+-- ---------------------------------------------------------
+-- Avisos: cada búsqueda (activa en ese momento y con avisos aceptados) recibe un aviso por cada
+-- unidad masiva que coincidía cuando pasó a En venta. Misma regla que CaptacionService.Coincide.
+-- ---------------------------------------------------------
+;WITH UnidadesPublicadas AS (
+    SELECT u.Id, u.Anio, mo.Id AS IdModelo, mo.IdMarca, mo.TipoCarroceria, p.PrecioPublicacion,
+           (SELECT MAX(h.FechaHora) FROM HistorialEstadoUnidad h WHERE h.IdUnidad = u.Id AND h.EstadoDestino = 5) AS FechaEnVenta
+    FROM Unidad u
+    INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+    LEFT  JOIN PublicacionUnidad p ON p.IdUnidad = u.Id
+    WHERE u.EstadoActual IN (5, 6, 7, 8)          -- todas las publicadas (también las del seed base)
+),
+Coincidencias AS (
+    SELECT b.Id AS IdBusqueda, b.IdPersona, up.Id AS IdUnidad, up.FechaEnVenta
+    FROM BusquedaCliente b
+    CROSS JOIN UnidadesPublicadas up
+    WHERE b.AceptaAvisos = 1
+      AND b.FechaRegistro < up.FechaEnVenta
+      AND (b.Estado = 1 OR b.FechaCierre > up.FechaEnVenta)
+      AND NOT EXISTS (SELECT 1 FROM SuspensionAvisos s WHERE s.IdPersona = b.IdPersona)
+      AND (NOT EXISTS (SELECT 1 FROM BusquedaClienteMarca bm WHERE bm.IdBusqueda = b.Id)
+           OR EXISTS (SELECT 1 FROM BusquedaClienteMarca bm WHERE bm.IdBusqueda = b.Id AND bm.IdMarca = up.IdMarca))
+      AND (NOT EXISTS (SELECT 1 FROM BusquedaClienteModelo bo INNER JOIN Modelo m2 ON m2.Id = bo.IdModelo
+                       WHERE bo.IdBusqueda = b.Id AND m2.IdMarca = up.IdMarca)
+           OR EXISTS (SELECT 1 FROM BusquedaClienteModelo bo WHERE bo.IdBusqueda = b.Id AND bo.IdModelo = up.IdModelo))
+      AND (NOT EXISTS (SELECT 1 FROM BusquedaClienteCarroceria bc WHERE bc.IdBusqueda = b.Id)
+           OR EXISTS (SELECT 1 FROM BusquedaClienteCarroceria bc WHERE bc.IdBusqueda = b.Id AND bc.TipoCarroceria = up.TipoCarroceria))
+      AND (b.AnioDesde IS NULL OR up.Anio >= b.AnioDesde)
+      AND (b.AnioHasta IS NULL OR up.Anio <= b.AnioHasta)
+      AND (b.PrecioMaximo IS NULL OR up.PrecioPublicacion IS NULL OR up.PrecioPublicacion <= b.PrecioMaximo)
+      AND NOT EXISTS (SELECT 1 FROM NotificacionEnviada x WHERE x.IdPersona = b.IdPersona AND x.IdUnidad = up.Id)
+)
+INSERT INTO NotificacionEnviada (IdBusqueda, IdPersona, IdUnidad, FechaEnvio, Exitoso, Error)
+SELECT c.IdBusqueda, c.IdPersona, c.IdUnidad, CASE WHEN DATEADD(MINUTE, 5, c.FechaEnVenta) > GETDATE() THEN GETDATE() ELSE DATEADD(MINUTE, 5, c.FechaEnVenta) END,
+       CASE WHEN (c.IdBusqueda + c.IdUnidad) % 19 = 0 THEN 0 ELSE 1 END,
+       CASE WHEN (c.IdBusqueda + c.IdUnidad) % 19 = 0 THEN N'No se pudo conectar con el servidor de correo.' ELSE NULL END
+FROM (SELECT c0.*, ROW_NUMBER() OVER (PARTITION BY c0.IdPersona, c0.IdUnidad ORDER BY c0.IdBusqueda) AS rn
+      FROM Coincidencias c0) c
+WHERE c.rn = 1;      -- un solo aviso por cliente y unidad, aunque tenga varias búsquedas que coincidan
+GO
+
+-- ---------------------------------------------------------
+-- Reservas y ventas de las unidades masivas.
+-- El comprador es, si lo hay, un cliente que había sido avisado de esa unidad (así hay conversiones);
+-- si no, una persona del seed masivo.
+-- ---------------------------------------------------------
+DECLARE @idVendedorV INT = (SELECT Id FROM Usuario WHERE Username = 'vendedor');
+
+;WITH UV AS (
+    SELECT u.Id, u.EstadoActual AS E, u.FechaIngreso AS F, p.PrecioPublicacion,
+           COALESCE(
+               (SELECT TOP 1 n.IdPersona FROM NotificacionEnviada n
+                WHERE n.IdUnidad = u.Id AND n.Exitoso = 1 AND u.Id % 3 <> 0
+                ORDER BY n.IdPersona),
+               (SELECT pe.Id FROM (SELECT Id, ROW_NUMBER() OVER (ORDER BY Id) AS i FROM Persona
+                                   WHERE Email LIKE N'cliente%@example.com') pe
+                WHERE pe.i = 1 + (u.Id * 31) % 200)) AS IdComprador
+    FROM Unidad u
+    INNER JOIN PublicacionUnidad p ON p.IdUnidad = u.Id
+    WHERE u.Dominio LIKE N'Z[A-Z][0-9][0-9][0-9][A-Z][A-Z]' AND u.EstadoActual IN (6, 7)
+)
+INSERT INTO VentaUnidad (IdUnidad, Tipo, Activa, IdPersonaComprador, IdVendedorUsuario, FechaOperacion,
+                         PrecioAcordado, MontoSena, FechaEstimadaFin, Descripcion, ComentarioCancelacion)
+-- Reservas vigentes (Reservado) y reservas que terminaron en venta (Vendido con Id par).
+SELECT Id, 2, CASE WHEN E = 7 THEN 1 ELSE 0 END, IdComprador, @idVendedorV, DATEADD(DAY, 15, F),
+       PrecioPublicacion - 200000, CAST(ROUND(PrecioPublicacion * 0.1 / 10000.0, 0) * 10000 AS DECIMAL(18,2)),
+       CAST(DATEADD(DAY, 45, F) AS DATE), N'Seña en efectivo.',
+       CASE WHEN E = 6 THEN N'Reserva concretada en venta.' ELSE NULL END
+FROM UV WHERE E = 7 OR (E = 6 AND Id % 2 = 0)
+UNION ALL
+-- Ventas
+SELECT Id, 1, 1, IdComprador, @idVendedorV,
+       CASE WHEN Id % 2 = 0 THEN DATEADD(DAY, 20, F) ELSE DATEADD(DAY, 18, F) END,
+       PrecioPublicacion - CASE WHEN Id % 2 = 0 THEN 200000 ELSE 300000 END,
+       NULL, NULL, N'Pago contado.', NULL
+FROM UV WHERE E = 6;
+GO
+
+-- RN-N03-09: quien compró deja de buscar (sus búsquedas activas registradas antes de la compra se cierran).
+UPDATE b
+   SET Estado = 2, FechaCierre = v.FechaOperacion, MotivoCierre = N'El cliente compró una unidad.'
+FROM BusquedaCliente b
+INNER JOIN VentaUnidad v ON v.IdPersonaComprador = b.IdPersona AND v.Tipo = 1
+WHERE b.Estado = 1 AND b.FechaRegistro < v.FechaOperacion;
+GO
+
+-- ---------------------------------------------------------
+-- Conversiones recientes (tablero de captación): algunos clientes avisados en los últimos 30 días
+-- compraron después, una unidad que coincidía con su búsqueda. Se reasignan ventas directas
+-- (sin reserva previa) del seed: el comprador pasa a ser el cliente avisado y la venta se fecha
+-- un día después de su último aviso. Sus búsquedas activas se cierran (RN-N03-09).
+-- ---------------------------------------------------------
+DECLARE @maxConversiones INT = 18;
+DECLARE @hoy DATE = CAST(GETDATE() AS DATE);
+DECLARE @usadosCliente TABLE (IdPersona INT PRIMARY KEY);
+DECLARE @usadasUnidad  TABLE (IdUnidad INT PRIMARY KEY);
+DECLARE @n INT = 0, @idPersona INT, @idUnidad INT, @idVenta INT, @fecha DATETIME, @compradorAnterior INT, @fechaAnterior DATETIME;
+
+WHILE @n < @maxConversiones
+BEGIN
+    SET @idPersona = NULL;
+
+    ;WITH Avisados AS (
+        SELECT IdPersona, MAX(FechaEnvio) AS UltimoAviso
+        FROM NotificacionEnviada
+        WHERE Exitoso = 1 AND FechaEnvio >= DATEADD(DAY, -30, @hoy)
+        GROUP BY IdPersona
+        HAVING MAX(FechaEnvio) < DATEADD(DAY, -1, @hoy)
+    ),
+    Vendidas AS (
+        SELECT u.Id AS IdUnidad, v.Id AS IdVenta, u.Anio, mo.Id AS IdModelo, mo.IdMarca, mo.TipoCarroceria, p.PrecioPublicacion
+        FROM Unidad u
+        INNER JOIN VentaUnidad v ON v.IdUnidad = u.Id AND v.Tipo = 1
+        INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+        LEFT  JOIN PublicacionUnidad p ON p.IdUnidad = u.Id
+        WHERE u.EstadoActual = 6
+          AND NOT EXISTS (SELECT 1 FROM VentaUnidad r WHERE r.IdUnidad = u.Id AND r.Tipo = 2)
+    )
+    SELECT TOP 1 @idPersona = a.IdPersona, @idUnidad = s.IdUnidad, @idVenta = s.IdVenta,
+                 @fecha = DATEADD(DAY, 1, a.UltimoAviso)
+    FROM Avisados a
+    INNER JOIN BusquedaCliente b ON b.IdPersona = a.IdPersona AND b.Estado = 1
+    CROSS JOIN Vendidas s
+    WHERE NOT EXISTS (SELECT 1 FROM @usadosCliente x WHERE x.IdPersona = a.IdPersona)
+      AND NOT EXISTS (SELECT 1 FROM @usadasUnidad x WHERE x.IdUnidad = s.IdUnidad)
+      -- Misma regla que CaptacionService.Coincide.
+      AND (NOT EXISTS (SELECT 1 FROM BusquedaClienteMarca bm WHERE bm.IdBusqueda = b.Id)
+           OR EXISTS (SELECT 1 FROM BusquedaClienteMarca bm WHERE bm.IdBusqueda = b.Id AND bm.IdMarca = s.IdMarca))
+      AND (NOT EXISTS (SELECT 1 FROM BusquedaClienteModelo bo INNER JOIN Modelo m2 ON m2.Id = bo.IdModelo
+                       WHERE bo.IdBusqueda = b.Id AND m2.IdMarca = s.IdMarca)
+           OR EXISTS (SELECT 1 FROM BusquedaClienteModelo bo WHERE bo.IdBusqueda = b.Id AND bo.IdModelo = s.IdModelo))
+      AND (NOT EXISTS (SELECT 1 FROM BusquedaClienteCarroceria bc WHERE bc.IdBusqueda = b.Id)
+           OR EXISTS (SELECT 1 FROM BusquedaClienteCarroceria bc WHERE bc.IdBusqueda = b.Id AND bc.TipoCarroceria = s.TipoCarroceria))
+      AND (b.AnioDesde IS NULL OR s.Anio >= b.AnioDesde)
+      AND (b.AnioHasta IS NULL OR s.Anio <= b.AnioHasta)
+      AND (b.PrecioMaximo IS NULL OR s.PrecioPublicacion IS NULL OR s.PrecioPublicacion <= b.PrecioMaximo)
+    ORDER BY a.IdPersona, s.IdUnidad;
+
+    IF @idPersona IS NULL BREAK;
+
+    SELECT @compradorAnterior = IdPersonaComprador, @fechaAnterior = FechaOperacion FROM VentaUnidad WHERE Id = @idVenta;
+
+    UPDATE VentaUnidad SET IdPersonaComprador = @idPersona, FechaOperacion = @fecha WHERE Id = @idVenta;
+    UPDATE HistorialEstadoUnidad SET FechaHora = @fecha WHERE IdUnidad = @idUnidad AND EstadoDestino = 6;
+
+    UPDATE BusquedaCliente
+       SET Estado = 2, FechaCierre = @fecha, MotivoCierre = N'El cliente compró una unidad.'
+     WHERE IdPersona = @idPersona AND Estado = 1 AND FechaRegistro < @fecha;
+
+    -- El comprador anterior ya no compró: se reabren las búsquedas que se le habían cerrado por esa compra.
+    IF NOT EXISTS (SELECT 1 FROM VentaUnidad WHERE IdPersonaComprador = @compradorAnterior AND Tipo = 1)
+        UPDATE BusquedaCliente
+           SET Estado = CASE WHEN FechaVencimiento > GETDATE() THEN 1 ELSE 3 END,
+               FechaCierre = CASE WHEN FechaVencimiento > GETDATE() THEN NULL ELSE FechaVencimiento END,
+               MotivoCierre = CASE WHEN FechaVencimiento > GETDATE() THEN NULL ELSE N'Vencimiento automático.' END
+         WHERE IdPersona = @compradorAnterior AND Estado = 2
+           AND FechaCierre = @fechaAnterior AND MotivoCierre = N'El cliente compró una unidad.';
+
+    INSERT INTO @usadosCliente VALUES (@idPersona);
+    INSERT INTO @usadasUnidad  VALUES (@idUnidad);
+    SET @n += 1;
+END
+GO
+
+-- ---------------------------------------------------------
+-- Patentes argentinas (formato Mercosur AA123AA) para TODAS las unidades, según el año.
+-- Secuencia real: primero el número (000-999), después las dos últimas letras (AA, AB, ... ZZ)
+-- y por último las dos primeras. AA000AA = enero 2016 · AI800ZZ = noviembre 2026 (130 meses).
+-- Cada año ocupa su tramo proporcional de la secuencia y las unidades se reparten dentro del tramo.
+-- ---------------------------------------------------------
+DECLARE @total BIGINT = 8 * 676000 + 675 * 1000 + 800;   -- índice de AI800ZZ = 6.083.800
+
+;WITH U AS (
+    SELECT u.Id, u.Anio,
+           ROW_NUMBER() OVER (PARTITION BY u.Anio ORDER BY u.FechaIngreso, u.Id) AS rn,
+           COUNT(*)     OVER (PARTITION BY u.Anio) AS cant
+    FROM Unidad u
+),
+I AS (
+    SELECT Id,
+           CAST((Anio - 2016) * 12 AS BIGINT) * @total / 130                      -- inicio del tramo del año
+         + rn * (CAST(CASE WHEN Anio >= 2026 THEN 10 ELSE 12 END AS BIGINT) * @total / 130) / (cant + 1) AS idx
+    FROM U
+)
+UPDATE u
+   SET Dominio = CHAR(65 + (I.idx / 676000) / 26) + CHAR(65 + (I.idx / 676000) % 26)
+               + RIGHT(N'000' + CAST(I.idx % 1000 AS NVARCHAR(3)), 3)
+               + CHAR(65 + ((I.idx % 676000) / 1000) / 26) + CHAR(65 + ((I.idx % 676000) / 1000) % 26)
+FROM Unidad u
+INNER JOIN I ON I.Id = u.Id;
+GO
+
+-- ---------------------------------------------------------
+-- Fotos por modelo para las unidades publicadas que no tienen fotos propias.
+-- Los archivos van en Avanti Auto\ImagenesSeed\modelos\<Marca>_<Modelo>\1.jpg, 2.jpg, 3.jpg
+-- (espacios del nombre → "_", ej. "Mercedes-Benz_Clase_A"). El instalador los copia a
+-- %ProgramData%\Avanti Auto\Imagenes\seed\modelos. Son compartidas entre la    s unidades del mismo
+-- modelo: al quitar una foto desde la app solo se borra la fila, no el archivo.
+-- ---------------------------------------------------------
+INSERT INTO ImagenUnidad (IdUnidad, RutaArchivo, Orden)
+SELECT u.Id,
+       N'seed\modelos\' + REPLACE(ma.Nombre + N'_' + mo.Nombre, N' ', N'_') + N'\' + CAST(f.Nro AS NVARCHAR(2)) + N'.jpg',
+       f.Nro - 1
+FROM Unidad u
+INNER JOIN PublicacionUnidad p ON p.IdUnidad = u.Id
+INNER JOIN Modelo mo ON mo.Id = u.IdModelo
+INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
+CROSS JOIN (VALUES (1), (2), (3)) AS f(Nro)
+WHERE NOT EXISTS (SELECT 1 FROM ImagenUnidad i WHERE i.IdUnidad = u.Id);
+GO
+
+-- ---------------------------------------------------------
+-- Demo de avisos por mail: todas las personas reciben en la misma casilla de prueba.
+-- (Para volver a direcciones ficticias, comentar este bloque.)
+-- ---------------------------------------------------------
+UPDATE Persona SET Email = N'ghenry320@gmail.com';
 GO

@@ -19,6 +19,8 @@ namespace UI
         private bool _loggingOut = false;
         private bool _puedeConsultarUnidad;
         private bool _puedeVerPublicaciones;
+        private bool _puedeEntrevistar;
+        private bool _puedeTableroCaptacion;
 
         public FormPrincipal(string username)
         {
@@ -47,7 +49,11 @@ namespace UI
 
             menuIdiomas.Visible  = esAdmin || TienePermiso("GESTIONAR_IDIOMAS");
             menuBitacora.Visible = esAdmin || TienePermiso("VER_BITACORA");
-            menuMantenimiento.Visible = esAdmin;
+            // Mantenimiento: integridad/backup solo admin; cuenta de email admin y gerente.
+            bool puedeConfigurarEmail = esAdmin || TienePermiso("CONFIGURAR_CUENTA_EMAIL");
+            menuIntegridadBackup.Visible = esAdmin;
+            menuConfigurarEmail.Visible  = puedeConfigurarEmail;
+            menuMantenimiento.Visible    = esAdmin || puedeConfigurarEmail;
 
             // N01 — Unidades
             bool puedeRegistrarUnidad = esAdmin || TienePermiso("REGISTRAR_UNIDAD");
@@ -73,6 +79,19 @@ namespace UI
             menuVerPublicaciones.Visible = _puedeVerPublicaciones;
             menuPublicaciones.Visible    = _puedeVerPublicaciones;
 
+            // N03 — Captación de clientes potenciales
+            bool puedeEntrevistar  = esAdmin || TienePermiso("REGISTRAR_ENTREVISTA");
+            bool puedeTablero      = esAdmin || TienePermiso("CONSULTAR_TABLERO_CAPTACION");
+            _puedeEntrevistar      = puedeEntrevistar;
+            _puedeTableroCaptacion = puedeTablero;
+            bool puedeAvisos       = esAdmin || TienePermiso("GESTIONAR_AVISOS_CLIENTE");
+            bool puedeParametros   = esAdmin || TienePermiso("GESTIONAR_PARAMETROS_CAPTACION");
+            menuRegistrarEntrevista.Visible = puedeEntrevistar;
+            menuTableroCaptacion.Visible    = puedeTablero;
+            menuAvisosClientes.Visible      = puedeAvisos;
+            menuParametrosCaptacion.Visible = puedeParametros;
+            menuCaptacion.Visible = puedeEntrevistar || puedeTablero || puedeAvisos || puedeParametros;
+
             CargarSelectorIdiomas();
             menuSeleccionIdioma.DropDownOpening += (s, e) => CargarSelectorIdiomas();
             try
@@ -88,6 +107,15 @@ namespace UI
             this.Shown += (s, e) => Navegar(CrearHome());
         }
 
+        // Publicaciones con el botón "Ver unidad": navega a Ver unidades (misma ventana) con la unidad seleccionada.
+        private FormPublicaciones CrearPublicaciones()
+        {
+            var f = new FormPublicaciones();
+            if (_puedeConsultarUnidad)
+                f.AbrirUnidad = idUnidad => Navegar(new FormUnidades(idUnidad));
+            return f;
+        }
+
         private FormHome CrearHome()
         {
             Action abrirUnidades = null;
@@ -95,8 +123,14 @@ namespace UI
                 abrirUnidades = () => Navegar(new FormUnidades());
             Action abrirPublicaciones = null;
             if (_puedeVerPublicaciones)
-                abrirPublicaciones = () => Navegar(new FormPublicaciones());
-            return new FormHome(abrirUnidades, abrirPublicaciones);
+                abrirPublicaciones = () => Navegar(CrearPublicaciones());
+            Action abrirTablero = null;
+            if (_puedeTableroCaptacion)
+                abrirTablero = () => Navegar(new FormTableroCaptacion());
+            Action abrirEntrevista = null;
+            if (_puedeEntrevistar)
+                abrirEntrevista = () => Navegar(new FormEntrevistaCliente());
+            return new FormHome(abrirUnidades, abrirPublicaciones, abrirTablero, abrirEntrevista);
         }
 
         private void CargarSelectorIdiomas()
@@ -173,6 +207,8 @@ namespace UI
             menuGestionIdiomas.Text      = Tr("menuGestionIdiomas",      "Gestión de Idiomas");
             menuSeleccionIdioma.Text     = Tr("menuSeleccionIdioma",     "Idioma ▾");
             menuMantenimiento.Text       = Tr("menuMantenimiento",       "Mantenimiento");
+            menuIntegridadBackup.Text    = Tr("menuIntegridadBackup",    "Integridad y backup");
+            menuConfigurarEmail.Text     = Tr("menuConfigurarEmail",     "Configurar cuenta email");
             menuLogout.Text              = Tr("menuLogout",              "Logout");
 
             // N01 — Unidades (i18n pendiente: agregar claves menuUnidades / menuRegistrarUnidad / menuVerUnidades / menuTemplateChecklist)
@@ -186,6 +222,11 @@ namespace UI
             menuRegistrarPersona.Text  = Tr("menuRegistrarPersona",  "Registrar Persona");
             menuPublicaciones.Text     = Tr("menuPublicaciones",     "Publicaciones");
             menuVerPublicaciones.Text  = Tr("menuVerPublicaciones",  "Ver Publicaciones");
+            menuCaptacion.Text           = Tr("menuCaptacion",           "Captación");
+            menuRegistrarEntrevista.Text = Tr("menuRegistrarEntrevista", "Registrar entrevista");
+            menuTableroCaptacion.Text    = Tr("menuTableroCaptacion",    "Tablero de captación");
+            menuAvisosClientes.Text      = Tr("menuAvisosClientes",      "Avisos a clientes");
+            menuParametrosCaptacion.Text = Tr("menuParametrosCaptacion", "Parámetros de captación");
 
             foreach (ToolStripMenuItem item in menuSeleccionIdioma.DropDownItems)
             {
@@ -274,7 +315,34 @@ namespace UI
             Navegar(new FormRegistrarPersona());
 
         private void menuVerPublicaciones_Click(object sender, EventArgs e) =>
-            Navegar(new FormPublicaciones());
+            Navegar(CrearPublicaciones());
+
+        // N03 — Captación
+        private void menuRegistrarEntrevista_Click(object sender, EventArgs e) =>
+            Navegar(new FormEntrevistaCliente());
+
+        private void menuTableroCaptacion_Click(object sender, EventArgs e) =>
+            Navegar(new FormTableroCaptacion());
+
+        private void menuAvisosClientes_Click(object sender, EventArgs e) =>
+            Navegar(new FormAvisosCliente());
+
+        private void menuParametrosCaptacion_Click(object sender, EventArgs e)
+        {
+            using (var f = new FormParametrosCaptacion())
+            {
+                // Si el tablero está abierto, se refresca (estado del envío automático, alertas, etc.).
+                if (f.ShowDialog(this) == DialogResult.OK)
+                    foreach (var tablero in this.MdiChildren.OfType<FormTableroCaptacion>())
+                        tablero.Refrescar();
+            }
+        }
+
+        private void menuConfigurarEmail_Click(object sender, EventArgs e)
+        {
+            using (var f = new FormConfiguracionEmail())
+                f.ShowDialog(this);
+        }
 
         private void menuMantenimiento_Click(object sender, EventArgs e)
         {

@@ -3,6 +3,7 @@ using BE.Enums;
 using BLL;
 using HELPERS;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -430,7 +431,28 @@ namespace UI
         private void btnAutorizarPublicacion_Click(object sender, EventArgs e)
         {
             string obs = PromptInput(Tr("promptObservaciones", "Observaciones (opcional):"));
-            EjecutarAccion(() => _unidadService.AutorizarPublicacion(_unidadId, obs));
+            ResultadoNotificacion avisos = null;
+            Cursor.Current = Cursors.WaitCursor;
+            EjecutarAccion(() => avisos = _unidadService.AutorizarPublicacion(_unidadId, obs));
+            Cursor.Current = Cursors.Default;
+            if (avisos != null) InformarAvisos(avisos);
+        }
+
+        // N03 — CU-CAP-03: resultado de los avisos enviados al publicar.
+        private void InformarAvisos(ResultadoNotificacion r)
+        {
+            string msg;
+            if (r.EnvioDesactivado)
+                msg = Tr("msgAvisosDesactivados", "La unidad quedó En venta. El envío automático de avisos está desactivado.");
+            else if (!string.IsNullOrEmpty(r.Error))
+                msg = Tr("msgAvisosError", "La unidad quedó En venta, pero no se pudieron enviar los avisos. Revisá la bitácora.");
+            else if (r.Enviados == 0 && r.Fallidos == 0)
+                msg = Tr("msgAvisosNinguno", "La unidad quedó En venta. No hay clientes con búsquedas que coincidan para avisar.");
+            else
+                msg = string.Format(Tr("msgAvisosResultado", "La unidad quedó En venta. Avisos enviados: {0}. Fallidos: {1}."),
+                                    r.Enviados, r.Fallidos);
+            MessageBox.Show(this, msg, Tr("msgInformacion", "Información"), MessageBoxButtons.OK,
+                r.Fallidos > 0 || !string.IsNullOrEmpty(r.Error) ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
         }
 
         private void btnRechazarPublicacion_Click(object sender, EventArgs e)
@@ -526,11 +548,72 @@ namespace UI
 
         private void btnVender_Click(object sender, EventArgs e)
         {
-            using (var f = new FormVender())
+            // Reservada: solo se le vende al titular de la reserva.
+            VentaUnidad reserva = null;
+            if (_unidad != null && _unidad.EstadoActual == EstadoUnidad.Reservado)
+            {
+                try { reserva = _ventaService.ObtenerActiva(_unidadId); }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+
+            using (var f = reserva != null ? new FormVender(reserva) : new FormVender())
             {
                 if (f.ShowDialog(this) != DialogResult.OK) return;
-                EjecutarAccion(() => _ventaService.Vender(_unidadId, f.IdPersonaComprador,
-                    f.FechaOperacion, f.PrecioFinal, f.Descripcion));
+                string vehiculo = _unidad == null ? "" :
+                    $"{_unidad.Modelo.Marca.Nombre} {_unidad.Modelo.Nombre} {_unidad.Anio} ({_unidad.Dominio})";
+                bool vendida = false;
+                EjecutarAccion(() =>
+                {
+                    _ventaService.Vender(_unidadId, f.IdPersonaComprador, f.FechaOperacion, f.PrecioFinal, f.Descripcion);
+                    vendida = true;
+                });
+                if (vendida) OfrecerCerrarBusquedas(f.IdPersonaComprador, vehiculo);
+            }
+        }
+
+        // N03 — RN-N03-09: si el comprador tenía búsquedas activas, se pregunta por cada una si se cierra
+        // (con motivo opcional). Una confirmación por búsqueda.
+        private void OfrecerCerrarBusquedas(int idComprador, string vehiculo)
+        {
+            List<BusquedaCliente> activas;
+            var captacion = new CaptacionService();
+            try
+            {
+                activas = captacion.ListarBusquedasDeCliente(idComprador)
+                    .Where(b => b.Estado == EstadoBusqueda.Activa).ToList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            for (int i = 0; i < activas.Count; i++)
+            {
+                var b = activas[i];
+                string titulo = string.Format(Tr("tituloBusquedaComprador", "Búsqueda activa del comprador ({0} de {1})"), i + 1, activas.Count);
+                string mensaje = string.Format(Tr("msgCerrarBusquedaPorVenta",
+                        "{0} tiene una búsqueda activa:\n\n{1}\nEntrevista del {2:d}.\n\n¿Cerrarla ahora que compró {3}?"),
+                    b.Cliente.Nombre, TextosCaptacion.DescribirBusqueda(b, Tr), b.FechaRegistro, vehiculo);
+
+                using (var conf = new FormConfirmarMotivo(titulo, mensaje,
+                    Tr("btnCerrarBusquedaVenta", "Cerrar búsqueda"), Tr("btnMantenerBusqueda", "Mantener activa")))
+                {
+                    if (conf.ShowDialog(this) != DialogResult.OK) continue;
+                    try
+                    {
+                        captacion.CerrarBusqueda(b.Id, conf.Motivo
+                            ?? string.Format(Tr("motivoCompra", "El cliente compró {0}."), vehiculo));
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
 

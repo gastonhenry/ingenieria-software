@@ -40,7 +40,6 @@ namespace UI
             this.btnActualizar = new System.Windows.Forms.Button();
             this.pnlPie = new System.Windows.Forms.Panel();
             this.lblTotal = new System.Windows.Forms.Label();
-            this.btnVerDetalle = new System.Windows.Forms.Button();
             this.tlpCuerpo = new System.Windows.Forms.TableLayoutPanel();
             this.dgvPublicaciones = new System.Windows.Forms.DataGridView();
             this.colDominio = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -58,6 +57,8 @@ namespace UI
             this.pnlDetalleHeader = new System.Windows.Forms.Panel();
             this.lblEstadoBadge = new System.Windows.Forms.Label();
             this.btnEditarPublicacion = new System.Windows.Forms.Button();
+            this.btnExportarPdf = new System.Windows.Forms.Button();
+            this.btnVerUnidad = new System.Windows.Forms.Button();
             this.lblTituloPub = new System.Windows.Forms.Label();
             this.lblSubtituloPub = new System.Windows.Forms.Label();
             this.lblPrecioPub = new System.Windows.Forms.Label();
@@ -311,7 +312,6 @@ namespace UI
             // pnlPie
             //
             this.pnlPie.Controls.Add(this.lblTotal);
-            this.pnlPie.Controls.Add(this.btnVerDetalle);
             this.pnlPie.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.pnlPie.Name = "pnlPie";
             this.pnlPie.Size = new System.Drawing.Size(1200, 50);
@@ -324,15 +324,6 @@ namespace UI
             this.lblTotal.Name = "lblTotal";
             this.lblTotal.TabIndex = 0;
             this.lblTotal.Text = "Total: 0";
-            //
-            // btnVerDetalle
-            //
-            this.btnVerDetalle.Location = new System.Drawing.Point(440, 9);
-            this.btnVerDetalle.Name = "btnVerDetalle";
-            this.btnVerDetalle.Size = new System.Drawing.Size(140, 32);
-            this.btnVerDetalle.TabIndex = 1;
-            this.btnVerDetalle.Text = "Ver detalle";
-            this.btnVerDetalle.Click += new System.EventHandler(this.btnVerDetalle_Click);
             //
             // tlpCuerpo
             //
@@ -373,7 +364,7 @@ namespace UI
             this.dgvPublicaciones.RowHeadersVisible = false;
             this.dgvPublicaciones.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvPublicaciones.TabIndex = 0;
-            this.dgvPublicaciones.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPublicaciones_CellDoubleClick);
+            this.dgvPublicaciones.SelectionChanged += new System.EventHandler(this.dgvPublicaciones_SelectionChanged);
             this.dgvPublicaciones.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dgvPublicaciones_CellFormatting);
             this.dgvPublicaciones.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvPublicaciones_ColumnHeaderMouseClick);
             //
@@ -500,6 +491,8 @@ namespace UI
             //
             this.pnlDetalleHeader.Controls.Add(this.lblEstadoBadge);
             this.pnlDetalleHeader.Controls.Add(this.btnEditarPublicacion);
+            this.pnlDetalleHeader.Controls.Add(this.btnExportarPdf);
+            this.pnlDetalleHeader.Controls.Add(this.btnVerUnidad);
             this.pnlDetalleHeader.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlDetalleHeader.Margin = new System.Windows.Forms.Padding(0);
             this.pnlDetalleHeader.Name = "pnlDetalleHeader";
@@ -523,6 +516,25 @@ namespace UI
             this.btnEditarPublicacion.TabIndex = 0;
             this.btnEditarPublicacion.Text = "Editar publicación";
             this.btnEditarPublicacion.Click += new System.EventHandler(this.btnEditarPublicacion_Click);
+            //
+            // btnExportarPdf — N03 (CU-CAP-04)
+            //
+            this.btnExportarPdf.Location = new System.Drawing.Point(250, 2);
+            this.btnExportarPdf.Name = "btnExportarPdf";
+            this.btnExportarPdf.Size = new System.Drawing.Size(130, 32);
+            this.btnExportarPdf.TabIndex = 1;
+            this.btnExportarPdf.Text = "Exportar PDF";
+            this.btnExportarPdf.Click += new System.EventHandler(this.btnExportarPdf_Click);
+            //
+            // btnVerUnidad — navega a Ver unidades con este vehículo seleccionado
+            //
+            this.btnVerUnidad.Location = new System.Drawing.Point(110, 2);
+            this.btnVerUnidad.Name = "btnVerUnidad";
+            this.btnVerUnidad.Size = new System.Drawing.Size(130, 32);
+            this.btnVerUnidad.TabIndex = 2;
+            this.btnVerUnidad.Text = "Ver unidad";
+            this.btnVerUnidad.Visible = false;
+            this.btnVerUnidad.Click += new System.EventHandler(this.btnVerUnidad_Click);
             //
             // lblTituloPub
             //
@@ -678,7 +690,6 @@ namespace UI
         private System.Windows.Forms.Button btnActualizar;
         private System.Windows.Forms.Panel pnlPie;
         private System.Windows.Forms.Label lblTotal;
-        private System.Windows.Forms.Button btnVerDetalle;
         private System.Windows.Forms.TableLayoutPanel tlpCuerpo;
         private System.Windows.Forms.DataGridView dgvPublicaciones;
         private System.Windows.Forms.DataGridViewTextBoxColumn colDominio;
@@ -696,6 +707,8 @@ namespace UI
         private System.Windows.Forms.Panel pnlDetalleHeader;
         private System.Windows.Forms.Label lblEstadoBadge;
         private System.Windows.Forms.Button btnEditarPublicacion;
+        private System.Windows.Forms.Button btnExportarPdf;
+        private System.Windows.Forms.Button btnVerUnidad;
         private System.Windows.Forms.Label lblTituloPub;
         private System.Windows.Forms.Label lblSubtituloPub;
         private System.Windows.Forms.Label lblPrecioPub;

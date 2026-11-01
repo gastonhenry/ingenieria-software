@@ -84,6 +84,16 @@
     <Compile Include="ChecklistTemplateService.cs" />
     <Compile Include="IUnidadService.cs" />
     <Compile Include="UnidadService.cs" />
+    <Compile Include="ICaptacionService.cs" />
+    <Compile Include="CaptacionService.cs" />
+    <Compile Include="ConfiguracionEmailService.cs" />
+    <Compile Include="IConfiguracionEmailService.cs" />
+    <Compile Include="INotificacionService.cs" />
+    <Compile Include="NotificacionService.cs" />
+    <Compile Include="IPublicacionPdfService.cs" />
+    <Compile Include="PublicacionPdfService.cs" />
+    <Compile Include="IPerfilClienteService.cs" />
+    <Compile Include="PerfilClienteService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HELPERS\HELPERS.csproj">
@@ -98,6 +108,10 @@
       <Project>{b701a8e5-bbef-4566-94ba-12ec183e285d}</Project>
       <Name>BE</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- N03 — A02: exportación de publicaciones a PDF (librería de terceros) -->
+    <PackageReference Include="PDFsharp-MigraDoc-gdi" Version="1.50.5147" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

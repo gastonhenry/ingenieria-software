@@ -42,9 +42,17 @@ namespace BLL
                 throw new BLLException("ERR_PRECIO_INVALIDO", "El precio final debe ser mayor a cero.");
             var comprador = ObtenerCompradorOFallar(idPersonaComprador);
 
-            // Si venía de Reservado, cancelo la reserva activa (queda registrada como inactiva).
+            // Si venía de Reservado, solo se le vende al titular de la reserva; la reserva activa
+            // se cancela (queda registrada como inactiva).
             if (unidad.EstadoActual == EstadoUnidad.Reservado)
+            {
+                var reserva = _mapperVenta.ObtenerActivaDeUnidad(idUnidad);
+                if (reserva != null && reserva.Comprador.Id != idPersonaComprador)
+                    throw new BLLException("ERR_VENTA_OTRO_COMPRADOR",
+                        "La unidad está reservada por {0}: solo se le puede vender a esa persona. Para vendérsela a otra, primero cancelá la reserva.",
+                        reserva.Comprador.Nombre);
                 _mapperVenta.CancelarVentaActiva(idUnidad, "Reserva concretada en venta.");
+            }
 
             _mapperVenta.Insertar(idUnidad, new VentaUnidad
             {
@@ -58,6 +66,8 @@ namespace BLL
 
             _unidadService.TransicionarConHistorial(idUnidad, unidad.EstadoActual, EstadoUnidad.Vendido,
                 $"Venta registrada por ${precioFinal:N2}.", motivoObligatorio: false);
+            // N03 — RN-N03-09: las búsquedas activas del comprador no se cierran solas; la UI ofrece
+            // cerrar cada una con confirmación (CaptacionService.CerrarBusqueda).
         }
 
         public void Reservar(int idUnidad, int idPersonaComprador, DateTime fechaOperacion,

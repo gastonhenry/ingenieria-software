@@ -11,6 +11,7 @@ namespace BLL
         Persona ObtenerPorId(int id);
         Persona BuscarPorDocumento(string documento);
         List<Persona> BuscarPorDocumentoParcial(string fragmento);
+        List<Persona> BuscarPorDocumentoONombre(string texto);
         int Registrar(char tipoPersona, string documento, string nombre, string domicilio,
                       string telefono, string email, EstadoCivil estadoCivil, DateTime fechaNacimiento);
         void Editar(int id, char tipoPersona, string documento, string nombre, string domicilio,

@@ -56,9 +56,12 @@ namespace UI
             colActualizacion.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             colActualizacion.MinimumWidth = 120;
             dgvPublicaciones.AllowUserToResizeColumns = false;
-            dgvPublicaciones.SizeChanged += (s, e) => PosicionarBotonVerDetalle();
             pnlDetalleHeader.Resize += (s, e) =>
+            {
                 btnEditarPublicacion.Left = pnlDetalleHeader.Width - btnEditarPublicacion.Width;
+                btnExportarPdf.Left = (btnEditarPublicacion.Visible ? btnEditarPublicacion.Left : pnlDetalleHeader.Width) - btnExportarPdf.Width - 8;
+                btnVerUnidad.Left = btnExportarPdf.Left - btnVerUnidad.Width - 8;
+            };
 
             // Foto grande: click → visor a pantalla completa.
             picPrincipal.Cursor = Cursors.Hand;
@@ -69,7 +72,19 @@ namespace UI
             _suscrito = true;
             ActualizarIdioma(_idiomaService.IdiomaActual());
 
-            this.Load += (s, e) => { PosicionarBotonVerDetalle(); Recargar(); };
+            this.Load += (s, e) => Recargar();
+        }
+
+        // Abre la pantalla posicionada en una publicación y mostrando su detalle
+        // (ej. doble clic en una unidad coincidente de la entrevista).
+        public FormPublicaciones(int idUnidadInicial) : this()
+        {
+            this.Load += (s, e) =>
+            {
+                SeleccionarFila(idUnidadInicial);
+                var p = PublicacionSeleccionada();
+                if (p != null && p.IdUnidad == idUnidadInicial) MostrarDetalle(p);
+            };
         }
 
         private bool Tiene(string permiso)
@@ -124,8 +139,9 @@ namespace UI
             chkSoloConPrecio.Text    = Tr("chkSoloConPrecio",  "Sólo con precio");
             btnLimpiar.Text          = Tr("btnLimpiar",        "Limpiar filtros");
             btnActualizar.Text       = Tr("btnActualizar",     "Actualizar");
-            btnVerDetalle.Text       = Tr("btnVerDetalle",     "Ver detalle");
             btnEditarPublicacion.Text= Tr("btnEditarPublicacion", "Editar publicación");
+            btnExportarPdf.Text      = Tr("btnExportarPdf",    "Exportar PDF");
+            btnVerUnidad.Text        = Tr("btnVerUnidad",      "Ver unidad");
             lblDetalleVacio.Text     = Tr("lblDetalleVacio",   "Seleccioná una publicación y presioná \"Ver detalle\".");
             lblDescripcionTitulo.Text= Tr("lblDescripcionTitulo", "Descripción");
             lblSinFotos.Text         = Tr("lblSinFotos",       "Esta unidad no tiene fotos cargadas.");
@@ -354,12 +370,6 @@ namespace UI
             }
         }
 
-        private void PosicionarBotonVerDetalle()
-        {
-            // El botón queda alineado al borde derecho de la grilla (columna izquierda).
-            btnVerDetalle.Left = Math.Max(lblTotal.Right + 10, dgvPublicaciones.Right - btnVerDetalle.Width);
-        }
-
         // ------------------------------------------------------------
         // Panel de detalle (vista "publicación")
         // ------------------------------------------------------------
@@ -384,6 +394,9 @@ namespace UI
             lblEstadoBadge.Text = TrEstado(p.EstadoActual).ToUpper();
             lblEstadoBadge.BackColor = ColoresEstadoUnidad.Obtener(p.EstadoActual);
             btnEditarPublicacion.Visible = _puedeEditar;
+            btnExportarPdf.Left = (_puedeEditar ? btnEditarPublicacion.Left : pnlDetalleHeader.Width) - btnExportarPdf.Width - 8;
+            btnVerUnidad.Visible = AbrirUnidad != null;
+            btnVerUnidad.Left = btnExportarPdf.Left - btnVerUnidad.Width - 8;
 
             lblTituloPub.Text = $"{p.Marca} {p.Modelo} {p.Anio}";
             lblSubtituloPub.Text = string.Format(Tr("lblSubtituloPub", "Dominio {0}  ·  {1} km"),
@@ -557,21 +570,13 @@ namespace UI
             RefrescarDetalle(id);
         }
 
-        private void btnVerDetalle_Click(object sender, EventArgs e)
+        // Al cambiar la fila seleccionada se muestra esa publicación (sin botón "Ver detalle").
+        private void dgvPublicaciones_SelectionChanged(object sender, EventArgs e)
         {
             var p = PublicacionSeleccionada();
-            if (p == null)
-            {
-                MessageBox.Show(Tr("msgSeleccionar", "Seleccioná una publicación."), Tr("msgInformacion", "Info"));
-                return;
-            }
+            if (p == null) { if (dgvPublicaciones.Rows.Count == 0) LimpiarDetalle(); return; }
+            if (_detalle != null && _detalle.IdUnidad == p.IdUnidad) return;
             MostrarDetalle(p);
-        }
-
-        private void dgvPublicaciones_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-            btnVerDetalle_Click(sender, EventArgs.Empty);
         }
 
         private void btnEditarPublicacion_Click(object sender, EventArgs e)
@@ -582,6 +587,23 @@ namespace UI
                 f.ShowDialog(this);
             Recargar();
             RefrescarDetalle(id);
+        }
+
+        // Navegación a "Ver unidades" con la unidad seleccionada. La asigna FormPrincipal (navega en la
+        // misma ventana); si es null (ej. Publicaciones abierta como modal), el botón no se muestra.
+        public Action<int> AbrirUnidad { get; set; }
+
+        private void btnVerUnidad_Click(object sender, EventArgs e)
+        {
+            if (_detalle == null || AbrirUnidad == null) return;
+            AbrirUnidad(_detalle.IdUnidad);
+        }
+
+        // N03 — CU-CAP-04: exportar la publicación seleccionada a PDF.
+        private void btnExportarPdf_Click(object sender, EventArgs e)
+        {
+            if (_detalle == null) return;
+            ExportadorPdfPublicacion.Exportar(this, _detalle.IdUnidad);
         }
 
         // Tras recargar, vuelve a mostrar la publicación si sigue en el listado (puede haber cambiado de estado).

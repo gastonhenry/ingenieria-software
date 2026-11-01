@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace UI
 {
-    // Modal para registrar una venta: busca comprador por doc, pide precio final, fecha y descripción.
+    // Modal para registrar una venta: busca comprador por nombre o DNI/CUIT, pide precio final, fecha y descripción.
     public partial class FormVender : Form, IObservadorIdioma
     {
         private const string CODIGO_FORM = "FormVender";
@@ -31,6 +31,31 @@ namespace UI
             _idiomaService.Suscribir(this);
             _suscrito = true;
             ActualizarIdioma(_idiomaService.IdiomaActual());
+
+            // Enter en el buscador = Buscar.
+            txtDocBusqueda.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                btnBuscar_Click(btnBuscar, EventArgs.Empty);
+            };
+        }
+
+        // Unidad reservada: el comprador es el titular de la reserva (no se busca otro) y el precio
+        // arranca en el acordado en la reserva.
+        private readonly VentaUnidad _reserva;
+
+        public FormVender(VentaUnidad reserva) : this()
+        {
+            _reserva = reserva;
+            txtDocBusqueda.Text = reserva.Comprador.Documento;
+            txtDocBusqueda.ReadOnly = true;
+            btnBuscar.Enabled = false;
+            lstCoincidencias.Items.Add(new PersonaItem(reserva.Comprador, Tr));
+            lstCoincidencias.SelectedIndex = 0;
+            lstCoincidencias.Enabled = false;
+            txtPrecio.Text = reserva.PrecioAcordado.ToString("0.##", CultureInfo.CurrentCulture);
+            ActualizarIdioma(_idiomaService.IdiomaActual());
         }
 
         private string Tr(string codigo, string fallback)
@@ -49,9 +74,11 @@ namespace UI
         {
             this.Text             = Tr("title",            "Vender");
             lblTitulo.Text        = Tr("lblTitulo",        "Registrar venta");
-            lblDocBusqueda.Text   = Tr("lblDocBusqueda",   "Comprador (DNI/CUIT):");
+            lblDocBusqueda.Text   = Tr("lblDocBusqueda",   "Nombre o DNI/CUIT:");
             btnBuscar.Text        = Tr("btnBuscar",        "Buscar");
-            lblCoincidencias.Text = Tr("lblCoincidencias", "Coincidencias:");
+            lblCoincidencias.Text = _reserva != null
+                ? Tr("lblReservadaPor", "Unidad reservada por (solo se le puede vender a esta persona):")
+                : Tr("lblCoincidencias", "Coincidencias:");
             lblFecha.Text         = Tr("lblFecha",         "Fecha:");
             lblPrecio.Text        = Tr("lblPrecio",        "Precio final ($):");
             lblDescripcion.Text   = Tr("lblDescripcion",   "Descripción:");
@@ -66,10 +93,10 @@ namespace UI
                 string frag = txtDocBusqueda.Text.Trim();
                 lstCoincidencias.Items.Clear();
                 if (string.IsNullOrEmpty(frag)) return;
-                List<Persona> rs = _personaService.BuscarPorDocumentoParcial(frag);
+                List<Persona> rs = _personaService.BuscarPorDocumentoONombre(frag);
                 if (rs.Count == 0)
                 {
-                    MessageBox.Show(Tr("msgSinCoincidencias", "No se encontraron personas con ese documento."),
+                    MessageBox.Show(Tr("msgSinCoincidencias", "No se encontraron personas con ese nombre o DNI/CUIT."),
                         Tr("msgInformacion", "Info"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }

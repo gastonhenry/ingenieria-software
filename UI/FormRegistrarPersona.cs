@@ -3,6 +3,7 @@ using BE.Enums;
 using BLL;
 using HELPERS;
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace UI
@@ -74,7 +75,11 @@ namespace UI
             btnDarDeAlta.Text      = Tr("btnDarDeAlta",       "Dar de alta");
             btnEditar.Text         = Tr("btnEditar",          "Editar");
             btnEliminar.Text       = Tr("btnEliminar",        "Eliminar");
-            lblExistentes.Text     = Tr("lblExistentes",      "Personas registradas:");
+            btnNuevo.Text          = Tr("btnNuevo",           "Nuevo");
+            lblTituloLista.Text    = Tr("lblTituloLista",     "Personas registradas");
+            lblExistentes.Text     = Tr("lblExistentes",      "Buscar por nombre o DNI/CUIT:");
+            btnExportarPerfil.Text = Tr("btnExportarPerfil",  "Exportar perfil...");
+            btnImportarPerfil.Text = Tr("btnImportarPerfil",  "Importar perfil...");
             RecargarItemsEstadoCivil();
         }
 
@@ -94,13 +99,14 @@ namespace UI
             if (cboEstadoCivil.Items.Count > 0) cboEstadoCivil.SelectedIndex = 0;
         }
 
+        private List<Persona> _personas = new List<Persona>();
+
         private void CargarPersonas()
         {
             try
             {
-                lstPersonas.Items.Clear();
-                foreach (Persona p in _personaService.Listar())
-                    lstPersonas.Items.Add(p);
+                _personas = _personaService.Listar();
+                FiltrarPersonas();
             }
             catch (Exception ex)
             {
@@ -108,8 +114,85 @@ namespace UI
             }
         }
 
+        private bool _rearmandoLista;
+
+        // Filtra la lista por nombre o DNI/CUIT (contiene, sin distinguir mayúsculas).
+        // Mantiene la selección si la persona sigue visible; si deja de verse, se limpian los campos.
+        private void FiltrarPersonas()
+        {
+            int? idSeleccionada = (lstPersonas.SelectedItem as Persona)?.Id;
+            string filtro = txtBuscar.Text.Trim();
+
+            _rearmandoLista = true;
+            lstPersonas.BeginUpdate();
+            lstPersonas.Items.Clear();
+            int indiceSeleccion = -1;
+            foreach (Persona p in _personas)
+            {
+                if (filtro.Length == 0
+                    || (p.Nombre ?? "").IndexOf(filtro, StringComparison.CurrentCultureIgnoreCase) >= 0
+                    || (p.Documento ?? "").IndexOf(filtro, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                {
+                    int i = lstPersonas.Items.Add(p);
+                    if (idSeleccionada.HasValue && p.Id == idSeleccionada.Value) indiceSeleccion = i;
+                }
+            }
+            lstPersonas.EndUpdate();
+            _rearmandoLista = false;
+
+            if (indiceSeleccion >= 0)
+                lstPersonas.SelectedIndex = indiceSeleccion;    // recarga los campos con los datos actuales
+            else if (idSeleccionada.HasValue)
+                LimpiarCampos();
+            ActualizarBotones();
+        }
+
+        // Alta solo sin selección; Editar / Eliminar / Exportar solo con una persona seleccionada.
+        private void ActualizarBotones()
+        {
+            bool haySeleccion = lstPersonas.SelectedItem is Persona;
+            btnDarDeAlta.Enabled = !haySeleccion;
+            btnEditar.Enabled = haySeleccion;
+            btnEliminar.Enabled = haySeleccion;
+            btnExportarPerfil.Enabled = haySeleccion;
+        }
+
+        // Deja el formulario listo para un alta: sin selección y con los campos vacíos.
+        private void btnNuevo_Click(object sender, EventArgs e) => Nuevo();
+
+        private void Nuevo()
+        {
+            lstPersonas.ClearSelected();
+            LimpiarCampos();
+            ActualizarBotones();
+            txtNombre.Focus();
+        }
+
+        // Esc = Nuevo.
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape) { Nuevo(); return true; }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void txtBuscar_TextChanged(object sender, EventArgs e) => FiltrarPersonas();
+
+        // Selecciona una persona en la lista (limpia el filtro si no está visible) y carga sus datos.
+        private void SeleccionarPersona(int idPersona)
+        {
+            if (!_personas.Exists(p => p.Id == idPersona)) return;
+            for (int pasada = 0; pasada < 2; pasada++)
+            {
+                for (int i = 0; i < lstPersonas.Items.Count; i++)
+                    if (((Persona)lstPersonas.Items[i]).Id == idPersona) { lstPersonas.SelectedIndex = i; return; }
+                txtBuscar.Clear();
+            }
+        }
+
         private void lstPersonas_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (_rearmandoLista) return;
+            ActualizarBotones();
             var p = lstPersonas.SelectedItem as Persona;
             if (p == null) return;
             rbFisica.Checked = p.TipoPersona == 'F';
@@ -122,6 +205,75 @@ namespace UI
             for (int i = 0; i < cboEstadoCivil.Items.Count; i++)
                 if (((EstadoCivilItem)cboEstadoCivil.Items[i]).Valor == p.EstadoCivil) { cboEstadoCivil.SelectedIndex = i; break; }
             dtpFechaNacimiento.Value = p.FechaNacimiento == default(DateTime) ? new DateTime(1990, 1, 1) : p.FechaNacimiento;
+        }
+
+        // ------------------------------------------------------------
+        // A02 — Serialización: exportar / importar perfil de cliente (XML)
+        // ------------------------------------------------------------
+
+        private void btnExportarPerfil_Click(object sender, EventArgs e)
+        {
+            var persona = lstPersonas.SelectedItem as Persona;
+            if (persona == null)
+            {
+                MessageBox.Show(Tr("msgSeleccionarPersona", "Seleccioná una persona de la lista."),
+                    Tr("msgAdvertencia", "Advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            try
+            {
+                var perfilService = new PerfilClienteService();
+                using (var dlg = new SaveFileDialog())
+                {
+                    dlg.Title = Tr("dlgExportarPerfil", "Exportar perfil de cliente");
+                    dlg.Filter = Tr("filtroPerfil", "Perfil de cliente") + " (*.xml)|*.xml";
+                    dlg.FileName = perfilService.NombreArchivoSugerido(persona.Id);
+                    dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    if (dlg.ShowDialog(this) != DialogResult.OK) return;
+
+                    perfilService.Exportar(persona.Id, dlg.FileName);
+                    MessageBox.Show(string.Format(Tr("msgPerfilExportado", "Perfil exportado en:\n{0}"), dlg.FileName),
+                        Tr("msgExito", "Éxito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnImportarPerfil_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var dlg = new OpenFileDialog())
+                {
+                    dlg.Title = Tr("dlgImportarPerfil", "Importar perfil de cliente");
+                    dlg.Filter = Tr("filtroPerfil", "Perfil de cliente") + " (*.xml)|*.xml";
+                    dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    if (dlg.ShowDialog(this) != DialogResult.OK) return;
+
+                    Cursor.Current = Cursors.WaitCursor;
+                    var r = new PerfilClienteService().Importar(dlg.FileName);
+                    Cursor.Current = Cursors.Default;
+
+                    // Recargar y dejar seleccionada la persona importada: los campos muestran los datos actuales.
+                    CargarPersonas();
+                    SeleccionarPersona(r.Persona.Id);
+
+                    string msg = r.PersonaCreada
+                        ? string.Format(Tr("msgPersonaImportada", "Persona importada: {0}."), r.Persona.Nombre)
+                        : r.PersonaActualizada
+                            ? string.Format(Tr("msgPersonaActualizada", "{0} ya existía: se actualizaron sus datos con los del archivo."), r.Persona.Nombre)
+                            : string.Format(Tr("msgPersonaSinCambios", "{0} ya existía con los mismos datos: no hubo cambios."), r.Persona.Nombre);
+                    MessageBox.Show(msg, Tr("msgExito", "Éxito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                Cursor.Current = Cursors.Default;
+                MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private bool ValidarCampos(out char tipo, out string documento, out string nombre, out string domicilio,

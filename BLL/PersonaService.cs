@@ -4,6 +4,7 @@ using HELPERS;
 using MPP;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace BLL
@@ -33,6 +34,12 @@ namespace BLL
         {
             if (string.IsNullOrWhiteSpace(fragmento)) return new List<Persona>();
             return _mapperPersona.BuscarPorDocumentoLike(fragmento.Trim());
+        }
+
+        public List<Persona> BuscarPorDocumentoONombre(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto)) return new List<Persona>();
+            return _mapperPersona.BuscarPorDocumentoONombre(texto.Trim());
         }
 
         public int Registrar(char tipoPersona, string documento, string nombre, string domicilio,
@@ -134,6 +141,15 @@ namespace BLL
                 throw new BLLException("ERR_PERSONA_TIPO_INVALIDO", "Tipo de persona inválido (esperado 'F' o 'J').");
             if (string.IsNullOrWhiteSpace(documento))
                 throw new BLLException("ERR_PERSONA_DATOS_INCOMPLETOS", "Faltan datos obligatorios de la persona.");
+            // Física: DNI (7 u 8 dígitos) o CUIT (11). Jurídica: CUIT (11). Solo números, sin puntos ni guiones.
+            string doc = documento.Trim();
+            bool soloDigitos = doc.All(char.IsDigit);
+            if (tipoPersona == 'F' && !(soloDigitos && (doc.Length == 7 || doc.Length == 8 || doc.Length == 11)))
+                throw new BLLException("ERR_PERSONA_DNI_INVALIDO",
+                    "El documento debe ser un DNI de 7 u 8 dígitos o un CUIT de 11 dígitos, solo números (sin puntos ni guiones).");
+            if (tipoPersona == 'J' && !(soloDigitos && doc.Length == 11))
+                throw new BLLException("ERR_PERSONA_CUIT_INVALIDO",
+                    "El CUIT debe tener 11 dígitos, solo números (sin puntos ni guiones).");
             if (string.IsNullOrWhiteSpace(nombre))
                 throw new BLLException("ERR_PERSONA_DATOS_INCOMPLETOS", "Faltan datos obligatorios de la persona.");
             if (string.IsNullOrWhiteSpace(domicilio))

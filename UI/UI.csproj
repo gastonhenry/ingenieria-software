@@ -166,6 +166,54 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="ColoresEstadoUnidad.cs" />
+    <!-- N03 — Captación de clientes potenciales -->
+    <Compile Include="CardIndicador.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ExportadorPdfPublicacion.cs" />
+    <Compile Include="TextosCaptacion.cs" />
+    <Compile Include="FormEntrevistaCliente.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormEntrevistaCliente.Designer.cs">
+      <DependentUpon>FormEntrevistaCliente.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormTableroCaptacion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormTableroCaptacion.Designer.cs">
+      <DependentUpon>FormTableroCaptacion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormDetalleCaptacion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormDetalleCaptacion.Designer.cs">
+      <DependentUpon>FormDetalleCaptacion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormAvisosCliente.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormAvisosCliente.Designer.cs">
+      <DependentUpon>FormAvisosCliente.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormConfirmarMotivo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormConfirmarMotivo.Designer.cs">
+      <DependentUpon>FormConfirmarMotivo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormConfiguracionEmail.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormConfiguracionEmail.Designer.cs">
+      <DependentUpon>FormConfiguracionEmail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormParametrosCaptacion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormParametrosCaptacion.Designer.cs">
+      <DependentUpon>FormParametrosCaptacion.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormAyudaFlujoEstados.cs">
       <SubType>Form</SubType>
     </Compile>

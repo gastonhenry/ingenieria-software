@@ -29,6 +29,8 @@ namespace UI
             this.menuGestionIdiomas = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSeleccionIdioma = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMantenimiento = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuIntegridadBackup = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuConfigurarEmail = new System.Windows.Forms.ToolStripMenuItem();
             this.menuLogout = new System.Windows.Forms.ToolStripMenuItem();
             this.menuUnidades = new System.Windows.Forms.ToolStripMenuItem();
             this.menuRegistrarUnidad = new System.Windows.Forms.ToolStripMenuItem();
@@ -38,6 +40,11 @@ namespace UI
             this.menuRegistrarModelo = new System.Windows.Forms.ToolStripMenuItem();
             this.menuPublicaciones = new System.Windows.Forms.ToolStripMenuItem();
             this.menuVerPublicaciones = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuCaptacion = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRegistrarEntrevista = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuTableroCaptacion = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuAvisosClientes = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuParametrosCaptacion = new System.Windows.Forms.ToolStripMenuItem();
             this.menuPersonas = new System.Windows.Forms.ToolStripMenuItem();
             this.menuRegistrarPersona = new System.Windows.Forms.ToolStripMenuItem();
             this.lblSesion = new System.Windows.Forms.ToolStripLabel();
@@ -54,6 +61,7 @@ namespace UI
             this.menuInicio,
             this.menuUnidades,
             this.menuPublicaciones,
+            this.menuCaptacion,
             this.menuPersonas,
             this.menuUsuarios,
             this.menuPermisos,
@@ -129,6 +137,38 @@ namespace UI
             this.menuVerPublicaciones.Size = new System.Drawing.Size(220, 22);
             this.menuVerPublicaciones.Text = "Ver Publicaciones";
             this.menuVerPublicaciones.Click += new System.EventHandler(this.menuVerPublicaciones_Click);
+            //
+            // menuCaptacion (top-level) — N03
+            //
+            this.menuCaptacion.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.menuRegistrarEntrevista,
+                this.menuTableroCaptacion,
+                this.menuAvisosClientes,
+                this.menuParametrosCaptacion});
+            this.menuCaptacion.ForeColor = System.Drawing.Color.White;
+            this.menuCaptacion.Name = "menuCaptacion";
+            this.menuCaptacion.Size = new System.Drawing.Size(85, 25);
+            this.menuCaptacion.Text = "Captación";
+            //
+            this.menuRegistrarEntrevista.Name = "menuRegistrarEntrevista";
+            this.menuRegistrarEntrevista.Size = new System.Drawing.Size(240, 22);
+            this.menuRegistrarEntrevista.Text = "Registrar entrevista";
+            this.menuRegistrarEntrevista.Click += new System.EventHandler(this.menuRegistrarEntrevista_Click);
+            //
+            this.menuTableroCaptacion.Name = "menuTableroCaptacion";
+            this.menuTableroCaptacion.Size = new System.Drawing.Size(240, 22);
+            this.menuTableroCaptacion.Text = "Tablero de captación";
+            this.menuTableroCaptacion.Click += new System.EventHandler(this.menuTableroCaptacion_Click);
+            //
+            this.menuAvisosClientes.Name = "menuAvisosClientes";
+            this.menuAvisosClientes.Size = new System.Drawing.Size(240, 22);
+            this.menuAvisosClientes.Text = "Avisos a clientes";
+            this.menuAvisosClientes.Click += new System.EventHandler(this.menuAvisosClientes_Click);
+            //
+            this.menuParametrosCaptacion.Name = "menuParametrosCaptacion";
+            this.menuParametrosCaptacion.Size = new System.Drawing.Size(240, 22);
+            this.menuParametrosCaptacion.Text = "Parámetros de captación";
+            this.menuParametrosCaptacion.Click += new System.EventHandler(this.menuParametrosCaptacion_Click);
             //
             // menuPersonas (top-level)
             //
@@ -233,11 +273,23 @@ namespace UI
             //
             // menuMantenimiento
             //
+            this.menuMantenimiento.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.menuIntegridadBackup,
+                this.menuConfigurarEmail});
             this.menuMantenimiento.ForeColor = System.Drawing.Color.White;
             this.menuMantenimiento.Name = "menuMantenimiento";
             this.menuMantenimiento.Size = new System.Drawing.Size(100, 25);
             this.menuMantenimiento.Text = "Mantenimiento";
-            this.menuMantenimiento.Click += new System.EventHandler(this.menuMantenimiento_Click);
+            //
+            this.menuIntegridadBackup.Name = "menuIntegridadBackup";
+            this.menuIntegridadBackup.Size = new System.Drawing.Size(240, 22);
+            this.menuIntegridadBackup.Text = "Integridad y backup";
+            this.menuIntegridadBackup.Click += new System.EventHandler(this.menuMantenimiento_Click);
+            //
+            this.menuConfigurarEmail.Name = "menuConfigurarEmail";
+            this.menuConfigurarEmail.Size = new System.Drawing.Size(240, 22);
+            this.menuConfigurarEmail.Text = "Configurar cuenta email";
+            this.menuConfigurarEmail.Click += new System.EventHandler(this.menuConfigurarEmail_Click);
             //
             // menuLogout
             //
@@ -304,6 +356,8 @@ namespace UI
         private System.Windows.Forms.ToolStripMenuItem menuGestionIdiomas;
         private System.Windows.Forms.ToolStripMenuItem menuSeleccionIdioma;
         private System.Windows.Forms.ToolStripMenuItem menuMantenimiento;
+        private System.Windows.Forms.ToolStripMenuItem menuIntegridadBackup;
+        private System.Windows.Forms.ToolStripMenuItem menuConfigurarEmail;
         private System.Windows.Forms.ToolStripMenuItem menuLogout;
         private System.Windows.Forms.ToolStripMenuItem menuUnidades;
         private System.Windows.Forms.ToolStripMenuItem menuRegistrarUnidad;
@@ -313,6 +367,11 @@ namespace UI
         private System.Windows.Forms.ToolStripMenuItem menuRegistrarModelo;
         private System.Windows.Forms.ToolStripMenuItem menuPublicaciones;
         private System.Windows.Forms.ToolStripMenuItem menuVerPublicaciones;
+        private System.Windows.Forms.ToolStripMenuItem menuCaptacion;
+        private System.Windows.Forms.ToolStripMenuItem menuRegistrarEntrevista;
+        private System.Windows.Forms.ToolStripMenuItem menuTableroCaptacion;
+        private System.Windows.Forms.ToolStripMenuItem menuAvisosClientes;
+        private System.Windows.Forms.ToolStripMenuItem menuParametrosCaptacion;
         private System.Windows.Forms.ToolStripMenuItem menuPersonas;
         private System.Windows.Forms.ToolStripMenuItem menuRegistrarPersona;
         private System.Windows.Forms.ToolStripLabel lblSesion;

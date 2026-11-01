@@ -33,6 +33,14 @@ namespace UI
             _idiomaService.Suscribir(this);
             _suscrito = true;
             ActualizarIdioma(_idiomaService.IdiomaActual());
+
+            // Enter en el buscador = Buscar.
+            txtDocBusqueda.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                btnBuscar_Click(btnBuscar, EventArgs.Empty);
+            };
         }
 
         private string Tr(string codigo, string fallback)
@@ -51,7 +59,7 @@ namespace UI
         {
             this.Text             = Tr("title",            "Reservar");
             lblTitulo.Text        = Tr("lblTitulo",        "Reservar unidad");
-            lblDocBusqueda.Text   = Tr("lblDocBusqueda",   "Comprador (DNI/CUIT):");
+            lblDocBusqueda.Text   = Tr("lblDocBusqueda",   "Nombre o DNI/CUIT:");
             btnBuscar.Text        = Tr("btnBuscar",        "Buscar");
             lblCoincidencias.Text = Tr("lblCoincidencias", "Coincidencias:");
             lblFecha.Text         = Tr("lblFecha",         "Fecha operación:");
@@ -70,10 +78,10 @@ namespace UI
                 string frag = txtDocBusqueda.Text.Trim();
                 lstCoincidencias.Items.Clear();
                 if (string.IsNullOrEmpty(frag)) return;
-                List<Persona> rs = _personaService.BuscarPorDocumentoParcial(frag);
+                List<Persona> rs = _personaService.BuscarPorDocumentoONombre(frag);
                 if (rs.Count == 0)
                 {
-                    MessageBox.Show(Tr("msgSinCoincidencias", "No se encontraron personas con ese documento."),
+                    MessageBox.Show(Tr("msgSinCoincidencias", "No se encontraron personas con ese nombre o DNI/CUIT."),
                         Tr("msgInformacion", "Info"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }

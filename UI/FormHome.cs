@@ -15,22 +15,30 @@ namespace UI
         private readonly IIdiomaService _idiomaService;
         private readonly Action _abrirUnidades;
         private readonly Action _abrirPublicaciones;
+        private readonly Action _abrirTableroCaptacion;
+        private readonly Action _abrirEntrevista;
         private bool _suscrito;
 
         [DllImport("gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn(int x1, int y1, int x2, int y2, int w, int h);
 
-        public FormHome() : this(null, null) { }
+        public FormHome() : this(null, null, null, null) { }
+
+        public FormHome(Action abrirUnidades, Action abrirPublicaciones) : this(abrirUnidades, abrirPublicaciones, null, null) { }
 
         // Acción == null → el usuario no tiene permiso y el acceso rápido queda oculto.
-        public FormHome(Action abrirUnidades, Action abrirPublicaciones)
+        public FormHome(Action abrirUnidades, Action abrirPublicaciones, Action abrirTableroCaptacion, Action abrirEntrevista)
         {
             InitializeComponent();
             _idiomaService = new IdiomaService();
             _abrirUnidades = abrirUnidades;
             _abrirPublicaciones = abrirPublicaciones;
+            _abrirTableroCaptacion = abrirTableroCaptacion;
+            _abrirEntrevista = abrirEntrevista;
             btnVerUnidades.Visible = abrirUnidades != null;
             btnVerPublicaciones.Visible = abrirPublicaciones != null;
+            btnTableroCaptacion.Visible = abrirTableroCaptacion != null;
+            btnRegistrarEntrevista.Visible = abrirEntrevista != null;
 
             AplicarBordesRedondeados(pnlNovedades, 18);
             AplicarBordesRedondeados(pnlAccesos,   18);
@@ -60,7 +68,13 @@ namespace UI
             btnVerPublicaciones.Text= Tr("btnVerPublicaciones","Ver Publicaciones");
             btnAcceso1.Text         = Tr("btnAyuda",           "Ayuda");
             btnAcceso2.Text         = Tr("btnContacto",        "Contactános");
+            btnTableroCaptacion.Text    = Tr("btnTableroCaptacion",    "Tablero de captación");
+            btnRegistrarEntrevista.Text = Tr("btnRegistrarEntrevista", "Registrar entrevista");
         }
+
+        private void btnTableroCaptacion_Click(object sender, EventArgs e) => _abrirTableroCaptacion?.Invoke();
+
+        private void btnRegistrarEntrevista_Click(object sender, EventArgs e) => _abrirEntrevista?.Invoke();
 
         private static void AplicarBordesRedondeados(System.Windows.Forms.Control control, int radio)
         {

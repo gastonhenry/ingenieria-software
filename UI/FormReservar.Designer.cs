@@ -64,7 +64,7 @@ namespace UI
             this.lblDocBusqueda.Name = "lblDocBusqueda";
             this.lblDocBusqueda.Size = new System.Drawing.Size(120, 20);
             this.lblDocBusqueda.TabIndex = 1;
-            this.lblDocBusqueda.Text = "Comprador (DNI/CUIT):";
+            this.lblDocBusqueda.Text = "Nombre o DNI/CUIT:";
 
             this.txtDocBusqueda.Location = new System.Drawing.Point(220, 61);
             this.txtDocBusqueda.Name = "txtDocBusqueda";

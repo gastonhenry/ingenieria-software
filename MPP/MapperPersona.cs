@@ -80,6 +80,16 @@ namespace MPP
             return lista;
         }
 
+        public List<Persona> BuscarPorDocumentoONombre(string texto)
+        {
+            AccesoDB db = AccesoDB.GetInstancia();
+            var parametros = new List<SqlParameter> { db.CrearParametro("@Texto", texto) };
+            DataTable tabla = db.Leer("BuscarPersonasPorDocumentoONombre", parametros);
+            var lista = new List<Persona>();
+            foreach (DataRow row in tabla.Rows) lista.Add(MapearFila(row));
+            return lista;
+        }
+
         public override List<Persona> Listar()
         {
             AccesoDB db = AccesoDB.GetInstancia();

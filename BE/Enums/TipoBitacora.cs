@@ -66,5 +66,26 @@ namespace BE.Enums
 
         [Description("Alta de persona")]
         AltaPersona = 20,
+
+        // N03 — Captación de clientes potenciales
+        [Description("Entrevista de cliente")]
+        EntrevistaCliente = 21,
+
+        [Description("Aviso a cliente")]
+        AvisoCliente = 22,
+
+        [Description("Gestión de avisos de cliente")]
+        GestionAvisosCliente = 23,
+
+        [Description("Parámetros de captación")]
+        ParametrosCaptacion = 24,
+
+        // A02 — Serialización
+        [Description("Exportación/importación de perfil de cliente")]
+        PerfilCliente = 25,
+
+        // Configuración de la cuenta de email saliente
+        [Description("Configuración de cuenta de email")]
+        ConfiguracionEmail = 26,
     }
 }

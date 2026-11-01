@@ -76,6 +76,16 @@
     <Compile Include="ChecklistPreparacion.cs" />
     <Compile Include="ChecklistItem.cs" />
     <Compile Include="HistorialEstadoUnidad.cs" />
+    <Compile Include="Enums\EstadoBusqueda.cs" />
+    <Compile Include="BusquedaCliente.cs" />
+    <Compile Include="NotificacionEnviada.cs" />
+    <Compile Include="ParametrosCaptacion.cs" />
+    <Compile Include="ConfiguracionEmail.cs" />
+    <Compile Include="SuspensionAvisos.cs" />
+    <Compile Include="UnidadEnVenta.cs" />
+    <Compile Include="TableroCaptacion.cs" />
+    <Compile Include="ResultadoNotificacion.cs" />
+    <Compile Include="PerfilCliente.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

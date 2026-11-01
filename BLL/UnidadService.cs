@@ -2,6 +2,7 @@ using BE;
 using BE.Enums;
 using HELPERS;
 using MPP;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -259,11 +260,28 @@ namespace BLL
                 null, motivoObligatorio: false);
         }
 
-        public void AutorizarPublicacion(int unidadId, string observaciones)
+        public ResultadoNotificacion AutorizarPublicacion(int unidadId, string observaciones)
         {
             RequerirPermiso("AUTORIZAR_PUBLICACION", "AutorizarPublicacion");
             TransicionarConHistorial(unidadId, EstadoUnidad.PendienteVenta, EstadoUnidad.EnVenta,
                 observaciones, motivoObligatorio: false);
+
+            // N03 — CU-CAP-03 (incluido): avisar a los clientes interesados. Una falla en los avisos
+            // no revierte la publicación (RN-N03-11).
+            try
+            {
+                return new NotificacionService().NotificarUnidad(unidadId);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    _bitacoraService.Insertar(UsuarioActual(), TipoBitacora.Error,
+                        $"No se pudieron enviar los avisos de la unidad Id {unidadId}: {ex.Message}");
+                }
+                catch { }
+                return new ResultadoNotificacion { Error = ex.Message };
+            }
         }
 
         public void RechazarPublicacion(int unidadId, string motivo)

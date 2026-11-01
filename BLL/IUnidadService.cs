@@ -20,7 +20,7 @@ namespace BLL
         void AprobarPresupuesto(int unidadId, string observaciones);            // RequiereAprobacionPresupuesto → EnPreparacion (marca extras Aprobados)
         void RechazarPresupuesto(int unidadId, string motivo);                  // RequiereAprobacionPresupuesto → EnPreparacion (marca extras Rechazados)
         void FinalizarPreparacion(int unidadId);                                // EnPreparacion → PendienteVenta (todos los items aprobados deben estar ejecutados)
-        void AutorizarPublicacion(int unidadId, string observaciones);          // PendienteVenta → EnVenta
+        ResultadoNotificacion AutorizarPublicacion(int unidadId, string observaciones);  // PendienteVenta → EnVenta (+ avisos N03)
         void RechazarPublicacion(int unidadId, string motivo);                  // PendienteVenta → EnPreparacion
 
         // Checklist

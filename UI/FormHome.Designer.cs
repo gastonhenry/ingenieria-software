@@ -33,6 +33,8 @@ namespace UI
             this.btnVerPublicaciones = new UI.BotonPlano();
             this.btnAcceso1 = new UI.BotonPlano();
             this.btnAcceso2 = new UI.BotonPlano();
+            this.btnTableroCaptacion = new UI.BotonPlano();
+            this.btnRegistrarEntrevista = new UI.BotonPlano();
 
             this.pnlTitulo.SuspendLayout();
             this.tableCards.SuspendLayout();
@@ -136,12 +138,51 @@ namespace UI
             //
             this.flowAccesos.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowAccesos.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowAccesos.WrapContents = false;
+            this.flowAccesos.WrapContents = true;
             this.flowAccesos.Padding = new System.Windows.Forms.Padding(14, 14, 14, 14);
             this.flowAccesos.Controls.Add(this.btnVerUnidades);
             this.flowAccesos.Controls.Add(this.btnVerPublicaciones);
             this.flowAccesos.Controls.Add(this.btnAcceso1);
             this.flowAccesos.Controls.Add(this.btnAcceso2);
+            this.flowAccesos.Controls.Add(this.btnTableroCaptacion);
+            this.flowAccesos.Controls.Add(this.btnRegistrarEntrevista);
+            this.flowAccesos.SetFlowBreak(this.btnAcceso2, true);   // N03: segunda columna de accesos
+            //
+            // btnTableroCaptacion — N03
+            //
+            this.btnTableroCaptacion.BackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnTableroCaptacion.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnTableroCaptacion.FlatAppearance.BorderSize = 0;
+            this.btnTableroCaptacion.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(215, 228, 250);
+            this.btnTableroCaptacion.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnTableroCaptacion.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnTableroCaptacion.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.btnTableroCaptacion.ForeColor = System.Drawing.Color.FromArgb(30, 90, 200);
+            this.btnTableroCaptacion.Margin = new System.Windows.Forms.Padding(20, 0, 0, 10);
+            this.btnTableroCaptacion.Name = "btnTableroCaptacion";
+            this.btnTableroCaptacion.Size = new System.Drawing.Size(280, 40);
+            this.btnTableroCaptacion.Text = "Tablero de captación";
+            this.btnTableroCaptacion.UseVisualStyleBackColor = false;
+            this.btnTableroCaptacion.Visible = false;
+            this.btnTableroCaptacion.Click += new System.EventHandler(this.btnTableroCaptacion_Click);
+            //
+            // btnRegistrarEntrevista — N03
+            //
+            this.btnRegistrarEntrevista.BackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnRegistrarEntrevista.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnRegistrarEntrevista.FlatAppearance.BorderSize = 0;
+            this.btnRegistrarEntrevista.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(215, 228, 250);
+            this.btnRegistrarEntrevista.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(235, 242, 255);
+            this.btnRegistrarEntrevista.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRegistrarEntrevista.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.btnRegistrarEntrevista.ForeColor = System.Drawing.Color.FromArgb(30, 90, 200);
+            this.btnRegistrarEntrevista.Margin = new System.Windows.Forms.Padding(20, 0, 0, 10);
+            this.btnRegistrarEntrevista.Name = "btnRegistrarEntrevista";
+            this.btnRegistrarEntrevista.Size = new System.Drawing.Size(280, 40);
+            this.btnRegistrarEntrevista.Text = "Registrar entrevista";
+            this.btnRegistrarEntrevista.UseVisualStyleBackColor = false;
+            this.btnRegistrarEntrevista.Visible = false;
+            this.btnRegistrarEntrevista.Click += new System.EventHandler(this.btnRegistrarEntrevista_Click);
 
             //
             // btnVerUnidades
@@ -261,5 +302,7 @@ namespace UI
         private UI.BotonPlano btnVerPublicaciones;
         private UI.BotonPlano btnAcceso1;
         private UI.BotonPlano btnAcceso2;
+        private UI.BotonPlano btnTableroCaptacion;
+        private UI.BotonPlano btnRegistrarEntrevista;
     }
 }

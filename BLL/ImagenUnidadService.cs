@@ -70,7 +70,11 @@ namespace BLL
 
             // El archivo se borra después de la fila: si falla el disco, la base ya quedó consistente
             // y sólo queda un archivo huérfano (se deja registrado en bitácora).
-            string rutaCompleta = ObtenerRutaCompleta(imagen);
+            // Las fotos del seed (carpeta "seed\") pueden estar compartidas entre varias unidades
+            // del mismo modelo: solo se quita la fila, el archivo queda.
+            bool esDelSeed = imagen?.RutaArchivo != null
+                && imagen.RutaArchivo.StartsWith(@"seed\", StringComparison.OrdinalIgnoreCase);
+            string rutaCompleta = esDelSeed ? null : ObtenerRutaCompleta(imagen);
             if (rutaCompleta != null && File.Exists(rutaCompleta))
             {
                 try { File.Delete(rutaCompleta); }
