@@ -849,7 +849,7 @@ INSERT INTO @ctrlHome (Codigo, Es, En, De) VALUES
     (N'btnVerPublicaciones',N'Ver Publicaciones',                                   N'View Listings',                                   N'Inserate anzeigen'),
     (N'btnAyuda',           N'Ayuda',                                             N'Help',                                            N'Hilfe'),
     (N'btnContacto',        N'Contactános',                                         N'Contact us',                                      N'Kontaktiere uns'),
-    (N'msgProximamente',    N'Próximamente',                                        N'Coming soon',                                     N'Demnächst'),
+    (N'msgAyudaNoEncontrada', N'No se pudo abrir la ayuda.',                       N'The help could not be opened.',                   N'Die Hilfe konnte nicht geöffnet werden.'),
     (N'msgAyudaTitulo',     N'Ayuda',                                               N'Help',                                            N'Hilfe'),
     (N'msgErrorMail',       N'No se pudo abrir el cliente de correo.',              N'Could not open mail client.',                     N'E-Mail-Programm konnte nicht geöffnet werden.'),
     (N'msgErrorMailEnvia',  N'Enviá un mail a',                                     N'Send an email to',                                N'Sende eine E-Mail an'),
@@ -3284,30 +3284,30 @@ INSERT INTO Unidad (Dominio, IdModelo, Anio, Kilometraje, PrecioCompra, Descripc
 SELECT v.Dominio, mo.Id, v.Anio, v.Km, v.Precio, v.Descripcion, v.Estado, pe.Id, @IdAdmin
 FROM (VALUES
     -- 4 Ingresado
-    ('ABC123',  N'Toyota',       N'Corolla',   2020,  45000,  8500000.00, N'Único dueño, service oficial al día.',  1, N'20123456'),
-    ('DEF456',  N'Ford',         N'Fiesta',    2018,  72000,  5200000.00, N'En buen estado general.',               1, N'27234567'),
-    ('AB123CD', N'Volkswagen',   N'Golf',      2021,  28000, 11500000.00, N'Impecable, aún en garantía.',           1, N'30700123456'),
-    ('GHI789',  N'Fiat',         N'Cronos',    2019,  58000,  6300000.00, N'Nafta, caja manual.',                   1, N'30345678'),
+    ('AE240AG',  N'Toyota',       N'Corolla',   2020,  45000,  8500000.00, N'Único dueño, service oficial al día.',  1, N'20123456'),
+    ('AC164JW',  N'Ford',         N'Fiesta',    2018,  72000,  5200000.00, N'En buen estado general.',               1, N'27234567'),
+    ('AE908WQ', N'Volkswagen',   N'Golf',      2021,  28000, 11500000.00, N'Impecable, aún en garantía.',           1, N'30700123456'),
+    ('AD728EU',  N'Fiat',         N'Cronos',    2019,  58000,  6300000.00, N'Nafta, caja manual.',                   1, N'30345678'),
     -- 4 RequiereAprobacionPresupuesto (vinieron desde EnPreparacion con extras propuestos)
-    ('EF456GH', N'Chevrolet',    N'Onix',      2022,  18000,  9200000.00, N'Casi 0km.',                             2, N'25456789'),
-    ('JKL012',  N'Honda',        N'Civic',     2017,  92000,  7100000.00, N'Service completo.',                     2, N'30701234567'),
-    ('IJ789KL', N'Renault',      N'Duster',    2020,  61000,  8900000.00, N'4x2, caja manual.',                     2, N'32567890'),
-    ('MNO345',  N'Peugeot',      N'208',       2021,  34000,  7800000.00, N'Full con techo panorámico.',            2, N'30702345678'),
+    ('AF490SG', N'Chevrolet',    N'Onix',      2022,  18000,  9200000.00, N'Casi 0km.',                             2, N'25456789'),
+    ('AB582OG',  N'Honda',        N'Civic',     2017,  92000,  7100000.00, N'Service completo.',                     2, N'30701234567'),
+    ('AE657BE', N'Renault',      N'Duster',    2020,  61000,  8900000.00, N'4x2, caja manual.',                     2, N'32567890'),
+    ('AE435XQ',  N'Peugeot',      N'208',       2021,  34000,  7800000.00, N'Full con techo panorámico.',            2, N'30702345678'),
     -- 4 EnPreparacion
-    ('MN012OP', N'Toyota',       N'Hilux',     2019, 110000, 15200000.00, N'4x4 SRX. En preparación.',              3, N'28678901'),
-    ('PQR678',  N'Ford',         N'Ranger',    2020, 85000,  18500000.00, N'Doble cabina.',                         3, N'30703456789'),
-    ('QR345ST', N'Chevrolet',    N'Cruze',     2018,  87000,  6700000.00, N'LTZ automático.',                       3, N'33789012'),
-    ('STU901',  N'Nissan',       N'Sentra',    2017, 105000,  5800000.00, N'Exclusive full.',                       3, N'30704567890'),
+    ('AD127FS', N'Toyota',       N'Hilux',     2019, 110000, 15200000.00, N'4x4 SRX. En preparación.',              3, N'28678901'),
+    ('AE073CD',  N'Ford',         N'Ranger',    2020, 85000,  18500000.00, N'Doble cabina.',                         3, N'30703456789'),
+    ('AC691KV', N'Chevrolet',    N'Cruze',     2018,  87000,  6700000.00, N'LTZ automático.',                       3, N'33789012'),
+    ('AB109PG',  N'Nissan',       N'Sentra',    2017, 105000,  5800000.00, N'Exclusive full.',                       3, N'30704567890'),
     -- 4 PendienteVenta
-    ('UV678WX', N'Jeep',         N'Compass',   2022,  22000, 14800000.00, N'Longitude. Lista para venta.',          4, N'26890123'),
-    ('VWX234',  N'Hyundai',      N'Tucson',    2019,  68000, 11200000.00, N'4x2 2.0 nafta.',                        4, N'30705678901'),
-    ('YZ901AB', N'BMW',          N'Serie 3',   2020,  40000, 22500000.00, N'320i Sport. Impecable.',                4, N'34901234'),
-    ('XYZ567',  N'Audi',         N'A3',        2018,  73000, 13900000.00, N'Sportback. Único dueño.',               4, N'30706789012'),
+    ('AF017TG', N'Jeep',         N'Compass',   2022,  22000, 14800000.00, N'Longitude. Lista para venta.',          4, N'26890123'),
+    ('AD526GP',  N'Hyundai',      N'Tucson',    2019,  68000, 11200000.00, N'4x2 2.0 nafta.',                        4, N'30705678901'),
+    ('AE490DB', N'BMW',          N'Serie 3',   2020,  40000, 22500000.00, N'320i Sport. Impecable.',                4, N'34901234'),
+    ('AC217LV',  N'Audi',         N'A3',        2018,  73000, 13900000.00, N'Sportback. Único dueño.',               4, N'30706789012'),
     -- 4 EnVenta
-    ('CD234EF', N'Mercedes-Benz',N'Clase A',   2021,  31000, 24000000.00, N'A200 Progressive. Publicado.',          5, N'29012345'),
-    ('ZAB890',  N'Toyota',       N'Yaris',     2022,  12000,  8800000.00, N'XLS CVT. En venta.',                    5, N'30707890123'),
-    ('GH567IJ', N'Kia',          N'Sportage',  2019,  65000, 12300000.00, N'LX AT. Impecable.',                     5, N'30708901234'),
-    ('BCD123',  N'Peugeot',      N'308',       2017,  98000,  9800000.00, N'Allure 1.6 HDi diésel. Publicado.',     5, N'30709012345')
+    ('AE961YP', N'Mercedes-Benz',N'Clase A',   2021,  31000, 24000000.00, N'A200 Progressive. Publicado.',          5, N'29012345'),
+    ('AF543UF',  N'Toyota',       N'Yaris',     2022,  12000,  8800000.00, N'XLS CVT. En venta.',                    5, N'30707890123'),
+    ('AD925HM', N'Kia',          N'Sportage',  2019,  65000, 12300000.00, N'LX AT. Impecable.',                     5, N'30708901234'),
+    ('AB635QF',  N'Peugeot',      N'308',       2017,  98000,  9800000.00, N'Allure 1.6 HDi diésel. Publicado.',     5, N'30709012345')
 ) AS v(Dominio, Marca, Modelo, Anio, Km, Precio, Descripcion, Estado, Documento)
 INNER JOIN Marca   ma ON ma.Nombre = v.Marca
 INNER JOIN Modelo  mo ON mo.IdMarca = ma.Id AND mo.Nombre = v.Modelo
@@ -3383,12 +3383,12 @@ INSERT INTO PublicacionUnidad (IdUnidad, PrecioPublicacion, DescripcionPublicaci
 SELECT u.Id, v.Precio, v.Descripcion, DATEADD(DAY, -v.DiasCreacion, GETDATE()),
        CASE WHEN v.DiasEdicion IS NULL THEN NULL ELSE DATEADD(DAY, -v.DiasEdicion, GETDATE()) END
 FROM (VALUES
-    (N'CD234EF', 28900000.00, N'Mercedes-Benz Clase A200 Progressive 2021, 31.000 km. Service oficial al día, único dueño. Tapizado de cuero, pantalla dual MBUX, cámara de retroceso y sensores de estacionamiento. Lista para transferir.', 12, 3),
-    (N'ZAB890',  10950000.00, N'Toyota Yaris XLS CVT 2022 con sólo 12.000 km. Garantía de fábrica vigente, Toyota Safety Sense, Apple CarPlay / Android Auto. Impecable estado general.', 10, 2),
-    (N'GH567IJ', 14800000.00, N'Kia Sportage LX AT 2019, 65.000 km. Cubiertas nuevas, frenos revisados y detallado completo interior/exterior. Ideal familia.', 8, NULL),
-    (N'BCD123',  12900000.00, N'Peugeot 308 Allure 1.6 HDi 2017, 98.000 km. Motor diésel de bajo consumo, service oficial al día, pantalla táctil y sensores de estacionamiento. Excelente estado general.', 6, 1),
-    (N'UV678WX', 17900000.00, N'Jeep Compass Longitude 2022, 22.000 km. Preparación finalizada, pendiente de aprobación final.', 2, NULL),
-    (N'YZ901AB', NULL,        NULL,                                                                                                                    1, NULL)
+    (N'AE961YP', 28900000.00, N'Mercedes-Benz Clase A200 Progressive 2021, 31.000 km. Service oficial al día, único dueño. Tapizado de cuero, pantalla dual MBUX, cámara de retroceso y sensores de estacionamiento. Lista para transferir.', 12, 3),
+    (N'AF543UF',  10950000.00, N'Toyota Yaris XLS CVT 2022 con sólo 12.000 km. Garantía de fábrica vigente, Toyota Safety Sense, Apple CarPlay / Android Auto. Impecable estado general.', 10, 2),
+    (N'AD925HM', 14800000.00, N'Kia Sportage LX AT 2019, 65.000 km. Cubiertas nuevas, frenos revisados y detallado completo interior/exterior. Ideal familia.', 8, NULL),
+    (N'AB635QF',  12900000.00, N'Peugeot 308 Allure 1.6 HDi 2017, 98.000 km. Motor diésel de bajo consumo, service oficial al día, pantalla táctil y sensores de estacionamiento. Excelente estado general.', 6, 1),
+    (N'AF017TG', 17900000.00, N'Jeep Compass Longitude 2022, 22.000 km. Preparación finalizada, pendiente de aprobación final.', 2, NULL),
+    (N'AE490DB', NULL,        NULL,                                                                                                                    1, NULL)
 ) AS v(Dominio, Precio, Descripcion, DiasCreacion, DiasEdicion)
 INNER JOIN Unidad u ON u.Dominio = v.Dominio;
 GO
@@ -3398,34 +3398,34 @@ GO
 INSERT INTO ImagenUnidad (IdUnidad, RutaArchivo, Orden)
 SELECT u.Id, v.Ruta, v.Orden
 FROM (VALUES
-    (N'CD234EF', N'seed\CD234EF\1.jpg', 0),
-    (N'CD234EF', N'seed\CD234EF\2.jpg', 1),
-    (N'CD234EF', N'seed\CD234EF\3.jpg', 2),
-    (N'CD234EF', N'seed\CD234EF\4.jpg', 3),
-    (N'ZAB890', N'seed\ZAB890\1.jpg', 0),
-    (N'ZAB890', N'seed\ZAB890\2.jpg', 1),
-    (N'ZAB890', N'seed\ZAB890\3.jpg', 2),
-    (N'ZAB890', N'seed\ZAB890\4.jpg', 3),
-    (N'GH567IJ', N'seed\GH567IJ\1.jpg', 0),
-    (N'GH567IJ', N'seed\GH567IJ\2.jpg', 1),
-    (N'GH567IJ', N'seed\GH567IJ\3.jpg', 2),
-    (N'GH567IJ', N'seed\GH567IJ\4.jpg', 3),
-    (N'BCD123', N'seed\BCD123\1.jpg', 0),
-    (N'BCD123', N'seed\BCD123\2.jpg', 1),
-    (N'BCD123', N'seed\BCD123\3.jpg', 2),
-    (N'BCD123', N'seed\BCD123\4.jpg', 3),
-    (N'BCD123', N'seed\BCD123\5.jpg', 4),
-    (N'BCD123', N'seed\BCD123\6.jpg', 5),
-    (N'UV678WX', N'seed\UV678WX\1.jpg', 0),
-    (N'UV678WX', N'seed\UV678WX\2.jpg', 1),
-    (N'UV678WX', N'seed\UV678WX\3.jpg', 2),
-    (N'UV678WX', N'seed\UV678WX\4.jpg', 3),
-    (N'YZ901AB', N'seed\YZ901AB\1.jpg', 0),
-    (N'YZ901AB', N'seed\YZ901AB\2.jpg', 1),
-    (N'YZ901AB', N'seed\YZ901AB\3.jpg', 2),
-    (N'YZ901AB', N'seed\YZ901AB\4.jpg', 3),
-    (N'YZ901AB', N'seed\YZ901AB\5.jpg', 4),
-    (N'YZ901AB', N'seed\YZ901AB\6.jpg', 5)
+    (N'AE961YP', N'seed\AE961YP\1.jpg', 0),
+    (N'AE961YP', N'seed\AE961YP\2.jpg', 1),
+    (N'AE961YP', N'seed\AE961YP\3.jpg', 2),
+    (N'AE961YP', N'seed\AE961YP\4.jpg', 3),
+    (N'AF543UF', N'seed\AF543UF\1.jpg', 0),
+    (N'AF543UF', N'seed\AF543UF\2.jpg', 1),
+    (N'AF543UF', N'seed\AF543UF\3.jpg', 2),
+    (N'AF543UF', N'seed\AF543UF\4.jpg', 3),
+    (N'AD925HM', N'seed\AD925HM\1.jpg', 0),
+    (N'AD925HM', N'seed\AD925HM\2.jpg', 1),
+    (N'AD925HM', N'seed\AD925HM\3.jpg', 2),
+    (N'AD925HM', N'seed\AD925HM\4.jpg', 3),
+    (N'AB635QF', N'seed\AB635QF\1.jpg', 0),
+    (N'AB635QF', N'seed\AB635QF\2.jpg', 1),
+    (N'AB635QF', N'seed\AB635QF\3.jpg', 2),
+    (N'AB635QF', N'seed\AB635QF\4.jpg', 3),
+    (N'AB635QF', N'seed\AB635QF\5.jpg', 4),
+    (N'AB635QF', N'seed\AB635QF\6.jpg', 5),
+    (N'AF017TG', N'seed\AF017TG\1.jpg', 0),
+    (N'AF017TG', N'seed\AF017TG\2.jpg', 1),
+    (N'AF017TG', N'seed\AF017TG\3.jpg', 2),
+    (N'AF017TG', N'seed\AF017TG\4.jpg', 3),
+    (N'AE490DB', N'seed\AE490DB\1.jpg', 0),
+    (N'AE490DB', N'seed\AE490DB\2.jpg', 1),
+    (N'AE490DB', N'seed\AE490DB\3.jpg', 2),
+    (N'AE490DB', N'seed\AE490DB\4.jpg', 3),
+    (N'AE490DB', N'seed\AE490DB\5.jpg', 4),
+    (N'AE490DB', N'seed\AE490DB\6.jpg', 5)
 ) AS v(Dominio, Ruta, Orden)
 INNER JOIN Unidad u ON u.Dominio = v.Dominio;
 GO
@@ -4327,6 +4327,15 @@ BEGIN
 END
 GO
 
+-- Unidades preparadas que esperan la autorización de la publicación (card "Por salir a la venta" del tablero).
+CREATE OR ALTER PROCEDURE [dbo].[ContarUnidadesPorSalirAVenta]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT COUNT(*) FROM Unidad WHERE EstadoActual = 4;   -- PendienteVenta
+END
+GO
+
 -- Cantidad de clientes distintos avisados con éxito en el período (denominador de la conversión).
 CREATE OR ALTER PROCEDURE [dbo].[ContarClientesAvisados]
     @Desde DATETIME,
@@ -4482,9 +4491,9 @@ FROM Persona pe WHERE pe.Documento = N'32567890';
 INSERT INTO NotificacionEnviada (IdBusqueda, IdPersona, IdUnidad, FechaEnvio, Exitoso, Error)
 SELECT b.Id, b.IdPersona, u.Id, DATEADD(DAY, -v.Dias, GETDATE()), v.Exitoso, v.Error
 FROM (VALUES
-    (N'20123456', N'GH567IJ', 8, 1, NULL),
-    (N'27234567', N'ZAB890',  9, 1, NULL),
-    (N'25456789', N'BCD123',  6, 0, N'No se pudo conectar con el servidor de correo.')
+    (N'20123456', N'AD925HM', 8, 1, NULL),
+    (N'27234567', N'AF543UF',  9, 1, NULL),
+    (N'25456789', N'AB635QF',  6, 0, N'No se pudo conectar con el servidor de correo.')
 ) AS v(Documento, Dominio, Dias, Exitoso, Error)
 INNER JOIN Persona pe ON pe.Documento = v.Documento
 INNER JOIN BusquedaCliente b ON b.IdPersona = pe.Id AND b.Estado = 1
@@ -4594,6 +4603,8 @@ Jetzt schließen, da {3} gekauft wurde?'),
     (N'FormTableroCaptacion', N'title',                   N'Tablero de captación',          N'Prospecting dashboard',          N'Dashboard Kundengewinnung'),
     (N'FormTableroCaptacion', N'lblTitulo',               N'Tablero de captación',          N'Prospecting dashboard',          N'Dashboard Kundengewinnung'),
     (N'FormTableroCaptacion', N'cardEnVenta',             N'Vehículos en venta',            N'Vehicles for sale',              N'Fahrzeuge im Verkauf'),
+    (N'FormTableroCaptacion', N'cardPorSalir',            N'Por salir a la venta',          N'About to go on sale',            N'Bald im Verkauf'),
+    (N'FormTableroCaptacion', N'detallePorSalir',         N'pendientes de autorización',    N'awaiting authorization',         N'warten auf Freigabe'),
     (N'FormTableroCaptacion', N'cardPosiblesCompradores', N'Posibles compradores',          N'Potential buyers',               N'Mögliche Käufer'),
     (N'FormTableroCaptacion', N'cardSinInteresados',      N'Unidades sin interesados',      N'Units without interest',         N'Einheiten ohne Interessenten'),
     (N'FormTableroCaptacion', N'cardInteresadosSinUnidades', N'Interesados sin unidades',   N'Interested without units',       N'Interessenten ohne Einheiten'),
@@ -5564,25 +5575,6 @@ UPDATE u
                + CHAR(65 + ((I.idx % 676000) / 1000) / 26) + CHAR(65 + ((I.idx % 676000) / 1000) % 26)
 FROM Unidad u
 INNER JOIN I ON I.Id = u.Id;
-GO
-
--- ---------------------------------------------------------
--- Fotos por modelo para las unidades publicadas que no tienen fotos propias.
--- Los archivos van en Avanti Auto\ImagenesSeed\modelos\<Marca>_<Modelo>\1.jpg, 2.jpg, 3.jpg
--- (espacios del nombre → "_", ej. "Mercedes-Benz_Clase_A"). El instalador los copia a
--- %ProgramData%\Avanti Auto\Imagenes\seed\modelos. Son compartidas entre la    s unidades del mismo
--- modelo: al quitar una foto desde la app solo se borra la fila, no el archivo.
--- ---------------------------------------------------------
-INSERT INTO ImagenUnidad (IdUnidad, RutaArchivo, Orden)
-SELECT u.Id,
-       N'seed\modelos\' + REPLACE(ma.Nombre + N'_' + mo.Nombre, N' ', N'_') + N'\' + CAST(f.Nro AS NVARCHAR(2)) + N'.jpg',
-       f.Nro - 1
-FROM Unidad u
-INNER JOIN PublicacionUnidad p ON p.IdUnidad = u.Id
-INNER JOIN Modelo mo ON mo.Id = u.IdModelo
-INNER JOIN Marca  ma ON ma.Id = mo.IdMarca
-CROSS JOIN (VALUES (1), (2), (3)) AS f(Nro)
-WHERE NOT EXISTS (SELECT 1 FROM ImagenUnidad i WHERE i.IdUnidad = u.Id);
 GO
 
 -- ---------------------------------------------------------

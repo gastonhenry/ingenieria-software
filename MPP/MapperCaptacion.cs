@@ -177,6 +177,11 @@ namespace MPP
             return lista;
         }
 
+        public int ContarUnidadesPorSalirAVenta()
+        {
+            return AccesoDB.GetInstancia().LeerEscalar("ContarUnidadesPorSalirAVenta");
+        }
+
         public int ContarClientesAvisados(DateTime desde, DateTime hasta)
         {
             AccesoDB db = AccesoDB.GetInstancia();

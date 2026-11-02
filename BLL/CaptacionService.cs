@@ -179,6 +179,7 @@ namespace BLL
             tablero.AvisosUnidadesEnVenta = _mapperCaptacion.ListarNotificaciones(null, null, null)
                 .Where(a => idsEnVenta.Contains(a.IdUnidad)).ToList();
             tablero.ClientesAvisados = _mapperCaptacion.ContarClientesAvisados(desde.Date, hastaExclusivo);
+            tablero.UnidadesPorSalirAVenta = _mapperCaptacion.ContarUnidadesPorSalirAVenta();
             tablero.Conversiones = _mapperCaptacion.ListarConversiones(desde.Date, hastaExclusivo);
             return tablero;
         }

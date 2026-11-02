@@ -31,6 +31,7 @@ namespace UI
             _idiomaService = new IdiomaService();
 
             cardEnVenta.MostrarVer = false;
+            cardPorSalir.MostrarVer = false;
             btnGestionarAvisos.Visible = Tiene("GESTIONAR_AVISOS_CLIENTE");
 
             _idiomaService.Suscribir(this);
@@ -64,6 +65,7 @@ namespace UI
             this.Text                      = Tr("title",                   "Tablero de captación");
             lblTitulo.Text                 = Tr("lblTitulo",               "Tablero de captación");
             cardEnVenta.Titulo             = Tr("cardEnVenta",             "Vehículos en venta");
+            cardPorSalir.Titulo            = Tr("cardPorSalir",            "Por salir a la venta");
             cardPosiblesCompradores.Titulo = Tr("cardPosiblesCompradores", "Posibles compradores");
             cardSinInteresados.Titulo      = Tr("cardSinInteresados",      "Unidades sin interesados");
             cardPosiblesCompradores.TextoVer = Tr("lnkVer", "Ver ▸");
@@ -126,6 +128,8 @@ namespace UI
             // Indicadores
             cardEnVenta.Valor = t.VehiculosEnVenta.ToString();
             cardEnVenta.Detalle = "";
+            cardPorSalir.Valor = t.UnidadesPorSalirAVenta.ToString();
+            cardPorSalir.Detalle = Tr("detallePorSalir", "pendientes de autorización");
             cardPosiblesCompradores.Valor = t.PosiblesCompradores.ToString();
             cardPosiblesCompradores.Detalle = Tr("detalleBusquedasActivas", "con búsqueda activa");
             cardSinInteresados.Valor = t.UnidadesSinInteresados.ToString();

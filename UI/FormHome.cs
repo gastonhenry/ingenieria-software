@@ -98,10 +98,20 @@ namespace UI
             _abrirPublicaciones?.Invoke();
         }
 
+        // D02 — Ayuda en línea: página HTML que viaja con la instalación (Ayuda\ayuda.html), se abre en el navegador.
         private void btnAyuda_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(Tr("msgProximamente", "Próximamente"),
-                Tr("msgAyudaTitulo", "Ayuda"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+            string ruta = System.IO.Path.Combine(Application.StartupPath, "Ayuda", "ayuda.html");
+            try
+            {
+                if (!System.IO.File.Exists(ruta)) throw new System.IO.FileNotFoundException(ruta);
+                Process.Start(ruta);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(Tr("msgAyudaNoEncontrada", "No se pudo abrir la ayuda.") + "\n" + ruta,
+                    Tr("msgAyudaTitulo", "Ayuda"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void btnContacto_Click(object sender, EventArgs e)

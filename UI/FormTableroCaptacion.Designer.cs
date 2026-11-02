@@ -9,6 +9,7 @@ namespace UI
         private System.Windows.Forms.Label lblEstadoAvisos;
         private System.Windows.Forms.FlowLayoutPanel flpCards;
         private CardIndicador cardEnVenta;
+        private CardIndicador cardPorSalir;
         private CardIndicador cardPosiblesCompradores;
         private CardIndicador cardSinInteresados;
         private CardIndicador cardInteresadosSinUnidades;
@@ -49,6 +50,7 @@ namespace UI
             this.lblEstadoAvisos = new System.Windows.Forms.Label();
             this.flpCards = new System.Windows.Forms.FlowLayoutPanel();
             this.cardEnVenta = new CardIndicador();
+            this.cardPorSalir = new CardIndicador();
             this.cardPosiblesCompradores = new CardIndicador();
             this.cardSinInteresados = new CardIndicador();
             this.cardInteresadosSinUnidades = new CardIndicador();
@@ -111,6 +113,7 @@ namespace UI
             this.flpCards.AutoSize = true;
             this.flpCards.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.flpCards.Controls.Add(this.cardEnVenta);
+            this.flpCards.Controls.Add(this.cardPorSalir);
             this.flpCards.Controls.Add(this.cardPosiblesCompradores);
             this.flpCards.Controls.Add(this.cardSinInteresados);
             this.flpCards.Controls.Add(this.cardInteresadosSinUnidades);
@@ -122,6 +125,8 @@ namespace UI
             //
             this.cardEnVenta.Name = "cardEnVenta";
             this.cardEnVenta.ColorAcento = System.Drawing.Color.FromArgb(30, 150, 70);
+            this.cardPorSalir.Name = "cardPorSalir";
+            this.cardPorSalir.ColorAcento = System.Drawing.Color.FromArgb(200, 160, 0);
             this.cardPosiblesCompradores.Name = "cardPosiblesCompradores";
             this.cardPosiblesCompradores.ColorAcento = System.Drawing.Color.FromArgb(30, 90, 200);
             this.cardPosiblesCompradores.VerClick += new System.EventHandler(this.cardPosiblesCompradores_VerClick);

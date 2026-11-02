@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avanti Auto - Ayuda</title>
+<style>
+  :root { --azul: #1f5bc8; --azul-claro: #e8efff; --texto: #222; --gris: #667; --borde: #d8dce6; --fondo: #f6f7fb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: var(--texto); background: var(--fondo); line-height: 1.55; }
+  header { background: var(--azul); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 22px; }
+  header p { margin: 2px 0 0; opacity: .85; font-size: 14px; }
+  header button { background: #fff; color: var(--azul); border: 0; border-radius: 6px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 50px; }
+  .oculto { display: none !important; }
+
+  /* Paso 1: elegir el rol */
+  #elegir h2 { text-align: center; color: var(--azul); margin: 10px 0 4px; font-size: 24px; }
+  #elegir > p { text-align: center; color: var(--gris); margin: 0 0 24px; }
+  .roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .rol { background: #fff; border: 1px solid var(--borde); border-radius: 10px; padding: 18px; cursor: pointer; text-align: left; font: inherit; color: inherit; transition: box-shadow .15s, border-color .15s; }
+  .rol:hover, .rol:focus { border-color: var(--azul); box-shadow: 0 4px 14px rgba(31, 91, 200, .15); outline: none; }
+  .rol b { display: block; font-size: 17px; color: var(--azul); margin-bottom: 4px; }
+  .rol span { font-size: 14px; color: var(--gris); }
+
+  /* Paso 2: resumen del rol */
+  #resumen .cabecera { background: #fff; border: 1px solid var(--borde); border-radius: 10px; padding: 18px 22px; margin-bottom: 18px; }
+  #resumen .cabecera h2 { margin: 0 0 4px; color: var(--azul); }
+  #resumen .cabecera p { margin: 0; color: var(--gris); }
+  .indice { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .indice a { background: var(--azul-claro); color: #1b3f8b; text-decoration: none; font-size: 13px; padding: 4px 10px; border-radius: 14px; }
+  .grupo { color: var(--azul); font-size: 18px; margin: 26px 0 10px; border-bottom: 2px solid var(--azul-claro); padding-bottom: 4px; }
+  .func { background: #fff; border: 1px solid var(--borde); border-radius: 10px; padding: 18px 22px; margin-bottom: 16px; }
+  .func h3 { margin: 0 0 6px; font-size: 17px; }
+  .ruta { display: inline-block; background: var(--azul-claro); color: #1b3f8b; padding: 1px 8px; border-radius: 4px; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .func p { margin: 6px 0; font-size: 14px; }
+  .func ol, .func ul { margin: 6px 0; padding-left: 20px; font-size: 14px; }
+  .func li { margin: 3px 0; }
+  .nota { background: #fff8e1; border-left: 4px solid #f0b400; padding: 6px 10px; font-size: 13px; margin-top: 8px; }
+  footer { text-align: center; color: var(--gris); font-size: 13px; padding: 10px 0 30px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Avanti Auto - Ayuda en línea</h1>
+    <p id="subtitulo">Elegí tu rol para ver lo que podés hacer en el sistema.</p>
+  </div>
+  <button id="cambiar" class="oculto" onclick="mostrarRoles()">Cambiar de rol</button>
+</header>
+
+<main>
+  <section id="elegir">
+    <h2>¿Cuál es tu rol en la concesionaria?</h2>
+    <p>La ayuda te muestra solo las pantallas y tareas que corresponden a tu rol.</p>
+    <div class="roles" id="roles"></div>
+  </section>
+
+  <section id="resumen" class="oculto">
+    <div class="cabecera">
+      <h2 id="rolTitulo"></h2>
+      <p id="rolDescripcion"></p>
+      <div class="indice" id="indice"></div>
+    </div>
+    <div id="funciones"></div>
+  </section>
+</main>
+
+<footer>Avanti Auto · Concesionaria</footer>
+
+<script>
+var ROLES = [
+  { id: "comprador", nombre: "Comprador", desc: "Registra las unidades que compra la agencia y consulta publicaciones y el tablero de captación." },
+  { id: "taller", nombre: "Encargado de Taller", desc: "Prepara las unidades: revisa el checklist y propone trabajos adicionales." },
+  { id: "vendedor", nombre: "Vendedor", desc: "Publica, reserva y vende unidades; entrevista clientes y gestiona sus avisos." },
+  { id: "gerente", nombre: "Gerente", desc: "Autoriza presupuestos y publicaciones, configura la captación. Además puede hacer todo lo del Vendedor." },
+  { id: "marketing", nombre: "Marketing", desc: "Analiza el tablero de captación y exporta publicaciones para promocionarlas." },
+  { id: "admin", nombre: "Administrador", desc: "Acceso completo, incluidos usuarios, permisos, idiomas, bitácora y mantenimiento." }
+];
+
+var TODOS = ["comprador", "taller", "vendedor", "gerente", "marketing", "admin"];
+
+// Funcionalidades: qué roles las usan y detalle básico.
+var FUNCIONES = [
+  { grupo: "Para todos", titulo: "Ingresar al sistema", roles: TODOS, ruta: "Pantalla de ingreso",
+    texto: "<ol><li>Abrí Avanti Auto desde el acceso directo.</li><li>Ingresá tu usuario y contraseña y presioná <b>Ingresar</b>.</li></ol><div class='nota'>Después de varios intentos fallidos el usuario se bloquea: pedile al administrador que lo desbloquee.</div>" },
+  { grupo: "Para todos", titulo: "Inicio y menú principal", roles: TODOS, ruta: "Inicio",
+    texto: "<p>Arriba está el menú con las opciones habilitadas para tu usuario. <b>Inicio</b> tiene accesos rápidos a lo más usado, esta <b>Ayuda</b> y <b>Contactanos</b>.</p><ul><li><b>Idioma ▾</b> cambia entre Español, English y Deutsch.</li><li><b>Logout</b> cierra la sesión.</li></ul>" },
+
+  { grupo: "Personas", titulo: "Registrar persona", roles: ["comprador", "vendedor", "gerente", "admin"], ruta: "Personas → Registrar Persona",
+    texto: "<p>Alta y modificación de clientes y vendedores (personas físicas o empresas).</p><ul><li>Buscá en la lista de la derecha por nombre o DNI/CUIT.</li><li><b>Nuevo</b> limpia el formulario; <b>Dar de alta</b>, <b>Editar</b> y <b>Eliminar</b> hacen lo que dicen.</li><li>DNI de 7 u 8 dígitos o CUIT de 11, solo números.</li><li><b>Exportar / Importar perfil</b> guarda o lee los datos de la persona en un archivo XML.</li></ul>" },
+
+  { grupo: "Unidades", titulo: "Registrar unidad", roles: ["comprador", "admin"], ruta: "Unidades → Registrar Unidad",
+    texto: "<ol><li>Cargá dominio, marca, modelo, año, kilometraje, precio de compra y descripción.</li><li>Buscá a la persona que vende el vehículo.</li><li>Confirmá: la unidad queda <b>Ingresado</b> con su checklist de preparación.</li></ol>" },
+  { grupo: "Unidades", titulo: "Marcas y modelos", roles: ["comprador", "admin"], ruta: "Unidades → Registrar Marca / Registrar Modelo",
+    texto: "<p>Si la marca o el modelo no existen, se dan de alta acá. Cada modelo lleva su tipo de carrocería (sedán, hatchback, SUV, pickup o coupé).</p>" },
+  { grupo: "Unidades", titulo: "Ver unidades y su detalle", roles: ["comprador", "taller", "vendedor", "gerente", "admin"], ruta: "Unidades → Ver Unidades",
+    texto: "<p>Lista de unidades con filtros por estado y texto. Doble clic abre el detalle con las pestañas <b>Datos</b>, <b>Checklist</b> e <b>Historial</b> y los botones de las acciones que podés hacer según el estado.</p><p>El botón <b>?</b> muestra el flujo de estados: Ingresado → En preparación → Pendiente de venta → En venta → Reservado / Vendido (y Pausado).</p>" },
+  { grupo: "Unidades", titulo: "Preparar una unidad (checklist)", roles: ["taller", "admin"], ruta: "Ver Unidades → detalle → Checklist",
+    texto: "<ol><li>En una unidad <b>Ingresado</b> presioná <b>Tomar para preparación</b>.</li><li>Revisá cada ítem y marcalo <b>OK</b> u <b>Observado</b> (con comentario).</li><li>Si hacen falta trabajos extra, agregalos con su costo estimado y enviá el presupuesto al Gerente.</li><li>Con todo revisado, presioná <b>Finalizar preparación</b>: la unidad pasa a <b>Pendiente de venta</b>.</li></ol>" },
+  { grupo: "Unidades", titulo: "Autorizar presupuesto y publicación", roles: ["gerente", "admin"], ruta: "Ver Unidades → detalle",
+    texto: "<ul><li><b>Presupuesto</b>: aprobá o rechazá (con motivo) los trabajos adicionales que propuso el taller.</li><li><b>Publicación</b>: con la unidad <b>Pendiente de venta</b>, autorizala para pasarla a <b>En venta</b>. En ese momento el sistema avisa por correo a los clientes interesados y te informa cuántos avisos se enviaron.</li></ul>" },
+  { grupo: "Unidades", titulo: "Template de checklist", roles: ["gerente", "admin"], ruta: "Unidades → Template de Checklist",
+    texto: "<p>Lista de ítems que se copia al checklist de cada unidad nueva. Podés agregar, editar o desactivar ítems.</p>" },
+
+  { grupo: "Publicaciones y ventas", titulo: "Publicaciones", roles: ["comprador", "vendedor", "gerente", "marketing", "admin"], ruta: "Publicaciones → Ver Publicaciones",
+    texto: "<p>Unidades <b>Pendiente de venta</b> o <b>En venta</b> con su publicación. Filtrá por dominio, marca, modelo, año, precio o texto y seleccioná una para verla con formato de aviso.</p><ul><li><b>Exportar PDF</b>: ficha para entregar o imprimir.</li><li><b>Ver unidad</b>: abre la unidad con su detalle.</li></ul>" },
+  { grupo: "Publicaciones y ventas", titulo: "Armar o editar la publicación", roles: ["vendedor", "gerente", "admin"], ruta: "Publicaciones → Editar publicación",
+    texto: "<p>Cargá el precio de publicación y la descripción comercial, y agregá o quitá fotos.</p>" },
+  { grupo: "Publicaciones y ventas", titulo: "Reservar, vender y pausar", roles: ["vendedor", "gerente", "admin"], ruta: "Ver Unidades → detalle",
+    texto: "<ul><li><b>Reservar</b>: buscá al cliente (nombre o DNI/CUIT, Enter busca), cargá precio acordado y seña.</li><li><b>Vender</b>: buscá al comprador, cargá fecha y precio final. Si tenía búsquedas activas, el sistema pregunta si se cierran.</li><li><b>Pausar</b> (con motivo) y <b>Reanudar</b> una unidad en venta.</li></ul><div class='nota'>Una unidad reservada solo se puede vender a quien la reservó. Para vendérsela a otro, primero cancelá la reserva.</div>" },
+
+  { grupo: "Captación de clientes", titulo: "Registrar entrevista", roles: ["vendedor", "gerente", "admin"], ruta: "Captación → Registrar entrevista",
+    texto: "<ol><li>Buscá al cliente por nombre o DNI/CUIT (o dalo de alta con <b>Personas...</b>).</li><li>Tildá lo que busca: marcas (y modelos puntuales), carrocerías, años y precio máximo.</li><li>Indicá si acepta avisos por correo y presioná <b>Registrar</b>.</li></ol><p>Abajo aparecen las unidades en venta que ya coinciden: doble clic para ver la publicación o <b>Exportar PDF</b>.</p>" },
+  { grupo: "Captación de clientes", titulo: "Tablero de captación", roles: ["comprador", "vendedor", "gerente", "marketing", "admin"], ruta: "Captación → Tablero de captación",
+    texto: "<ul><li><b>Vehículos en venta</b> y <b>Posibles compradores</b> (clientes con alguna unidad que coincide).</li><li><b>Unidades sin interesados</b>: las que están en alerta conviene promocionarlas o revisar el precio.</li><li><b>Interesados sin unidades</b>: demanda que hoy no hay en stock.</li><li><b>Conversión de avisos</b>: cuántos clientes avisados en los últimos 30 días compraron.</li></ul><p>Elegí una unidad para ver sus interesados y si ya se les avisó. <b>Ver ▸</b> abre el detalle de cada indicador.</p>" },
+  { grupo: "Captación de clientes", titulo: "Avisos a clientes", roles: ["vendedor", "gerente", "admin"], ruta: "Captación → Avisos a clientes",
+    texto: "<p>Buscá al cliente para ver sus búsquedas y los avisos que recibió.</p><ul><li><b>Suspender / Reanudar avisos</b> si no quiere recibir más correos.</li><li><b>Cerrar búsqueda seleccionada</b> cuando ya no busca.</li></ul><div class='nota'>Los avisos se envían solos cuando se autoriza la publicación de una unidad que coincide, con la publicación en PDF adjunta.</div>" },
+  { grupo: "Captación de clientes", titulo: "Parámetros de captación", roles: ["gerente", "admin"], ruta: "Captación → Parámetros de captación",
+    texto: "<p>Activá o desactivá el envío automático de avisos, la vigencia de las búsquedas (días) y a partir de cuántos días una unidad sin interesados queda en alerta.</p>" },
+
+  { grupo: "Administración y mantenimiento", titulo: "Configurar cuenta email", roles: ["gerente", "admin"], ruta: "Mantenimiento → Configurar cuenta email",
+    texto: "<p>Servidor SMTP, puerto, conexión segura, usuario, contraseña y remitente de la cuenta desde la que salen los avisos. <b>Enviar correo de prueba</b> la verifica antes de guardar. Para Gmail: smtp.gmail.com, puerto 587 y una contraseña de aplicación.</p>" },
+  { grupo: "Administración y mantenimiento", titulo: "Usuarios", roles: ["admin"], ruta: "Usuarios",
+    texto: "<p>Registrar usuarios y, en <b>Gestión de Usuarios</b>, editarlos, bloquearlos o desbloquearlos y ver su historial de cambios.</p>" },
+  { grupo: "Administración y mantenimiento", titulo: "Permisos y roles", roles: ["admin"], ruta: "Permisos",
+    texto: "<p>Crear permisos y roles (un rol agrupa permisos) y asignarlos a cada usuario.</p>" },
+  { grupo: "Administración y mantenimiento", titulo: "Bitácora", roles: ["admin"], ruta: "Bitácora → Ver Bitácora",
+    texto: "<p>Registro de todo lo que pasa en el sistema (ingresos, altas, cambios de estado, avisos, errores), con filtros por tipo y usuario.</p>" },
+  { grupo: "Administración y mantenimiento", titulo: "Idiomas", roles: ["admin"], ruta: "Idiomas → Gestión de Idiomas",
+    texto: "<p>Alta de idiomas y carga de las traducciones de cada pantalla.</p>" },
+  { grupo: "Administración y mantenimiento", titulo: "Integridad y backup", roles: ["admin"], ruta: "Mantenimiento → Integridad y backup",
+    texto: "<ul><li><b>Verificar</b> la integridad de los datos y <b>Recalcular</b> los dígitos verificadores si un cambio es legítimo.</li><li><b>Backup</b> y <b>Restore</b> de la base de datos (al restaurar se cierra la sesión).</li></ul><div class='nota'>Si al iniciar se detectan datos alterados, solo el administrador de mantenimiento puede ingresar.</div>" }
+];
+
+function el(id) { return document.getElementById(id); }
+
+
+function mostrarRoles() {
+  el("elegir").classList.remove("oculto");
+  el("resumen").classList.add("oculto");
+  el("cambiar").classList.add("oculto");
+  el("subtitulo").textContent = "Elegí tu rol para ver lo que podés hacer en el sistema.";
+  window.scrollTo(0, 0);
+}
+
+function mostrarRol(id) {
+  var rol = ROLES.filter(function (r) { return r.id === id; })[0];
+  if (!rol) { mostrarRoles(); return; }
+  el("elegir").classList.add("oculto");
+  el("resumen").classList.remove("oculto");
+  el("cambiar").classList.remove("oculto");
+  el("subtitulo").textContent = "Ayuda para el rol " + rol.nombre + ".";
+  el("rolTitulo").textContent = rol.nombre;
+  el("rolDescripcion").textContent = rol.desc;
+
+  var lista = FUNCIONES.filter(function (f) { return f.roles.indexOf(id) >= 0; });
+  var html = "", indice = "", grupo = "";
+  lista.forEach(function (f, i) {
+    if (f.grupo !== grupo) { grupo = f.grupo; html += "<h3 class='grupo'>" + grupo + "</h3>"; }
+    var ancla = "f" + i;
+    indice += "<a href='#" + ancla + "'>" + f.titulo + "</a>";
+    html += "<article class='func' id='" + ancla + "'>"
+          + "<h3>" + f.titulo + "</h3><span class='ruta'>" + f.ruta + "</span>" + f.texto
+          + "</article>";
+  });
+  el("indice").innerHTML = indice;
+  el("funciones").innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+
+el("roles").innerHTML = ROLES.map(function (r) {
+  return "<button class='rol' onclick=\"mostrarRol('" + r.id + "')\"><b>" + r.nombre + "</b><span>" + r.desc + "</span></button>";
+}).join("");
+
+mostrarRoles();   // siempre se empieza preguntando el rol
+</script>
+</body>
+</html>

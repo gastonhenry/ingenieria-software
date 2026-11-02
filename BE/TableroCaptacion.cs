@@ -24,6 +24,8 @@ namespace BE
         public int UnidadesSinInteresados => Unidades.FindAll(u => u.CantidadInteresados == 0).Count;
         public int AvisosEnviados => Avisos.FindAll(a => a.Exitoso).Count;
         public int ClientesAvisados { get; set; }
+        // Unidades en "Pendiente de venta": preparadas, esperan que el Gerente autorice la publicación.
+        public int UnidadesPorSalirAVenta { get; set; }
         public int ClientesConvertidos => Conversiones.Count;
         public decimal PorcentajeConversion =>
             ClientesAvisados == 0 ? 0 : Math.Round(ClientesConvertidos * 100m / ClientesAvisados, 1);

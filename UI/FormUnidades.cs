@@ -22,8 +22,9 @@ namespace UI
         // Dataset base (todas las unidades), para calcular opciones de combos y filtrar en memoria.
         private List<Unidad> _todas = new List<Unidad>();
         private List<Unidad> _datos = new List<Unidad>();
-        private string _sortProp = null;
-        private bool _sortAsc = true;
+        // Orden por defecto al abrir: ingreso más reciente primero (el usuario puede cambiarlo con los encabezados).
+        private string _sortProp = "FechaIngreso";
+        private bool _sortAsc = false;
         private bool _cargandoFiltros;
 
         public FormUnidades()
