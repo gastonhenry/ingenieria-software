@@ -5,6 +5,7 @@ using HELPERS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace UI
@@ -428,13 +429,30 @@ namespace UI
             EjecutarAccion(() => _unidadService.FinalizarPreparacion(_unidadId));
         }
 
-        private void btnAutorizarPublicacion_Click(object sender, EventArgs e)
+        // El envío de avisos puede tardar (un mail con PDF por cliente): corre en un hilo aparte
+        // para que la ventana no se congele mientras tanto.
+        private async void btnAutorizarPublicacion_Click(object sender, EventArgs e)
         {
             string obs = PromptInput(Tr("promptObservaciones", "Observaciones (opcional):"));
             ResultadoNotificacion avisos = null;
-            Cursor.Current = Cursors.WaitCursor;
-            EjecutarAccion(() => avisos = _unidadService.AutorizarPublicacion(_unidadId, obs));
-            Cursor.Current = Cursors.Default;
+            string titulo = Text;
+            Text = Tr("msgEnviandoAvisos", "Publicando la unidad y enviando avisos a los clientes...");
+            Enabled = false;
+            UseWaitCursor = true;
+            try
+            {
+                avisos = await Task.Run(() => _unidadService.AutorizarPublicacion(_unidadId, obs));
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed)
+                    MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            if (IsDisposed) return;
+            Text = titulo;
+            Enabled = true;
+            UseWaitCursor = false;
+            Recargar();
             if (avisos != null) InformarAvisos(avisos);
         }
 
