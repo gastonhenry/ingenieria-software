@@ -11,6 +11,7 @@ namespace BLL
     public class CaptacionService : ICaptacionService
     {
         private const int ANIO_MINIMO = 1950;
+        private const string MOTIVO_NO_ACEPTA_AVISOS = "No aceptó avisos en la última entrevista.";
 
         private readonly MapperBusquedaCliente _mapperBusqueda;
         private readonly MapperCaptacion _mapperCaptacion;
@@ -102,6 +103,21 @@ namespace BLL
             _bitacora.Insertar(usuario, TipoBitacora.EntrevistaCliente,
                 $"Entrevista registrada: búsqueda Id {id} de {cliente.Nombre} ({cliente.Documento})"
                 + (aceptaAvisos ? ", acepta avisos." : ", sin avisos."));
+
+            // Manda la última entrevista: si acepta avisos se levanta la suspensión; si no, se suspenden.
+            bool suspendido = _mapperCaptacion.ObtenerSuspension(cliente.Id) != null;
+            if (aceptaAvisos && suspendido)
+            {
+                _mapperCaptacion.ReanudarAvisos(cliente.Id);
+                _bitacora.Insertar(usuario, TipoBitacora.GestionAvisosCliente,
+                    $"Avisos reanudados a {cliente.Nombre} ({cliente.Documento}): aceptó avisos en la entrevista.");
+            }
+            else if (!aceptaAvisos && !suspendido)
+            {
+                _mapperCaptacion.SuspenderAvisos(cliente.Id, usuario.Id, MOTIVO_NO_ACEPTA_AVISOS);
+                _bitacora.Insertar(usuario, TipoBitacora.GestionAvisosCliente,
+                    $"Avisos suspendidos a {cliente.Nombre} ({cliente.Documento}): no aceptó avisos en la entrevista.");
+            }
             return id;
         }
 
@@ -109,6 +125,35 @@ namespace BLL
         {
             var busqueda = _mapperBusqueda.Listar(null, null).FirstOrDefault(b => b.Id == idBusqueda);
             if (busqueda == null) return new List<UnidadEnVenta>();
+            return _mapperCaptacion.ListarUnidadesEnVenta().Where(u => Coincide(busqueda, u)).ToList();
+        }
+
+        public List<UnidadEnVenta> ListarUnidadesCoincidentes(List<int> idsMarca, List<int> idsModelo, List<TipoCarroceria> carrocerias,
+                                                              int? anioDesde, int? anioHasta, decimal? precioMaximo)
+        {
+            var marcas = (idsMarca ?? new List<int>()).Distinct().Select(idMarca => new Marca { Id = idMarca }).ToList();
+            var modelos = new List<Modelo>();
+            if (idsModelo != null && idsModelo.Count > 0)
+            {
+                var ids = new HashSet<int>(idsModelo);
+                modelos = _mapperModelo.Listar().Where(m => ids.Contains(m.Id)).ToList();
+                foreach (var mo in modelos)
+                    if (!marcas.Any(ma => ma.Id == mo.Marca.Id)) marcas.Add(mo.Marca);
+            }
+            carrocerias = (carrocerias ?? new List<TipoCarroceria>()).Distinct().ToList();
+
+            // Mismo requisito que al registrar: sin marca ni carrocería no hay búsqueda.
+            if (marcas.Count == 0 && carrocerias.Count == 0) return new List<UnidadEnVenta>();
+
+            var busqueda = new BusquedaCliente
+            {
+                Marcas       = marcas,
+                Modelos      = modelos,
+                Carrocerias  = carrocerias,
+                AnioDesde    = anioDesde,
+                AnioHasta    = anioHasta,
+                PrecioMaximo = precioMaximo
+            };
             return _mapperCaptacion.ListarUnidadesEnVenta().Where(u => Coincide(busqueda, u)).ToList();
         }
 

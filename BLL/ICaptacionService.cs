@@ -17,6 +17,10 @@ namespace BLL
         // Unidades En venta que coinciden con una búsqueda (paso 7 de CU-CAP-01).
         List<UnidadEnVenta> ListarUnidadesCoincidentes(int idBusqueda);
 
+        // Vista previa mientras se cargan los criterios, sin registrar la búsqueda.
+        List<UnidadEnVenta> ListarUnidadesCoincidentes(List<int> idsMarca, List<int> idsModelo, List<TipoCarroceria> carrocerias,
+                                                       int? anioDesde, int? anioHasta, decimal? precioMaximo);
+
         // CU-CAP-02
         TableroCaptacion ObtenerTablero(DateTime desde, DateTime hasta);
 

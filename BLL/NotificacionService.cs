@@ -107,15 +107,77 @@ namespace BLL
             return resultado;
         }
 
-        private static MailMessage CrearMail(BusquedaCliente b, UnidadEnVenta u, decimal? precio, string rutaPdf, string remitente)
+        // Envío manual desde la entrevista: la publicación (PDF) de una unidad a un cliente, en el momento.
+        // No pasa por las búsquedas ni por el interruptor de avisos automáticos; queda en la bitácora.
+        public void EnviarPublicacion(int idUnidad, int idPersona)
+        {
+            RequerirAdminOPermiso("VER_PUBLICACIONES", "EnviarPublicacionEmail");
+            var usuario = SesionUsuario.GetInstancia().Usuario;
+
+            Persona cliente = idPersona > 0 ? new PersonaService().ObtenerPorId(idPersona) : null;
+            if (cliente == null)
+                throw new BLLException("ERR_PERSONA_NO_EXISTE", "Seleccioná el cliente.");
+            if (string.IsNullOrWhiteSpace(cliente.Email))
+                throw new BLLException("ERR_CLIENTE_SIN_EMAIL_ENVIO", "El cliente no tiene un correo electrónico registrado.");
+
+            var unidad = _mapperCaptacion.ObtenerUnidad(idUnidad);
+            if (unidad == null)
+                throw new BLLException("ERR_UNIDAD_NO_ENCONTRADA", "No se encontró la unidad.");
+
+            string pdf = _pdfService.GenerarTemporal(idUnidad);
+            if (pdf == null)
+                throw new BLLException("ERR_UNIDAD_SIN_PUBLICACION", "La unidad no tiene una publicación creada.");
+
+            try
+            {
+                ConfiguracionEmail cuenta = _mapperEmail.Obtener();
+                using (SmtpClient smtp = ConfiguracionEmailService.CrearClienteSmtp(cuenta))
+                using (MailMessage mail = CrearMail(cliente, unidad, unidad.PrecioPublicacion, pdf, cuenta.Remitente, false))
+                    smtp.Send(mail);
+            }
+            catch (Exception ex)
+            {
+                string detalle = ex.InnerException?.Message ?? ex.Message;
+                _bitacora.Insertar(usuario, TipoBitacora.Error,
+                    $"Falló el envío de la publicación de {unidad} a {cliente.Nombre} ({cliente.Email}): {detalle}");
+                throw new BLLException("ERR_ENVIO_PUBLICACION", "No se pudo enviar el correo: {0}", detalle);
+            }
+            finally
+            {
+                try { File.Delete(pdf); } catch { }
+            }
+
+            _bitacora.Insertar(usuario, TipoBitacora.AvisoCliente,
+                $"Publicación de {unidad} enviada por email a {cliente.Nombre} ({cliente.Email}).");
+        }
+
+        private void RequerirAdminOPermiso(string codigoPermiso, string accion)
+        {
+            var usuario = SesionUsuario.GetInstancia().Usuario;
+            bool esAdmin = usuario != null && usuario.Username != null && usuario.Username.ToLower() == "admin";
+            if (esAdmin) return;
+            if (new PermisoService().UsuarioTienePermiso(usuario, codigoPermiso)) return;
+            _bitacora.Insertar(usuario, TipoBitacora.Error,
+                $"Acceso denegado a '{accion}': se requiere admin o permiso '{codigoPermiso}'.");
+            throw new BLLException("ERR_SIN_PERMISO_ACCION",
+                "No tenés permiso para ejecutar esta acción ({0}).", codigoPermiso);
+        }
+
+        private static MailMessage CrearMail(BusquedaCliente b, UnidadEnVenta u, decimal? precio, string rutaPdf, string remitente) =>
+            CrearMail(b.Cliente, u, precio, rutaPdf, remitente, true);
+
+        // esAviso: aviso automático por búsqueda (true) o envío manual desde la entrevista (false).
+        private static MailMessage CrearMail(Persona cliente, UnidadEnVenta u, decimal? precio, string rutaPdf, string remitente, bool esAviso)
         {
             string vehiculo = $"{u.Marca} {u.Modelo} {u.Anio}";
             string precioTexto = precio.HasValue ? precio.Value.ToString("C0", CulturaAr) : "Precio a consultar";
 
             var cuerpo = new StringBuilder();
             cuerpo.Append("<div style='font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#222'>");
-            cuerpo.Append($"<p>Hola {WebUtility.HtmlEncode(b.Cliente.Nombre)},</p>");
-            cuerpo.Append("<p>Ingresó a <b>Avanti Auto</b> un vehículo que coincide con lo que estás buscando:</p>");
+            cuerpo.Append($"<p>Hola {WebUtility.HtmlEncode(cliente.Nombre)},</p>");
+            cuerpo.Append(esAviso
+                ? "<p>Ingresó a <b>Avanti Auto</b> un vehículo que coincide con lo que estás buscando:</p>"
+                : "<p>Te enviamos desde <b>Avanti Auto</b> la publicación del vehículo que conversamos:</p>");
             cuerpo.Append("<table style='border-collapse:collapse'>");
             cuerpo.Append($"<tr><td style='padding:4px 12px 4px 0'><b>Vehículo</b></td><td>{WebUtility.HtmlEncode(vehiculo)}</td></tr>");
             cuerpo.Append($"<tr><td style='padding:4px 12px 4px 0'><b>Kilometraje</b></td><td>{u.Kilometraje.ToString("N0", CulturaAr)} km</td></tr>");
@@ -123,13 +185,15 @@ namespace BLL
             cuerpo.Append("</table>");
             if (rutaPdf != null) cuerpo.Append("<p>Te adjuntamos la publicación completa con fotos.</p>");
             cuerpo.Append("<p>Si te interesa, respondé este correo o acercate a la concesionaria.</p>");
-            cuerpo.Append("<p style='color:#888;font-size:12px'>Recibís este aviso porque lo aceptaste en tu entrevista. "
-                        + "Si no querés recibir más avisos, avisanos y los suspendemos.</p>");
+            if (esAviso)
+                cuerpo.Append("<p style='color:#888;font-size:12px'>Recibís este aviso porque lo aceptaste en tu entrevista. "
+                            + "Si no querés recibir más avisos, avisanos y los suspendemos.</p>");
             cuerpo.Append("</div>");
 
-            var mail = new MailMessage(remitente, b.Cliente.Email)
+            var mail = new MailMessage(remitente, cliente.Email)
             {
-                Subject = $"Avanti Auto: hay un {vehiculo} que coincide con tu búsqueda",
+                Subject = esAviso ? $"Avanti Auto: hay un {vehiculo} que coincide con tu búsqueda"
+                                  : $"Avanti Auto: publicación del {vehiculo}",
                 Body = cuerpo.ToString(),
                 IsBodyHtml = true,
                 BodyEncoding = Encoding.UTF8,

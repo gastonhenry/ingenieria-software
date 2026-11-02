@@ -21,8 +21,8 @@ namespace UI
         private readonly IIdiomaService _idiomaService;
         private bool _suscrito;
         private List<UnidadEnVenta> _coincidentes = new List<UnidadEnVenta>();
-        // Cliente de la entrevista recién registrada: el listado de abajo solo vale para él.
-        private int? _idClienteCoincidentes;
+        // Recalcula las coincidencias un instante después del último cambio de criterio (no en cada tecla).
+        private readonly Timer _timerVistaPrevia = new Timer { Interval = 300 };
 
         public FormEntrevistaCliente()
         {
@@ -34,6 +34,12 @@ namespace UI
             _idiomaService = new IdiomaService();
 
             txtDocBusqueda.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { btnBuscar_Click(s, e); e.SuppressKeyPress = true; } };
+
+            _timerVistaPrevia.Tick += (s, e) => { _timerVistaPrevia.Stop(); ActualizarVistaPrevia(); };
+            clbCarrocerias.ItemCheck += (s, e) => ProgramarVistaPrevia();
+            txtAnioDesde.TextChanged += (s, e) => ProgramarVistaPrevia();
+            txtAnioHasta.TextChanged += (s, e) => ProgramarVistaPrevia();
+            txtPrecioMax.TextChanged += (s, e) => ProgramarVistaPrevia();
 
             _idiomaService.Suscribir(this);
             _suscrito = true;
@@ -82,6 +88,7 @@ namespace UI
             colKm.HeaderText            = Tr("colKm",                  "Km");
             colPrecio.HeaderText        = Tr("colPrecio",              "Precio");
             btnExportarPdf.Text         = Tr("btnExportarPdf",         "Exportar PDF");
+            btnEnviarEmail.Text         = Tr("btnEnviarEmail",         "Enviar email");
 
             RecargarCarrocerias();
             ActualizarEmailCliente();
@@ -142,6 +149,7 @@ namespace UI
                     foreach (var mo in mods) _modelosTildados.Remove(mo.Id);
             }
             RecargarModelos();
+            ProgramarVistaPrevia();
         }
 
         // Lista los modelos de las marcas tildadas ("Marca Modelo"), manteniendo los tildados.
@@ -181,6 +189,41 @@ namespace UI
             var modelo = (Modelo)((OpcionItem)clbModelos.Items[e.Index]).Valor;
             if (e.NewValue == CheckState.Checked) _modelosTildados.Add(modelo.Id);
             else _modelosTildados.Remove(modelo.Id);
+            ProgramarVistaPrevia();
+        }
+
+        // ------------------------------------------------------------
+        // Vista previa: unidades en venta que coinciden con los criterios cargados
+        // ------------------------------------------------------------
+
+        private void ProgramarVistaPrevia()
+        {
+            _timerVistaPrevia.Stop();
+            _timerVistaPrevia.Start();
+        }
+
+        private void ActualizarVistaPrevia()
+        {
+            // Un año o precio a medio escribir no filtra todavía.
+            LeerEnteroOpcional(txtAnioDesde, out int? anioDesde);
+            LeerEnteroOpcional(txtAnioHasta, out int? anioHasta);
+            decimal? precioMax = null;
+            if (decimal.TryParse(txtPrecioMax.Text.Trim(), NumberStyles.Any, CultureInfo.CurrentCulture, out decimal pm) && pm > 0)
+                precioMax = pm;
+            if (anioDesde.HasValue && anioDesde < 1000) anioDesde = null;
+            if (anioHasta.HasValue && anioHasta < 1000) anioHasta = null;
+
+            try
+            {
+                _coincidentes = _captacionService.ListarUnidadesCoincidentes(
+                    _marcasTildadas.ToList(), _modelosTildados.ToList(), CarroceriasTildadas(),
+                    anioDesde, anioHasta, precioMax);
+            }
+            catch
+            {
+                _coincidentes = new List<UnidadEnVenta>();
+            }
+            MostrarCoincidentes();
         }
 
         // Carrocerías traducidas; conserva las tildadas al cambiar de idioma.
@@ -247,14 +290,6 @@ namespace UI
         private void lstCoincidencias_SelectedIndexChanged(object sender, EventArgs e)
         {
             ActualizarEmailCliente();
-            // Si se elige otro cliente, las unidades coincidentes de la entrevista anterior ya no aplican.
-            var p = (lstCoincidencias.SelectedItem as PersonaItem)?.Persona;
-            if (_idClienteCoincidentes.HasValue && p?.Id != _idClienteCoincidentes)
-            {
-                _idClienteCoincidentes = null;
-                _coincidentes = new List<UnidadEnVenta>();
-                MostrarCoincidentes();
-            }
         }
 
         private void ActualizarEmailCliente()
@@ -302,18 +337,25 @@ namespace UI
 
             try
             {
+                bool estabaSuspendido = _captacionService.ObtenerSuspension(persona.Id) != null;
+                bool reanudaAvisos = chkAceptaAvisos.Checked && estabaSuspendido;
+                bool suspendeAvisos = !chkAceptaAvisos.Checked && !estabaSuspendido;
                 int idBusqueda = _captacionService.RegistrarEntrevista(persona.Id,
                     _marcasTildadas.ToList(), _modelosTildados.ToList(), CarroceriasTildadas(),
                     anioDesde, anioHasta, precioMax, txtObservaciones.Text, chkAceptaAvisos.Checked);
 
+                _timerVistaPrevia.Stop();
                 _coincidentes = _captacionService.ListarUnidadesCoincidentes(idBusqueda);
-                _idClienteCoincidentes = persona.Id;
                 MostrarCoincidentes();
 
                 string msg = Tr("msgEntrevistaRegistrada", "Entrevista registrada.");
                 msg += "\n" + (_coincidentes.Count == 0
                     ? Tr("msgSinUnidadesCoincidentes", "Por el momento no hay unidades en venta que coincidan.")
                     : string.Format(Tr("msgUnidadesCoincidentes", "Hay {0} unidad(es) en venta que coinciden: se muestran abajo."), _coincidentes.Count));
+                if (reanudaAvisos)
+                    msg += "\n" + Tr("msgAvisosReanudados", "El cliente tenía los avisos suspendidos: al aceptar avisos en esta entrevista se reanudaron.");
+                if (suspendeAvisos)
+                    msg += "\n" + Tr("msgAvisosSuspendidosEntrevista", "El cliente no aceptó avisos en esta entrevista: se suspendieron sus avisos.");
                 MessageBox.Show(msg, Tr("msgExito", "Éxito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -333,7 +375,7 @@ namespace UI
                                                  : Tr("precioAConsultar", "Precio a consultar"));
                 dgvCoincidentes.Rows[i].Tag = u;
             }
-            btnExportarPdf.Enabled = _coincidentes.Count > 0;
+            btnExportarPdf.Enabled = btnEnviarEmail.Enabled = _coincidentes.Count > 0;
         }
 
         // Doble clic en una unidad coincidente: abre su publicación (encima, sin perder la entrevista).
@@ -356,6 +398,41 @@ namespace UI
             var u = dgvCoincidentes.CurrentRow?.Tag as UnidadEnVenta;
             if (u == null) return;
             ExportadorPdfPublicacion.Exportar(this, u.IdUnidad);
+        }
+
+        // Envía en el momento la publicación (PDF) de la unidad seleccionada al cliente seleccionado.
+        private void btnEnviarEmail_Click(object sender, EventArgs e)
+        {
+            var u = dgvCoincidentes.CurrentRow?.Tag as UnidadEnVenta;
+            if (u == null) return;
+            var persona = (lstCoincidencias.SelectedItem as PersonaItem)?.Persona;
+            if (persona == null)
+            {
+                MessageBox.Show(Tr("msgSeleccionarCliente", "Buscá y seleccioná el cliente."),
+                    Tr("msgAdvertencia", "Advertencia"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                string confirmacion = string.Format(Tr("msgConfirmarEnvioEmail", "¿Enviar la publicación de {0} a {1} ({2})?"),
+                    u, persona.Nombre, persona.Email);
+                if (_captacionService.ObtenerSuspension(persona.Id) != null)
+                    confirmacion += "\n\n" + Tr("msgEnvioConAvisosSuspendidos", "Atención: el cliente tiene los avisos suspendidos.");
+                if (MessageBox.Show(confirmacion, Tr("msgConfirmar", "Confirmar"),
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+
+                Cursor.Current = Cursors.WaitCursor;
+                new NotificacionService().EnviarPublicacion(u.IdUnidad, persona.Id);
+                Cursor.Current = Cursors.Default;
+                MessageBox.Show(string.Format(Tr("msgEmailEnviado", "Se envió la publicación a {0}."), persona.Email),
+                    Tr("msgExito", "Éxito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Cursor.Current = Cursors.Default;
+                MessageBox.Show(TrError(ex), Tr("msgError", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // ------------------------------------------------------------
@@ -414,6 +491,8 @@ namespace UI
 
                 // Grilla de coincidencias: todo el ancho y hasta abajo
                 btnExportarPdf.Left = grpBusqueda.Right - btnExportarPdf.Width;
+                btnEnviarEmail.Left = btnExportarPdf.Left;
+                btnEnviarEmail.Top = btnExportarPdf.Bottom + 8;
                 dgvCoincidentes.Width = btnExportarPdf.Left - 10 - dgvCoincidentes.Left;
                 dgvCoincidentes.Height = Math.Max(ClientSize.Height - dgvCoincidentes.Top - margen, 150);
             }
@@ -453,6 +532,8 @@ namespace UI
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
+            _timerVistaPrevia.Stop();
+            _timerVistaPrevia.Dispose();
             if (_suscrito) { try { _idiomaService.Desuscribir(this); } catch { } _suscrito = false; }
             base.OnFormClosed(e);
         }

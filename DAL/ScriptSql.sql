@@ -4591,6 +4591,13 @@ Jetzt schließen, da {3} gekauft wurde?'),
     (N'FormEntrevistaCliente', N'msgEntrevistaRegistrada', N'Entrevista registrada.',                     N'Interview registered.',                    N'Gespräch erfasst.'),
     (N'FormEntrevistaCliente', N'msgSinUnidadesCoincidentes', N'Por el momento no hay unidades en venta que coincidan.', N'There are currently no matching units for sale.', N'Derzeit gibt es keine passenden Einheiten im Verkauf.'),
     (N'FormEntrevistaCliente', N'msgUnidadesCoincidentes', N'Hay {0} unidad(es) en venta que coinciden: se muestran abajo.', N'There are {0} matching unit(s) for sale, shown below.', N'Es gibt {0} passende Einheit(en) im Verkauf, siehe unten.'),
+    (N'FormEntrevistaCliente', N'msgAvisosReanudados',     N'El cliente tenía los avisos suspendidos: al aceptar avisos en esta entrevista se reanudaron.', N'The customer''s notices were suspended: they were resumed because the customer accepted notices in this interview.', N'Die Benachrichtigungen des Kunden waren ausgesetzt: Sie wurden wieder aktiviert, da der Kunde in diesem Gespräch zugestimmt hat.'),
+    (N'FormEntrevistaCliente', N'msgAvisosSuspendidosEntrevista', N'El cliente no aceptó avisos en esta entrevista: se suspendieron sus avisos.', N'The customer did not accept notices in this interview: their notices were suspended.', N'Der Kunde hat in diesem Gespräch keine Benachrichtigungen akzeptiert: Seine Benachrichtigungen wurden ausgesetzt.'),
+    (N'FormEntrevistaCliente', N'btnEnviarEmail', N'Enviar email', N'Send email', N'E-Mail senden'),
+    (N'FormEntrevistaCliente', N'msgConfirmar', N'Confirmar', N'Confirm', N'Bestätigen'),
+    (N'FormEntrevistaCliente', N'msgConfirmarEnvioEmail', N'¿Enviar la publicación de {0} a {1} ({2})?', N'Send the listing of {0} to {1} ({2})?', N'Das Inserat von {0} an {1} ({2}) senden?'),
+    (N'FormEntrevistaCliente', N'msgEnvioConAvisosSuspendidos', N'Atención: el cliente tiene los avisos suspendidos.', N'Note: the customer''s notices are suspended.', N'Hinweis: Die Benachrichtigungen des Kunden sind ausgesetzt.'),
+    (N'FormEntrevistaCliente', N'msgEmailEnviado', N'Se envió la publicación a {0}.', N'The listing was sent to {0}.', N'Das Inserat wurde an {0} gesendet.'),
     (N'FormEntrevistaCliente', N'precioAConsultar',        N'Precio a consultar',                         N'Price on request',                         N'Preis auf Anfrage'),
     (N'FormEntrevistaCliente', N'tipoFisica',              N'Física',                                     N'Individual',                               N'Natürlich'),
     (N'FormEntrevistaCliente', N'tipoJuridica',            N'Jurídica',                                   N'Company',                                  N'Juristisch'),
@@ -4759,6 +4766,8 @@ Der Kunde erscheint für diese Suche nicht mehr als Interessent und erhält daf�
     -- Errores BLL nuevos
     (N'Errores', N'ERR_BUSQUEDA_SIN_CRITERIO',          N'Tildá al menos una marca o un tipo de carrocería que busque el cliente.', N'Check at least one brand or body type the customer is looking for.', N'Wähle mindestens eine Marke oder eine Karosserieform aus, die der Kunde sucht.'),
     (N'Errores', N'ERR_BUSQUEDA_RANGO_ANIOS',           N'El rango de años no es válido (entre {0} y {1}, y el año desde no puede ser mayor al año hasta).', N'The year range is not valid (between {0} and {1}, and the start year cannot be greater than the end year).', N'Der Jahresbereich ist ungültig (zwischen {0} und {1}, und das Startjahr darf nicht größer als das Endjahr sein).'),
+    (N'Errores', N'ERR_CLIENTE_SIN_EMAIL_ENVIO', N'El cliente no tiene un correo electrónico registrado.', N'The customer has no email registered.', N'Der Kunde hat keine E-Mail hinterlegt.'),
+    (N'Errores', N'ERR_ENVIO_PUBLICACION', N'No se pudo enviar el correo: {0}', N'The email could not be sent: {0}', N'Die E-Mail konnte nicht gesendet werden: {0}'),
     (N'Errores', N'ERR_CLIENTE_SIN_EMAIL',              N'El cliente no tiene un correo electrónico registrado. Cargalo en la ficha de la persona o registrá la búsqueda sin avisos.', N'The customer has no email registered. Add it to the person record or register the search without notifications.', N'Der Kunde hat keine E-Mail hinterlegt. Ergänze sie in den Personendaten oder erfasse die Suche ohne Benachrichtigungen.'),
     (N'Errores', N'ERR_AVISOS_YA_SUSPENDIDOS',          N'Los avisos de este cliente ya están suspendidos.', N'This customer''s notifications are already suspended.', N'Die Benachrichtigungen dieses Kunden sind bereits ausgesetzt.'),
     (N'Errores', N'ERR_AVISOS_NO_SUSPENDIDOS',          N'Los avisos de este cliente no están suspendidos.', N'This customer''s notifications are not suspended.',     N'Die Benachrichtigungen dieses Kunden sind nicht ausgesetzt.'),
@@ -5368,7 +5377,11 @@ INSERT INTO SuspensionAvisos (IdPersona, FechaSuspension, IdUsuario, Motivo)
 SELECT pe.Id, DATEADD(DAY, -(pe.Id % 20), GETDATE()), @idVendedorS, N'Pidió no recibir más correos.'
 FROM Persona pe
 WHERE pe.Email LIKE N'cliente%@example.com' AND pe.Id % 23 = 0
-  AND NOT EXISTS (SELECT 1 FROM SuspensionAvisos s WHERE s.IdPersona = pe.Id);
+  AND NOT EXISTS (SELECT 1 FROM SuspensionAvisos s WHERE s.IdPersona = pe.Id)
+  -- Coherencia: la suspensión es posterior a la última entrevista en la que aceptó avisos (manda la última entrevista).
+  AND EXISTS (SELECT 1 FROM BusquedaCliente b WHERE b.IdPersona = pe.Id AND b.AceptaAvisos = 1)
+  AND NOT EXISTS (SELECT 1 FROM BusquedaCliente b WHERE b.IdPersona = pe.Id AND b.AceptaAvisos = 1
+                    AND b.FechaRegistro >= DATEADD(DAY, -(pe.Id % 20), GETDATE()));
 GO
 
 -- ---------------------------------------------------------
@@ -5582,4 +5595,25 @@ GO
 -- (Para volver a direcciones ficticias, comentar este bloque.)
 -- ---------------------------------------------------------
 UPDATE Persona SET Email = N'ghenry320@gmail.com';
+GO
+
+-- ---------------------------------------------------------
+-- Manda la última entrevista: si en la última el cliente no aceptó avisos, sus avisos quedan suspendidos
+-- desde esa fecha (lo mismo que hace RegistrarEntrevista). Va al final para no alterar los avisos ya generados.
+-- ---------------------------------------------------------
+WITH ultima AS (
+    SELECT b.IdPersona, b.IdUsuarioEntrevista, b.FechaRegistro, b.AceptaAvisos,
+           ROW_NUMBER() OVER (PARTITION BY b.IdPersona ORDER BY b.FechaRegistro DESC, b.Id DESC) AS rn
+    FROM BusquedaCliente b
+)
+INSERT INTO SuspensionAvisos (IdPersona, FechaSuspension, IdUsuario, Motivo)
+SELECT u.IdPersona, u.FechaRegistro, u.IdUsuarioEntrevista, N'No aceptó avisos en la última entrevista.'
+FROM ultima u
+WHERE u.rn = 1 AND u.AceptaAvisos = 0
+  AND NOT EXISTS (SELECT 1 FROM SuspensionAvisos s WHERE s.IdPersona = u.IdPersona);
+
+-- Con los avisos suspendidos no se le envía nada más (búsquedas anteriores que sí aceptaban avisos).
+DELETE n FROM NotificacionEnviada n
+INNER JOIN SuspensionAvisos s ON s.IdPersona = n.IdPersona
+WHERE n.FechaEnvio > s.FechaSuspension;
 GO

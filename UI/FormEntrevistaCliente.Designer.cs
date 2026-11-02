@@ -40,6 +40,7 @@ namespace UI
         private System.Windows.Forms.DataGridViewTextBoxColumn colKm;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrecio;
         private System.Windows.Forms.Button btnExportarPdf;
+        private System.Windows.Forms.Button btnEnviarEmail;
 
         protected override void Dispose(bool disposing)
         {
@@ -85,6 +86,7 @@ namespace UI
             this.colKm = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colPrecio = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnExportarPdf = new System.Windows.Forms.Button();
+            this.btnEnviarEmail = new System.Windows.Forms.Button();
             this.grpCliente.SuspendLayout();
             this.grpBusqueda.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvCoincidentes)).BeginInit();
@@ -361,6 +363,13 @@ namespace UI
             this.btnExportarPdf.Text = "Exportar PDF";
             this.btnExportarPdf.Click += new System.EventHandler(this.btnExportarPdf_Click);
             //
+            this.btnEnviarEmail.Location = new System.Drawing.Point(930, 664);
+            this.btnEnviarEmail.Name = "btnEnviarEmail";
+            this.btnEnviarEmail.Size = new System.Drawing.Size(130, 36);
+            this.btnEnviarEmail.TabIndex = 6;
+            this.btnEnviarEmail.Text = "Enviar email";
+            this.btnEnviarEmail.Click += new System.EventHandler(this.btnEnviarEmail_Click);
+            //
             // FormEntrevistaCliente
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -375,6 +384,7 @@ namespace UI
             this.Controls.Add(this.lblUnidadesCoincidentes);
             this.Controls.Add(this.dgvCoincidentes);
             this.Controls.Add(this.btnExportarPdf);
+            this.Controls.Add(this.btnEnviarEmail);
             this.Name = "FormEntrevistaCliente";
             this.Text = "Registrar entrevista";
             this.grpCliente.ResumeLayout(false);
